@@ -44,7 +44,7 @@ test('default faders are master, layers 1-4 and logo (no crossfader)', () => {
   const faders = store.defaults().faders;
   assert.deepEqual(faders.map(f => f.label),
     ['MASTER', 'LAYER 1', 'LAYER 2', 'LAYER 3', 'LAYER 4', 'LOGO']);
-  assert.equal(faders[5].address, '/composition/layers/5/video/opacity');
+  assert.equal(faders[5].address, '/composition/layers/5/master');
   assert.ok(faders.every(f => !f.address.includes('crossfader')));
 });
 

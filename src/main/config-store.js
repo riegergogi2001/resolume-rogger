@@ -34,7 +34,7 @@ function fader(i, over = {}) {
     id: `fader${i + 1}`,
     label: `F${i + 1}`,
     color: ACCENTS.cyan,
-    address: `/composition/layers/${i + 1}/video/opacity`,
+    address: `/composition/layers/${i + 1}/master`,
     min: 0, max: 1, defaultValue: 1,
     invert: false,
     sensitivity: 1,
@@ -70,10 +70,10 @@ function defaults() {
     // fxButtons 0-7 = FLASH bank (momentary hold), 8-15 = BUMP bank (one-shot).
     // gamepadButton defaults: face+shoulder buttons drive flash, D-pad/sticks/menu drive bump.
     fxButtons: [
-      fxButton(0, { label: 'FLASH L1', icon: '⚡', color: ACCENTS.yellow, mode: 'hold', type: 'float', address: '/composition/layers/1/video/opacity', value: 1, releaseValue: 0, gamepadButton: 0 }),
-      fxButton(1, { label: 'FLASH L2', icon: '⚡', color: ACCENTS.yellow, mode: 'hold', type: 'float', address: '/composition/layers/2/video/opacity', value: 1, releaseValue: 0, gamepadButton: 1 }),
-      fxButton(2, { label: 'FLASH L3', icon: '⚡', color: ACCENTS.yellow, mode: 'hold', type: 'float', address: '/composition/layers/3/video/opacity', value: 1, releaseValue: 0, gamepadButton: 2 }),
-      fxButton(3, { label: 'FLASH L4', icon: '⚡', color: ACCENTS.yellow, mode: 'hold', type: 'float', address: '/composition/layers/4/video/opacity', value: 1, releaseValue: 0, gamepadButton: 3 }),
+      fxButton(0, { label: 'FLASH L1', icon: '⚡', color: ACCENTS.yellow, mode: 'hold', type: 'float', address: '/composition/layers/1/master', value: 1, releaseValue: 0, gamepadButton: 0 }),
+      fxButton(1, { label: 'FLASH L2', icon: '⚡', color: ACCENTS.yellow, mode: 'hold', type: 'float', address: '/composition/layers/2/master', value: 1, releaseValue: 0, gamepadButton: 1 }),
+      fxButton(2, { label: 'FLASH L3', icon: '⚡', color: ACCENTS.yellow, mode: 'hold', type: 'float', address: '/composition/layers/3/master', value: 1, releaseValue: 0, gamepadButton: 2 }),
+      fxButton(3, { label: 'FLASH L4', icon: '⚡', color: ACCENTS.yellow, mode: 'hold', type: 'float', address: '/composition/layers/4/master', value: 1, releaseValue: 0, gamepadButton: 3 }),
       fxButton(4, { label: 'SOLO L1', icon: '◉', color: ACCENTS.purple, mode: 'hold', address: '/composition/layers/1/solo', value: 1, releaseValue: 0, gamepadButton: 4 }),
       fxButton(5, { label: 'SOLO L2', icon: '◉', color: ACCENTS.purple, mode: 'hold', address: '/composition/layers/2/solo', value: 1, releaseValue: 0, gamepadButton: 5 }),
       fxButton(6, { label: 'SOLO L3', icon: '◉', color: ACCENTS.purple, mode: 'hold', address: '/composition/layers/3/solo', value: 1, releaseValue: 0, gamepadButton: 6 }),
@@ -89,11 +89,11 @@ function defaults() {
     ],
     faders: [
       fader(0, { label: 'MASTER', color: ACCENTS.green, address: '/composition/master' }),
-      fader(1, { label: 'LAYER 1', address: '/composition/layers/1/video/opacity' }),
-      fader(2, { label: 'LAYER 2', address: '/composition/layers/2/video/opacity' }),
-      fader(3, { label: 'LAYER 3', address: '/composition/layers/3/video/opacity' }),
-      fader(4, { label: 'LAYER 4', address: '/composition/layers/4/video/opacity' }),
-      fader(5, { label: 'LOGO', color: ACCENTS.white, address: '/composition/layers/5/video/opacity' }),
+      fader(1, { label: 'LAYER 1', address: '/composition/layers/1/master' }),
+      fader(2, { label: 'LAYER 2', address: '/composition/layers/2/master' }),
+      fader(3, { label: 'LAYER 3', address: '/composition/layers/3/master' }),
+      fader(4, { label: 'LAYER 4', address: '/composition/layers/4/master' }),
+      fader(5, { label: 'LOGO', color: ACCENTS.white, address: '/composition/layers/5/master' }),
     ],
     colorButtons: Array.from({ length: 10 }, (_, i) => colorButton(i)),
   };
