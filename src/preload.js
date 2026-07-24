@@ -11,6 +11,7 @@ contextBridge.exposeInMainWorld('rogger', {
   platform: 'electron',
   getConfig: () => ipcRenderer.invoke('config:get'),
   saveConfig: cfg => ipcRenderer.invoke('config:save', cfg),
+  resetConfig: () => ipcRenderer.invoke('config:reset'),
   send: (address, values) => ipcRenderer.send('osc:send', address, values),
   sendTyped: (address, args) => ipcRenderer.send('osc:send-typed', address, args),
   getStatus: () => ipcRenderer.invoke('osc:status:get'),

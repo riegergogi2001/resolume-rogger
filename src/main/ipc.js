@@ -1,8 +1,17 @@
 'use strict';
 // Wires renderer IPC to the OSC engine and config store.
+const fs = require('node:fs');
 
-function registerIpc({ ipcMain, engine, store, configPath, getWindow }) {
+function registerIpc({ ipcMain, engine, store, configPath, seedPath, getWindow }) {
   let config = store.load(configPath);
+
+  ipcMain.handle('config:reset', async () => {
+    config = (seedPath && fs.existsSync(seedPath)) ? store.load(seedPath) : store.defaults();
+    store.save(configPath, config);
+    engine.configure(config.network);
+    if (config.network.autoConnect) await engine.open();
+    return config;
+  });
 
   ipcMain.handle('config:get', () => config);
   ipcMain.handle('config:save', (_e, next) => {

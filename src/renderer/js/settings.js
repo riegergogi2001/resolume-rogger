@@ -29,6 +29,7 @@ export function openSettings() {
           <div class="check-row"><span>Dark theme</span><button class="toggle on" id="set-theme" disabled></button></div>
           <div class="row"><button class="big-btn" id="set-test">Test connection</button></div>
           <div class="test-result" id="set-test-result"></div>
+          <div class="row"><button class="big-btn danger" id="set-reset">Reload default mapping</button></div>
         </div>
         <div class="panel-foot">
           <button class="big-btn" id="set-close">Close</button>
@@ -60,6 +61,13 @@ export function openSettings() {
     const { ok, detail } = await rogger.testConnection();
     res.textContent = detail;
     res.className = 'test-result ' + (ok ? 'ok' : 'fail');
+  });
+
+  q('#set-reset').addEventListener('pointerdown', async () => {
+    const cfg = await rogger.resetConfig();
+    state.setAll(cfg);
+    showToast('Default mapping restored');
+    overlay.remove();
   });
 
   q('#set-save').addEventListener('pointerdown', async () => {

@@ -46,7 +46,7 @@ app.whenReady().then(() => {
   if (app.isPackaged && !fs.existsSync(configPath) && fs.existsSync(seedPath)) {
     store.save(configPath, store.load(seedPath));
   }
-  const api = registerIpc({ ipcMain, engine, store, configPath, getWindow: () => win });
+  const api = registerIpc({ ipcMain, engine, store, configPath, seedPath, getWindow: () => win });
   const cfg = api.getConfig();
   engine.configure(cfg.network);
   if (cfg.network.autoConnect) engine.open();

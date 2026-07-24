@@ -21,8 +21,8 @@
       "address": "/composition/layers/12/clips/2/connect",
       "value": 1,
       "offValue": 0,
-      "releaseValue": 1,
-      "releaseAddress": "/composition/layers/12/clear",
+      "releaseValue": 0,
+      "releaseAddress": "",
       "repeat": {
         "enabled": false,
         "intervalMs": 250
@@ -40,8 +40,8 @@
       "address": "/composition/layers/12/clips/3/connect",
       "value": 1,
       "offValue": 0,
-      "releaseValue": 1,
-      "releaseAddress": "/composition/layers/12/clear",
+      "releaseValue": 0,
+      "releaseAddress": "",
       "repeat": {
         "enabled": false,
         "intervalMs": 250
@@ -59,8 +59,8 @@
       "address": "/composition/layers/12/clips/4/connect",
       "value": 1,
       "offValue": 0,
-      "releaseValue": 1,
-      "releaseAddress": "/composition/layers/12/clear",
+      "releaseValue": 0,
+      "releaseAddress": "",
       "repeat": {
         "enabled": false,
         "intervalMs": 250
@@ -78,8 +78,8 @@
       "address": "/composition/layers/12/clips/5/connect",
       "value": 1,
       "offValue": 0,
-      "releaseValue": 1,
-      "releaseAddress": "/composition/layers/12/clear",
+      "releaseValue": 0,
+      "releaseAddress": "",
       "repeat": {
         "enabled": false,
         "intervalMs": 250
@@ -97,8 +97,8 @@
       "address": "/composition/layers/12/clips/6/connect",
       "value": 1,
       "offValue": 0,
-      "releaseValue": 1,
-      "releaseAddress": "/composition/layers/12/clear",
+      "releaseValue": 0,
+      "releaseAddress": "",
       "repeat": {
         "enabled": false,
         "intervalMs": 250
@@ -116,8 +116,8 @@
       "address": "/composition/layers/12/clips/7/connect",
       "value": 1,
       "offValue": 0,
-      "releaseValue": 1,
-      "releaseAddress": "/composition/layers/12/clear",
+      "releaseValue": 0,
+      "releaseAddress": "",
       "repeat": {
         "enabled": false,
         "intervalMs": 250
@@ -135,8 +135,8 @@
       "address": "/composition/layers/12/clips/8/connect",
       "value": 1,
       "offValue": 0,
-      "releaseValue": 1,
-      "releaseAddress": "/composition/layers/12/clear",
+      "releaseValue": 0,
+      "releaseAddress": "",
       "repeat": {
         "enabled": false,
         "intervalMs": 250
@@ -154,8 +154,8 @@
       "address": "/composition/layers/12/clips/9/connect",
       "value": 1,
       "offValue": 0,
-      "releaseValue": 1,
-      "releaseAddress": "/composition/layers/12/clear",
+      "releaseValue": 0,
+      "releaseAddress": "",
       "repeat": {
         "enabled": false,
         "intervalMs": 250
@@ -168,7 +168,7 @@
       "label": "BOOM BLUR",
       "icon": "☄",
       "color": "#00e0ff",
-      "mode": "tap",
+      "mode": "hold",
       "type": "int",
       "address": "/composition/video/effects/boomer/effect/blur",
       "value": 1,
@@ -187,7 +187,7 @@
       "label": "BOOM EXPO",
       "icon": "☄",
       "color": "#ffd93d",
-      "mode": "tap",
+      "mode": "hold",
       "type": "int",
       "address": "/composition/video/effects/boomer/effect/exposure",
       "value": 1,
@@ -206,7 +206,7 @@
       "label": "BOOM EDGE",
       "icon": "☄",
       "color": "#2ee66b",
-      "mode": "tap",
+      "mode": "hold",
       "type": "int",
       "address": "/composition/video/effects/boomer/effect/edge",
       "value": 1,
@@ -225,7 +225,7 @@
       "label": "BOOM BLOW",
       "icon": "☄",
       "color": "#ff7a1a",
-      "mode": "tap",
+      "mode": "hold",
       "type": "int",
       "address": "/composition/video/effects/boomer/effect/blow",
       "value": 1,
@@ -244,7 +244,7 @@
       "label": "PUSH WHT",
       "icon": "☄",
       "color": "#eaeef5",
-      "mode": "tap",
+      "mode": "hold",
       "type": "int",
       "address": "/composition/video/effects/pusher/effect/push",
       "value": 1,
@@ -263,7 +263,7 @@
       "label": "PUSH BLK",
       "icon": "☄",
       "color": "#8e9299",
-      "mode": "tap",
+      "mode": "hold",
       "type": "int",
       "address": "/composition/video/effects/pusher2/effect/push",
       "value": 1,
@@ -282,8 +282,8 @@
       "label": "TAP",
       "icon": "⏱",
       "color": "#ffb400",
-      "mode": "tap",
-      "type": "command",
+      "mode": "hold",
+      "type": "int",
       "address": "/composition/tempocontroller/tempotap",
       "value": 1,
       "offValue": 0,
@@ -301,8 +301,8 @@
       "label": "RESYNC",
       "icon": "↻",
       "color": "#ffb400",
-      "mode": "tap",
-      "type": "command",
+      "mode": "hold",
+      "type": "int",
       "address": "/composition/tempocontroller/resync",
       "value": 1,
       "offValue": 0,
