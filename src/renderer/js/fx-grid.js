@@ -11,12 +11,12 @@ function typedArgs(type, value) {
   return [{ type: 'i', value: Math.trunc(Number(value)) }];
 }
 
-function fire(btn, value) {
+function fire(btn, value, address = btn.address) {
   if (btn.macro && btn.macro.length) {
     for (const step of btn.macro) rogger.send(step.address, step.values ?? []);
     return;
   }
-  rogger.sendTyped(btn.address, typedArgs(btn.type, value));
+  rogger.sendTyped(address, typedArgs(btn.type, value));
 }
 
 // Per-button {press, release} handles so the gamepad drives the exact same
@@ -96,7 +96,7 @@ export function renderFxGrid(el, { isEditMode, onEdit }) {
       if (holdActive) {
         holdActive = false;
         const c = cfg();
-        fire(c, c.releaseValue);
+        fire(c, c.releaseValue, c.releaseAddress || c.address);
       }
     }
 

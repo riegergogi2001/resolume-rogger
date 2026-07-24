@@ -225,6 +225,11 @@ export function openEditor(kind, index) {
       }
       body.append(vals);
     }
+    if (draft.mode === 'hold') {
+      const rel = textInput(draft.releaseAddress ?? '', v => { draft.releaseAddress = v.trim(); });
+      rel.placeholder = 'same as OSC address';
+      body.append(field('Release address (optional)', rel));
+    }
     // controller binding (ROG Ally X gamepad)
     const padWrap = h('div', 'field');
     padWrap.append(h('label', null, 'Controller button'));

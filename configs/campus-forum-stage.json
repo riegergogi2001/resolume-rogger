@@ -1,0 +1,479 @@
+{
+  "version": 1,
+  "network": {
+    "targetIp": "192.168.192.64",
+    "targetPort": 7432,
+    "listenPort": 7001,
+    "autoConnect": true,
+    "autoReconnect": true
+  },
+  "ui": {
+    "theme": "dark"
+  },
+  "fxButtons": [
+    {
+      "id": "fx1",
+      "label": "GENERA",
+      "icon": "⚡",
+      "color": "#2ee66b",
+      "mode": "hold",
+      "type": "int",
+      "address": "/composition/layers/12/clips/2/connect",
+      "value": 1,
+      "offValue": 0,
+      "releaseValue": 1,
+      "releaseAddress": "/composition/layers/12/clear",
+      "repeat": {
+        "enabled": false,
+        "intervalMs": 250
+      },
+      "macro": [],
+      "gamepadButton": 0
+    },
+    {
+      "id": "fx2",
+      "label": "FLASH M",
+      "icon": "⚡",
+      "color": "#ffd93d",
+      "mode": "hold",
+      "type": "int",
+      "address": "/composition/layers/12/clips/3/connect",
+      "value": 1,
+      "offValue": 0,
+      "releaseValue": 1,
+      "releaseAddress": "/composition/layers/12/clear",
+      "repeat": {
+        "enabled": false,
+        "intervalMs": 250
+      },
+      "macro": [],
+      "gamepadButton": 1
+    },
+    {
+      "id": "fx3",
+      "label": "FLASH M2",
+      "icon": "⚡",
+      "color": "#ffd93d",
+      "mode": "hold",
+      "type": "int",
+      "address": "/composition/layers/12/clips/4/connect",
+      "value": 1,
+      "offValue": 0,
+      "releaseValue": 1,
+      "releaseAddress": "/composition/layers/12/clear",
+      "repeat": {
+        "enabled": false,
+        "intervalMs": 250
+      },
+      "macro": [],
+      "gamepadButton": 2
+    },
+    {
+      "id": "fx4",
+      "label": "INVERT",
+      "icon": "⚡",
+      "color": "#ff4757",
+      "mode": "hold",
+      "type": "int",
+      "address": "/composition/layers/12/clips/5/connect",
+      "value": 1,
+      "offValue": 0,
+      "releaseValue": 1,
+      "releaseAddress": "/composition/layers/12/clear",
+      "repeat": {
+        "enabled": false,
+        "intervalMs": 250
+      },
+      "macro": [],
+      "gamepadButton": 3
+    },
+    {
+      "id": "fx5",
+      "label": "PIXELATE",
+      "icon": "⚡",
+      "color": "#00e0ff",
+      "mode": "hold",
+      "type": "int",
+      "address": "/composition/layers/12/clips/6/connect",
+      "value": 1,
+      "offValue": 0,
+      "releaseValue": 1,
+      "releaseAddress": "/composition/layers/12/clear",
+      "repeat": {
+        "enabled": false,
+        "intervalMs": 250
+      },
+      "macro": [],
+      "gamepadButton": 4
+    },
+    {
+      "id": "fx6",
+      "label": "FE STR",
+      "icon": "⚡",
+      "color": "#ff7a1a",
+      "mode": "hold",
+      "type": "int",
+      "address": "/composition/layers/12/clips/7/connect",
+      "value": 1,
+      "offValue": 0,
+      "releaseValue": 1,
+      "releaseAddress": "/composition/layers/12/clear",
+      "repeat": {
+        "enabled": false,
+        "intervalMs": 250
+      },
+      "macro": [],
+      "gamepadButton": 5
+    },
+    {
+      "id": "fx7",
+      "label": "SUCK IT!",
+      "icon": "⚡",
+      "color": "#ff3df0",
+      "mode": "hold",
+      "type": "int",
+      "address": "/composition/layers/12/clips/8/connect",
+      "value": 1,
+      "offValue": 0,
+      "releaseValue": 1,
+      "releaseAddress": "/composition/layers/12/clear",
+      "repeat": {
+        "enabled": false,
+        "intervalMs": 250
+      },
+      "macro": [],
+      "gamepadButton": 6
+    },
+    {
+      "id": "fx8",
+      "label": "SLICE STR",
+      "icon": "⚡",
+      "color": "#b46bff",
+      "mode": "hold",
+      "type": "int",
+      "address": "/composition/layers/12/clips/9/connect",
+      "value": 1,
+      "offValue": 0,
+      "releaseValue": 1,
+      "releaseAddress": "/composition/layers/12/clear",
+      "repeat": {
+        "enabled": false,
+        "intervalMs": 250
+      },
+      "macro": [],
+      "gamepadButton": 7
+    },
+    {
+      "id": "fx9",
+      "label": "COL 1",
+      "icon": "▶",
+      "color": "#00e0ff",
+      "mode": "tap",
+      "type": "int",
+      "address": "/composition/columns/1/connect",
+      "value": 1,
+      "offValue": 0,
+      "releaseValue": 0,
+      "releaseAddress": "",
+      "repeat": {
+        "enabled": false,
+        "intervalMs": 250
+      },
+      "macro": [],
+      "gamepadButton": 12
+    },
+    {
+      "id": "fx10",
+      "label": "COL 2",
+      "icon": "▶",
+      "color": "#00e0ff",
+      "mode": "tap",
+      "type": "int",
+      "address": "/composition/columns/2/connect",
+      "value": 1,
+      "offValue": 0,
+      "releaseValue": 0,
+      "releaseAddress": "",
+      "repeat": {
+        "enabled": false,
+        "intervalMs": 250
+      },
+      "macro": [],
+      "gamepadButton": 13
+    },
+    {
+      "id": "fx11",
+      "label": "COL 3",
+      "icon": "▶",
+      "color": "#00e0ff",
+      "mode": "tap",
+      "type": "int",
+      "address": "/composition/columns/3/connect",
+      "value": 1,
+      "offValue": 0,
+      "releaseValue": 0,
+      "releaseAddress": "",
+      "repeat": {
+        "enabled": false,
+        "intervalMs": 250
+      },
+      "macro": [],
+      "gamepadButton": 14
+    },
+    {
+      "id": "fx12",
+      "label": "COL 4",
+      "icon": "▶",
+      "color": "#00e0ff",
+      "mode": "tap",
+      "type": "int",
+      "address": "/composition/columns/4/connect",
+      "value": 1,
+      "offValue": 0,
+      "releaseValue": 0,
+      "releaseAddress": "",
+      "repeat": {
+        "enabled": false,
+        "intervalMs": 250
+      },
+      "macro": [],
+      "gamepadButton": 15
+    },
+    {
+      "id": "fx13",
+      "label": "COL 5",
+      "icon": "▶",
+      "color": "#00e0ff",
+      "mode": "tap",
+      "type": "int",
+      "address": "/composition/columns/5/connect",
+      "value": 1,
+      "offValue": 0,
+      "releaseValue": 0,
+      "releaseAddress": "",
+      "repeat": {
+        "enabled": false,
+        "intervalMs": 250
+      },
+      "macro": [],
+      "gamepadButton": 10
+    },
+    {
+      "id": "fx14",
+      "label": "COL 6",
+      "icon": "▶",
+      "color": "#00e0ff",
+      "mode": "tap",
+      "type": "int",
+      "address": "/composition/columns/6/connect",
+      "value": 1,
+      "offValue": 0,
+      "releaseValue": 0,
+      "releaseAddress": "",
+      "repeat": {
+        "enabled": false,
+        "intervalMs": 250
+      },
+      "macro": [],
+      "gamepadButton": 11
+    },
+    {
+      "id": "fx15",
+      "label": "TAP",
+      "icon": "⏱",
+      "color": "#ffb400",
+      "mode": "tap",
+      "type": "command",
+      "address": "/composition/tempocontroller/tempotap",
+      "value": 1,
+      "offValue": 0,
+      "releaseValue": 0,
+      "releaseAddress": "",
+      "repeat": {
+        "enabled": false,
+        "intervalMs": 250
+      },
+      "macro": [],
+      "gamepadButton": 8
+    },
+    {
+      "id": "fx16",
+      "label": "RESYNC",
+      "icon": "↻",
+      "color": "#ffb400",
+      "mode": "tap",
+      "type": "command",
+      "address": "/composition/tempocontroller/resync",
+      "value": 1,
+      "offValue": 0,
+      "releaseValue": 0,
+      "releaseAddress": "",
+      "repeat": {
+        "enabled": false,
+        "intervalMs": 250
+      },
+      "macro": [],
+      "gamepadButton": 9
+    }
+  ],
+  "faders": [
+    {
+      "id": "fader1",
+      "label": "MASTER",
+      "color": "#2ee66b",
+      "address": "/composition/master",
+      "min": 0,
+      "max": 1,
+      "defaultValue": 1,
+      "invert": false,
+      "sensitivity": 1
+    },
+    {
+      "id": "fader2",
+      "label": "VIDEO 1",
+      "color": "#00e0ff",
+      "address": "/composition/layers/1/video/opacity",
+      "min": 0,
+      "max": 1,
+      "defaultValue": 1,
+      "invert": false,
+      "sensitivity": 1
+    },
+    {
+      "id": "fader3",
+      "label": "VIDEO 2",
+      "color": "#00e0ff",
+      "address": "/composition/layers/2/video/opacity",
+      "min": 0,
+      "max": 1,
+      "defaultValue": 1,
+      "invert": false,
+      "sensitivity": 1
+    },
+    {
+      "id": "fader4",
+      "label": "VIDEO 3",
+      "color": "#00e0ff",
+      "address": "/composition/layers/3/video/opacity",
+      "min": 0,
+      "max": 1,
+      "defaultValue": 1,
+      "invert": false,
+      "sensitivity": 1
+    },
+    {
+      "id": "fader5",
+      "label": "VIDEO 4",
+      "color": "#00e0ff",
+      "address": "/composition/layers/4/video/opacity",
+      "min": 0,
+      "max": 1,
+      "defaultValue": 1,
+      "invert": false,
+      "sensitivity": 1
+    },
+    {
+      "id": "fader6",
+      "label": "LOGO",
+      "color": "#eaeef5",
+      "address": "/composition/layers/9/video/opacity",
+      "min": 0,
+      "max": 1,
+      "defaultValue": 1,
+      "invert": false,
+      "sensitivity": 1
+    }
+  ],
+  "colorButtons": [
+    {
+      "id": "color1",
+      "label": "HAMVAI",
+      "color": "#ff3b30",
+      "address": "/composition/layers/8/clips/2/connect",
+      "args": [
+        1
+      ]
+    },
+    {
+      "id": "color2",
+      "label": "BRICKLAKE",
+      "color": "#ff7a1a",
+      "address": "/composition/layers/8/clips/3/connect",
+      "args": [
+        1
+      ]
+    },
+    {
+      "id": "color3",
+      "label": "KOLLAR",
+      "color": "#ffd93d",
+      "address": "/composition/layers/8/clips/4/connect",
+      "args": [
+        1
+      ]
+    },
+    {
+      "id": "color4",
+      "label": "COOKY",
+      "color": "#2ee66b",
+      "address": "/composition/layers/8/clips/5/connect",
+      "args": [
+        1
+      ]
+    },
+    {
+      "id": "color5",
+      "label": "YAMINA",
+      "color": "#00e0ff",
+      "address": "/composition/layers/8/clips/6/connect",
+      "args": [
+        1
+      ]
+    },
+    {
+      "id": "color6",
+      "label": "ANTONYO",
+      "color": "#3aa0ff",
+      "address": "/composition/layers/8/clips/7/connect",
+      "args": [
+        1
+      ]
+    },
+    {
+      "id": "color7",
+      "label": "PUREBEAT",
+      "color": "#b46bff",
+      "address": "/composition/layers/8/clips/8/connect",
+      "args": [
+        1
+      ]
+    },
+    {
+      "id": "color8",
+      "label": "REGAN LILI",
+      "color": "#ff3df0",
+      "address": "/composition/layers/8/clips/9/connect",
+      "args": [
+        1
+      ]
+    },
+    {
+      "id": "color9",
+      "label": "CHRSTPHR",
+      "color": "#eaeef5",
+      "address": "/composition/layers/8/clips/10/connect",
+      "args": [
+        1
+      ]
+    },
+    {
+      "id": "color10",
+      "label": "JOER JR",
+      "color": "#8e9299",
+      "address": "/composition/layers/8/clips/11/connect",
+      "args": [
+        1
+      ]
+    }
+  ]
+}
