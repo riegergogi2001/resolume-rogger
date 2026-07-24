@@ -48,10 +48,10 @@ test('default faders are master, layers 1-4 and logo (no crossfader)', () => {
   assert.ok(faders.every(f => !f.address.includes('crossfader')));
 });
 
-test('default bump bank ends with tap tempo and resync', () => {
+test('default bump bank is columns 1-8 (tempo lives in the topbar)', () => {
   const fx = store.defaults().fxButtons;
-  assert.equal(fx[14].address, '/composition/tempocontroller/tempotap');
-  assert.equal(fx[15].address, '/composition/tempocontroller/resync');
+  assert.equal(fx[14].address, '/composition/columns/7/connect');
+  assert.equal(fx[15].address, '/composition/columns/8/connect');
 });
 
 test('defaults() returns fresh objects each call', () => {

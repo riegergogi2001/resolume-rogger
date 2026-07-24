@@ -19,6 +19,24 @@ export function renderTopbar(el, { onToggleEdit, onOpenSettings }) {
   pill.dataset.status = 'offline';
   pill.innerHTML = '<span class="dot"></span><span class="status-text">OFFLINE</span>';
 
+  // dedicated tempo controls — always one touch away
+  function tempoButton(id, label, address) {
+    const btn = document.createElement('button');
+    btn.className = 'topbar-btn u-caps';
+    btn.id = id;
+    btn.textContent = label;
+    btn.addEventListener('pointerdown', e => {
+      btn.setPointerCapture(e.pointerId);
+      rogger.sendTyped(address, [{ type: 'i', value: 1 }]);
+    });
+    const up = () => rogger.sendTyped(address, [{ type: 'i', value: 0 }]);
+    btn.addEventListener('pointerup', up);
+    btn.addEventListener('pointercancel', up);
+    return btn;
+  }
+  const tap = tempoButton('tap-tempo', 'Tap', '/composition/tempocontroller/tempotap');
+  const resync = tempoButton('tap-resync', 'Resync', '/composition/tempocontroller/resync');
+
   const edit = document.createElement('button');
   edit.className = 'topbar-btn u-caps';
   edit.id = 'edit-toggle';
@@ -35,7 +53,7 @@ export function renderTopbar(el, { onToggleEdit, onOpenSettings }) {
   gear.textContent = '⚙';
   gear.addEventListener('pointerdown', onOpenSettings);
 
-  el.append(mark, target, spacer, pill, edit, gear);
+  el.append(mark, target, spacer, tap, resync, pill, edit, gear);
 
   function refreshTarget() {
     const n = state.get().network;
