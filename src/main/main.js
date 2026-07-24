@@ -1,0 +1,52 @@
+'use strict';
+const { app, BrowserWindow, ipcMain } = require('electron');
+const path = require('node:path');
+const { OscEngine } = require('./osc-engine.js');
+const store = require('./config-store.js');
+const { registerIpc } = require('./ipc.js');
+
+const configPath = app.isPackaged
+  ? path.join(app.getPath('userData'), 'config.json')
+  : path.join(__dirname, '..', '..', 'config.dev.json');
+
+const engine = new OscEngine();
+let win = null;
+
+function createWindow() {
+  win = new BrowserWindow({
+    width: 1280,
+    height: 800,
+    minWidth: 1024,
+    minHeight: 640,
+    backgroundColor: '#0a0b0d',
+    // Kiosk-style on the Ally X; windowed during development.
+    fullscreen: app.isPackaged && process.platform === 'win32',
+    autoHideMenuBar: true,
+    webPreferences: {
+      preload: path.join(__dirname, '..', 'preload.js'),
+      contextIsolation: true,
+      nodeIntegration: false,
+    },
+  });
+  win.loadFile(path.join(__dirname, '..', 'renderer', 'index.html'));
+  win.webContents.once('did-finish-load', () => {
+    if (process.env.ROGGER_SMOKE) {
+      console.log('SMOKE_OK');
+      app.quit();
+    }
+  });
+  win.on('closed', () => { win = null; });
+}
+
+app.whenReady().then(() => {
+  const api = registerIpc({ ipcMain, engine, store, configPath, getWindow: () => win });
+  const cfg = api.getConfig();
+  engine.configure(cfg.network);
+  if (cfg.network.autoConnect) engine.open();
+  createWindow();
+});
+
+app.on('window-all-closed', () => {
+  engine.close();
+  app.quit();
+});

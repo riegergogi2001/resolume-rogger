@@ -1,0 +1,48 @@
+/* ROGGER theme — grandMA3 / Luminex-inspired dark console look. */
+:root {
+  --bg: #0a0b0d;
+  --panel: #131519;
+  --panel-2: #1a1d22;
+  --panel-3: #22262c;
+  --line: #23262c;
+  --line-bright: #3a3f47;
+  --text: #eaeef5;
+  --text-dim: #8e9299;
+  --accent: #00e0ff;
+  --ok: #2ee66b;
+  --warn: #ffb400;
+  --err: #ff4757;
+  --radius: 10px;
+  --press-ease: 90ms cubic-bezier(0.2, 0, 0, 1);
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+html, body {
+  height: 100%;
+  overflow: hidden;
+  background: var(--bg);
+  color: var(--text);
+  font-family: "Inter", "Segoe UI", system-ui, -apple-system, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  user-select: none;
+  -webkit-user-select: none;
+  touch-action: none;
+}
+
+button, input {
+  font-family: inherit;
+  color: inherit;
+  background: none;
+  border: none;
+  outline: none;
+}
+
+.u-caps {
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.u-num {
+  font-variant-numeric: tabular-nums;
+}
