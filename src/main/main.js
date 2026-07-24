@@ -1,5 +1,6 @@
 'use strict';
 const { app, BrowserWindow, ipcMain } = require('electron');
+const fs = require('node:fs');
 const path = require('node:path');
 const { OscEngine } = require('./osc-engine.js');
 const store = require('./config-store.js');
@@ -39,6 +40,12 @@ function createWindow() {
 }
 
 app.whenReady().then(() => {
+  // First launch: seed the user config from the bundled show config, so the
+  // packaged exe carries its addresses without any manual file copying.
+  const seedPath = path.join(app.getAppPath(), 'configs', 'campus-forum-stage.json');
+  if (app.isPackaged && !fs.existsSync(configPath) && fs.existsSync(seedPath)) {
+    store.save(configPath, store.load(seedPath));
+  }
   const api = registerIpc({ ipcMain, engine, store, configPath, getWindow: () => win });
   const cfg = api.getConfig();
   engine.configure(cfg.network);
