@@ -51,6 +51,7 @@ function colorButton(i, over = {}) {
     color: swatches[i % swatches.length],
     address: `/composition/layers/5/clips/${i + 1}/connect`,
     args: [1],
+    macro: [],              // [{address, values:[...]}] — sent in order instead of single message
     ...over,
   };
 }
@@ -83,8 +84,8 @@ function defaults() {
       fxButton(11, { label: 'COL 4', icon: '▶', gamepadButton: 15, address: '/composition/columns/4/connect' }),
       fxButton(12, { label: 'COL 5', icon: '▶', gamepadButton: 10, address: '/composition/columns/5/connect' }),
       fxButton(13, { label: 'COL 6', icon: '▶', gamepadButton: 11, address: '/composition/columns/6/connect' }),
-      fxButton(14, { label: 'TAP', icon: '⏱', color: ACCENTS.amber, type: 'command', address: '/composition/tempocontroller/tempotap', gamepadButton: 8 }),
-      fxButton(15, { label: 'RESYNC', icon: '↻', color: ACCENTS.amber, type: 'command', address: '/composition/tempocontroller/resync', gamepadButton: 9 }),
+      fxButton(14, { label: 'COL 7', icon: '▶', gamepadButton: 8, address: '/composition/columns/7/connect' }),
+      fxButton(15, { label: 'COL 8', icon: '▶', gamepadButton: 9, address: '/composition/columns/8/connect' }),
     ],
     faders: [
       fader(0, { label: 'MASTER', color: ACCENTS.green, address: '/composition/master' }),

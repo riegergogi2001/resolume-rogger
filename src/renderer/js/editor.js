@@ -87,6 +87,34 @@ function parseCsvValues(text) {
     .map(s => (Number.isNaN(Number(s)) ? s : Number(s)));
 }
 
+function macroSection(body, draft) {
+  body.append(h('div', 'lib-group-title u-caps', 'Macro (overrides single message)'));
+  const macroBox = h('div');
+  body.appendChild(macroBox);
+  function renderMacro() {
+    macroBox.replaceChildren();
+    (draft.macro ?? []).forEach((step, mi) => {
+      const row = h('div', 'macro-row');
+      const addr = textInput(step.address, v => { step.address = v; });
+      addr.placeholder = '/address';
+      const vals = textInput((step.values ?? []).join(', '), v => { step.values = parseCsvValues(v); });
+      vals.placeholder = 'values, comma separated';
+      const del = h('button', 'macro-del', '✕');
+      del.addEventListener('pointerdown', () => { draft.macro.splice(mi, 1); renderMacro(); });
+      row.append(addr, vals, del);
+      macroBox.appendChild(row);
+    });
+    const add = h('button', 'big-btn u-caps', '+ Add macro step');
+    add.addEventListener('pointerdown', () => {
+      draft.macro = draft.macro ?? [];
+      draft.macro.push({ address: '/', values: [1] });
+      renderMacro();
+    });
+    macroBox.appendChild(add);
+  }
+  renderMacro();
+}
+
 export function openEditor(kind, index) {
   const root = document.getElementById('overlay-root');
   if (root.querySelector('.overlay')) return;
@@ -271,31 +299,7 @@ export function openEditor(kind, index) {
     body.append(field('Repeat interval (ms)',
       numInput(draft.repeat?.intervalMs ?? 250, v => { draft.repeat = { ...draft.repeat, intervalMs: v }; }, '1')));
 
-    body.append(h('div', 'lib-group-title u-caps', 'Macro (overrides single message)'));
-    const macroBox = h('div');
-    body.appendChild(macroBox);
-    function renderMacro() {
-      macroBox.replaceChildren();
-      (draft.macro ?? []).forEach((step, mi) => {
-        const row = h('div', 'macro-row');
-        const addr = textInput(step.address, v => { step.address = v; });
-        addr.placeholder = '/address';
-        const vals = textInput((step.values ?? []).join(', '), v => { step.values = parseCsvValues(v); });
-        vals.placeholder = 'values, comma separated';
-        const del = h('button', 'macro-del', '✕');
-        del.addEventListener('pointerdown', () => { draft.macro.splice(mi, 1); renderMacro(); });
-        row.append(addr, vals, del);
-        macroBox.appendChild(row);
-      });
-      const add = h('button', 'big-btn u-caps', '+ Add macro step');
-      add.addEventListener('pointerdown', () => {
-        draft.macro = draft.macro ?? [];
-        draft.macro.push({ address: '/', values: [1] });
-        renderMacro();
-      });
-      macroBox.appendChild(add);
-    }
-    renderMacro();
+    macroSection(body, draft);
   }
 
   function faderForm() {
@@ -325,6 +329,7 @@ export function openEditor(kind, index) {
     }));
     body.append(field('Arguments (comma separated)',
       textInput((draft.args ?? []).join(', '), v => { draft.args = parseCsvValues(v); })));
+    macroSection(body, draft);
   }
 
   function buildBody() {
