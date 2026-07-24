@@ -31,6 +31,7 @@ function mockBridge() {
     platform: 'mock',
     getConfig: loadConfig,
     saveConfig: async cfg => { config = cfg; window.__savedConfig = cfg; },
+    resetConfig: async () => { config = null; window.__savedConfig = null; return loadConfig(); },
     send: (address, values = []) => window.__oscLog.push({ address, values }),
     sendTyped: (address, args = []) => window.__oscLog.push({ address, args }),
     applyNetwork: async network => { window.__oscLog.push({ applyNetwork: network }); },

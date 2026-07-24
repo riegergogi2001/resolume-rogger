@@ -40,3 +40,9 @@ export function updateNetwork(patch) {
   notify();
   persist();
 }
+
+// Replace the whole config (already persisted by the main process).
+export function setAll(next) {
+  config = next;
+  notify();
+}
