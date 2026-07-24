@@ -1,0 +1,17 @@
+{
+  "name": "rogger",
+  "productName": "ROGGER",
+  "version": "1.0.0",
+  "description": "Touchscreen OSC performance controller for Resolume and OSC-compatible software — optimized for ASUS ROG Ally X.",
+  "main": "src/main/main.js",
+  "private": true,
+  "scripts": {
+    "start": "electron .",
+    "test": "node --test test/",
+    "dist:win": "electron-builder --win --x64"
+  },
+  "devDependencies": {
+    "electron": "^43.2.0",
+    "electron-builder": "^26.15.3"
+  }
+}

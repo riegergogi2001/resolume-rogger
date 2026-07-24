@@ -1,0 +1,7 @@
+node_modules/
+dist/
+config.dev.json
+.idea/
+*.log
+test-artifacts/
+.DS_Store
