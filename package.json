@@ -10,6 +10,24 @@
     "test": "node --test \"test/*.test.js\"",
     "dist:win": "electron-builder --win --x64"
   },
+  "build": {
+    "appId": "hu.rogger.controller",
+    "productName": "ROGGER",
+    "files": [
+      "src/**/*"
+    ],
+    "win": {
+      "target": [
+        "portable"
+      ]
+    },
+    "portable": {
+      "artifactName": "ROGGER-${version}.exe"
+    },
+    "directories": {
+      "output": "dist"
+    }
+  },
   "devDependencies": {
     "electron": "^43.2.0",
     "electron-builder": "^26.15.3"
