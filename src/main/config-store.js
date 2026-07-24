@@ -21,6 +21,7 @@ function fxButton(i, over = {}) {
     value: 1,
     offValue: 0,            // toggle off
     releaseValue: 0,        // hold release
+    releaseAddress: '',     // hold release target; empty = same as address
     repeat: { enabled: false, intervalMs: 250 },
     macro: [],              // [{address, values:[...]}] — sent in order instead of single message
     gamepadButton: -1,      // standard-mapping gamepad button index, -1 = unbound

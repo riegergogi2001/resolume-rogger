@@ -23,6 +23,7 @@ test('defaults() has full control sets and network defaults', () => {
   for (const b of cfg.fxButtons) {
     assert.ok(b.address.startsWith('/'), 'fx button has an OSC address');
     assert.ok(['tap', 'toggle', 'hold'].includes(b.mode));
+    assert.equal(typeof b.releaseAddress, 'string');
   }
   for (const f of cfg.faders) {
     assert.ok(f.max > f.min);
