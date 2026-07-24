@@ -1,0 +1,82 @@
+'use strict';
+const { test, beforeEach } = require('node:test');
+const assert = require('node:assert/strict');
+const fs = require('node:fs');
+const os = require('node:os');
+const path = require('node:path');
+const store = require('../src/main/config-store.js');
+
+let dir;
+beforeEach(() => {
+  dir = fs.mkdtempSync(path.join(os.tmpdir(), 'rogger-cfg-'));
+});
+
+test('defaults() has full control sets and network defaults', () => {
+  const cfg = store.defaults();
+  assert.equal(cfg.version, 1);
+  assert.equal(cfg.fxButtons.length, 16);
+  assert.equal(cfg.faders.length, 6);
+  assert.equal(cfg.colorButtons.length, 10);
+  assert.equal(cfg.network.targetPort, 7000);
+  assert.equal(cfg.network.listenPort, 7001);
+  assert.equal(cfg.ui.theme, 'dark');
+  for (const b of cfg.fxButtons) {
+    assert.ok(b.address.startsWith('/'), 'fx button has an OSC address');
+    assert.ok(['tap', 'toggle', 'hold'].includes(b.mode));
+  }
+  for (const f of cfg.faders) {
+    assert.ok(f.max > f.min);
+    assert.ok(f.defaultValue >= f.min && f.defaultValue <= f.max);
+  }
+});
+
+test('defaults() returns fresh objects each call', () => {
+  const a = store.defaults();
+  const b = store.defaults();
+  a.fxButtons[0].label = 'MUTATED';
+  assert.notEqual(b.fxButtons[0].label, 'MUTATED');
+});
+
+test('load() of a missing file returns defaults', () => {
+  const cfg = store.load(path.join(dir, 'config.json'));
+  assert.equal(cfg.fxButtons.length, 16);
+});
+
+test('save() then load() round-trips edits', () => {
+  const file = path.join(dir, 'config.json');
+  const cfg = store.defaults();
+  cfg.network.targetIp = '10.0.0.99';
+  cfg.fxButtons[3].label = 'STROBE';
+  store.save(file, cfg);
+  const loaded = store.load(file);
+  assert.equal(loaded.network.targetIp, '10.0.0.99');
+  assert.equal(loaded.fxButtons[3].label, 'STROBE');
+});
+
+test('load() of corrupt JSON backs up the bad file and returns defaults', () => {
+  const file = path.join(dir, 'config.json');
+  fs.writeFileSync(file, '{ not json !!!');
+  const cfg = store.load(file);
+  assert.equal(cfg.fxButtons.length, 16);
+  assert.ok(fs.existsSync(file + '.bad'), 'corrupt file backed up');
+});
+
+test('load() deep-merges partial configs over defaults and repairs array lengths', () => {
+  const file = path.join(dir, 'config.json');
+  fs.writeFileSync(file, JSON.stringify({
+    network: { targetIp: '192.168.9.9' },
+    fxButtons: [{ id: 'fx1', label: 'CUSTOM' }],
+  }));
+  const cfg = store.load(file);
+  assert.equal(cfg.network.targetIp, '192.168.9.9');
+  assert.equal(cfg.network.targetPort, 7000, 'missing keys filled from defaults');
+  assert.equal(cfg.fxButtons.length, 16, 'array repaired to 16');
+  assert.equal(cfg.fxButtons[0].label, 'CUSTOM', 'override preserved');
+  assert.ok(cfg.fxButtons[0].address.startsWith('/'), 'missing fields filled in merged entry');
+});
+
+test('save() creates parent directories', () => {
+  const file = path.join(dir, 'nested', 'deep', 'config.json');
+  store.save(file, store.defaults());
+  assert.ok(fs.existsSync(file));
+});
