@@ -20,5 +20,6 @@ contextBridge.exposeInMainWorld('rogger', {
   disarmLearn: () => ipcRenderer.send('learn:disarm'),
   onStatus: cb => subscribe('osc:status', cb),
   onLearn: cb => subscribe('osc:learn', cb),
+  onMessage: cb => subscribe('osc:message', cb),
   onOscError: cb => subscribe('osc:error', cb),
 });

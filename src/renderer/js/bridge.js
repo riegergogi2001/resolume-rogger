@@ -5,6 +5,7 @@ function mockBridge() {
   window.__oscLog = [];
   let config = null;
   let learnCb = null;
+  const messageCbs = new Set();
 
   const fallbackConfig = { version: 1,
     network: { targetIp: '192.168.1.100', targetPort: 7000, listenPort: 7001, autoConnect: true, autoReconnect: true },
@@ -22,8 +23,9 @@ function mockBridge() {
     return config;
   }
 
-  // Lets Playwright simulate an incoming OSC message for learn-mode tests.
+  // Let Playwright simulate incoming OSC (learn + feedback tests).
   window.__emitLearn = msg => { if (learnCb) learnCb(msg); };
+  window.__emitOscIn = msg => { for (const cb of messageCbs) cb(msg); };
 
   return {
     platform: 'mock',
@@ -38,6 +40,7 @@ function mockBridge() {
     getStatus: async () => 'ready',
     onStatus: cb => { setTimeout(() => cb('ready'), 0); return () => {}; },
     onLearn: cb => { learnCb = cb; return () => { learnCb = null; }; },
+    onMessage: cb => { messageCbs.add(cb); return () => messageCbs.delete(cb); },
     onOscError: () => () => {},
   };
 }

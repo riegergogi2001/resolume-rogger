@@ -8,12 +8,23 @@ any OSC-compatible software over Wi-Fi.
 
 ## Features
 
-- **16 FX trigger buttons** — modes: tap, toggle (latching), hold (press/release
-  values, flashes while held), optional auto-repeat, per-button icon, label,
-  color, OSC address, int/float/command value type, and multi-message macros.
+- **16 FX trigger buttons in two banks** — 8 **FLASH** (momentary: on while
+  held, off on release, flashes while pressed) and 8 **BUMP** (one-shot
+  triggers). Every button remains fully editable: tap/toggle/hold modes,
+  auto-repeat, icon, label, color, OSC address, int/float/command value type,
+  multi-message macros.
+- **Built-in controller support** — every FX button can be bound to the ROG
+  Ally X's Xbox-style gamepad buttons (badge shown on the tile). Defaults:
+  A/B/X/Y/LB/RB/LT/RT fire FLASH 1–8, D-pad/LS/RS/VIEW/MENU fire BUMP 1–8.
+  Rebind in the editor with the button grid or **Gamepad Learn** (press a
+  controller button to bind). Controller presses light the on-screen button.
 - **6 multitouch faders** — smooth 60 fps float sends, min/max range, default
   value (double-tap to reset), invert, sensitivity (1 = absolute touch,
-  <1 = fine relative control). All faders and buttons track independent fingers.
+  <1 = fine relative control). Fader 5 defaults to the **LOGO** layer
+  (layer 4 opacity). All faders and buttons track independent fingers.
+- **Bidirectional feedback** — with Resolume's OSC output enabled, moving a
+  fader inside Resolume moves the matching ROGGER fader (touch always wins
+  while your finger is on it; no echo loops).
 - **10 color preset buttons** — one tap fires an assigned OSC command
   (defaults target clips on layer 5, the usual "color solids" layer).
 - **Connection status lamp** — OFFLINE / READY (sending blind) / LIVE (heard
@@ -27,8 +38,8 @@ any OSC-compatible software over Wi-Fi.
 ## Resolume setup
 
 1. Resolume → Preferences → OSC: enable **OSC Input**, port **7000**.
-2. For OSC Learn and the LIVE lamp, also enable **OSC Output**, target =
-   your Ally's IP, port **7001**.
+2. For OSC Learn, fader feedback and the LIVE lamp, also enable
+   **OSC Output**, target = your Ally's IP, port **7001**.
 3. In ROGGER settings, set the target IP to the Resolume machine's IP.
    Both devices must be on the same network.
 

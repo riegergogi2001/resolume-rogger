@@ -30,6 +30,21 @@ test('defaults() has full control sets and network defaults', () => {
   }
 });
 
+test('defaults split into 8 flash (hold) and 8 bump (tap) buttons with unique gamepad bindings', () => {
+  const cfg = store.defaults();
+  assert.ok(cfg.fxButtons.slice(0, 8).every(b => b.mode === 'hold'), 'flash bank is momentary');
+  assert.ok(cfg.fxButtons.slice(8).every(b => b.mode === 'tap'), 'bump bank is one-shot');
+  const pads = cfg.fxButtons.map(b => b.gamepadButton);
+  assert.ok(pads.every(p => Number.isInteger(p) && p >= 0 && p <= 15));
+  assert.equal(new Set(pads).size, 16, 'every controller button bound exactly once');
+});
+
+test('default fader 5 targets the logo layer', () => {
+  const f = store.defaults().faders[4];
+  assert.equal(f.label, 'LOGO');
+  assert.equal(f.address, '/composition/layers/4/video/opacity');
+});
+
 test('defaults() returns fresh objects each call', () => {
   const a = store.defaults();
   const b = store.defaults();

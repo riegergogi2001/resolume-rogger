@@ -1,6 +1,9 @@
-// 16 assignable FX trigger buttons: tap / toggle / hold, flash, repeat, macro.
+// 16 assignable FX trigger buttons in two banks: FLASH (0-7, momentary hold
+// by default) and BUMP (8-15, one-shot by default). Tap / toggle / hold,
+// flash animation, repeat, macros, and gamepad bindings shown as badges.
 import { rogger } from './bridge.js';
 import * as state from './state.js';
+import { BUTTON_NAMES } from './gamepad.js';
 
 function typedArgs(type, value) {
   if (type === 'command') return [];
@@ -16,17 +19,35 @@ function fire(btn, value) {
   rogger.sendTyped(btn.address, typedArgs(btn.type, value));
 }
 
+// Per-button {press, release} handles so the gamepad drives the exact same
+// logic (and visual feedback) as touch.
+export const fxHandles = [];
+
 export function renderFxGrid(el, { isEditMode, onEdit }) {
   el.innerHTML = '';
+  fxHandles.length = 0;
   const latched = new Set();
+
+  const flashTitle = document.createElement('div');
+  flashTitle.className = 'bank-title';
+  flashTitle.textContent = 'Flash';
+  const flashBank = document.createElement('div');
+  flashBank.className = 'fx-bank';
+  const bumpTitle = document.createElement('div');
+  bumpTitle.className = 'bank-title';
+  bumpTitle.textContent = 'Bump';
+  const bumpBank = document.createElement('div');
+  bumpBank.className = 'fx-bank';
+  el.append(flashTitle, flashBank, bumpTitle, bumpBank);
 
   state.get().fxButtons.forEach((_, i) => {
     const b = document.createElement('button');
     b.className = 'fx-btn';
     b.dataset.index = i;
     b.innerHTML =
-      '<span class="fx-icon"></span><span class="fx-mode u-caps"></span><span class="fx-label u-caps"></span>';
-    el.appendChild(b);
+      '<span class="fx-icon"></span><span class="fx-mode u-caps"></span>' +
+      '<span class="fx-label u-caps"></span><span class="fx-pad u-num"></span>';
+    (i < 8 ? flashBank : bumpBank).appendChild(b);
 
     let repeatTimer = null;
     let holdActive = false;
@@ -38,13 +59,12 @@ export function renderFxGrid(el, { isEditMode, onEdit }) {
       b.querySelector('.fx-icon').textContent = c.icon;
       b.querySelector('.fx-label').textContent = c.label;
       b.querySelector('.fx-mode').textContent = c.mode === 'tap' ? '' : c.mode;
+      b.querySelector('.fx-pad').textContent = BUTTON_NAMES[c.gamepadButton] ?? '';
     }
     apply();
     state.subscribe(apply);
 
-    b.addEventListener('pointerdown', e => {
-      if (isEditMode()) { onEdit('fxButtons', i); return; }
-      b.setPointerCapture(e.pointerId);
+    function press() {
       const c = cfg();
       if (c.mode === 'toggle') {
         if (latched.has(i)) {
@@ -67,7 +87,7 @@ export function renderFxGrid(el, { isEditMode, onEdit }) {
       if (c.repeat?.enabled) {
         repeatTimer = setInterval(() => fire(cfg(), cfg().value), Math.max(50, c.repeat.intervalMs));
       }
-    });
+    }
 
     function release() {
       clearInterval(repeatTimer);
@@ -79,7 +99,18 @@ export function renderFxGrid(el, { isEditMode, onEdit }) {
         fire(c, c.releaseValue);
       }
     }
+
+    b.addEventListener('pointerdown', e => {
+      if (isEditMode()) { onEdit('fxButtons', i); return; }
+      b.setPointerCapture(e.pointerId);
+      press();
+    });
     b.addEventListener('pointerup', release);
     b.addEventListener('pointercancel', release);
+
+    fxHandles[i] = {
+      press: () => { if (!isEditMode()) press(); },
+      release,
+    };
   });
 }

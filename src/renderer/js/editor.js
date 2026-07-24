@@ -5,6 +5,7 @@ import { rogger } from './bridge.js';
 import * as state from './state.js';
 import { showToast } from './toast.js';
 import { LIBRARY, placeholders, expand } from './osc-library.js';
+import { BUTTON_NAMES, armGamepadLearn, disarmGamepadLearn } from './gamepad.js';
 
 const GLYPHS = ['◆', '●', '▲', '▼', '■', '◉', '✕', '⚡', '⏱', '↻', '⊘', '⏻',
   '★', '♪', '☰', '◐', '▶', '◀', '⏸', '⏹', '✦', '☄', '♦', '▩'];
@@ -104,6 +105,7 @@ export function openEditor(kind, index) {
   let unlearn = null;
   function cleanupLearn() {
     rogger.disarmLearn();
+    disarmGamepadLearn();
     if (unlearn) { unlearn(); unlearn = null; }
     body.querySelector('.learn-btn')?.classList.remove('listening');
   }
@@ -223,6 +225,42 @@ export function openEditor(kind, index) {
       }
       body.append(vals);
     }
+    // controller binding (ROG Ally X gamepad)
+    const padWrap = h('div', 'field');
+    padWrap.append(h('label', null, 'Controller button'));
+    const padRow = h('div', 'glyph-row');
+    function padBtn(labelText, val) {
+      const pb = h('button', 'pad-pick', labelText);
+      pb.classList.toggle('on', draft.gamepadButton === val);
+      pb.addEventListener('pointerdown', () => {
+        draft.gamepadButton = val;
+        padRow.querySelectorAll('.on').forEach(x => x.classList.remove('on'));
+        pb.classList.add('on');
+      });
+      return pb;
+    }
+    padRow.append(padBtn('NONE', -1), ...BUTTON_NAMES.map((n, bi) => padBtn(n, bi)));
+    padWrap.appendChild(padRow);
+    const padLearn = h('button', 'big-btn learn-btn u-caps', 'Gamepad learn');
+    padLearn.addEventListener('pointerdown', () => {
+      if (padLearn.classList.contains('listening')) {
+        disarmGamepadLearn();
+        padLearn.classList.remove('listening');
+        padLearn.textContent = 'GAMEPAD LEARN';
+        return;
+      }
+      padLearn.classList.add('listening');
+      padLearn.textContent = 'PRESS A CONTROLLER BUTTON…';
+      armGamepadLearn(bi => {
+        draft.gamepadButton = bi;
+        disarmGamepadLearn();
+        buildBody();
+        showToast(`Bound to ${BUTTON_NAMES[bi]}`);
+      });
+    });
+    padWrap.appendChild(padLearn);
+    body.append(padWrap);
+
     body.append(checkRow('Repeat while held', draft.repeat?.enabled ?? false,
       v => { draft.repeat = { ...draft.repeat, enabled: v }; }));
     body.append(field('Repeat interval (ms)',
@@ -299,6 +337,12 @@ export function openEditor(kind, index) {
   const save = h('button', 'big-btn primary u-caps', 'Save');
   save.id = 'ed-save';
   save.addEventListener('pointerdown', () => {
+    if (kind === 'fxButtons' && draft.gamepadButton >= 0) {
+      // one controller button drives one FX button — steal the binding
+      state.get().fxButtons.forEach((c, j) => {
+        if (j !== index && c.gamepadButton === draft.gamepadButton) c.gamepadButton = -1;
+      });
+    }
     state.replaceControl(kind, index, draft);
     showToast(`${KIND_TITLES[kind]} ${index + 1} saved`);
     close();

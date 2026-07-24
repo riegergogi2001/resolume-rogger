@@ -172,6 +172,23 @@ MIDI note/CC (schema fields reserved), bidirectional feedback beyond status
 lamp, Art-Net/sACN, Companion, plugins, auto-update. The engine's receive path
 and per-control schema are designed so these bolt on without rework.
 
+## Addendum (2026-07-24, user request after v1)
+
+- FX grid restructured into two labeled banks: indices 0–7 **FLASH**
+  (default mode `hold` — momentary with flashing) and 8–15 **BUMP**
+  (default mode `tap` — one-shot). Banks are positional; modes stay editable.
+- New per-FX-button field `gamepadButton` (-1 or standard-mapping index 0–15).
+  `renderer/js/gamepad.js` polls the Gamepad API each frame and drives the
+  same press/release handles as touch (`fxHandles` from fx-grid). Editor gains
+  a binding picker + Gamepad Learn; saving steals a binding from any other
+  button holding it. Test hook: `window.__gamepadOverride`.
+- Bidirectional feedback: engine `message` events now forward to the renderer
+  (`osc:message` / `rogger.onMessage`). A fader whose address matches an
+  inbound message follows it visually without re-sending; an actively touched
+  fader ignores inbound. Mock hook: `window.__emitOscIn`.
+- Default fader 5 is now **LOGO** (`/composition/layers/4/video/opacity`,
+  white accent); crossfader remains fader 6, speed dropped from defaults.
+
 ## Success criteria
 
 Feels like dedicated show hardware: every control responds within one frame,

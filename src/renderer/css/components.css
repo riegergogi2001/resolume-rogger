@@ -53,6 +53,25 @@
   box-shadow: inset 0 0 0 1px var(--warn), 0 0 14px rgba(255, 180, 0, 0.25);
 }
 
+/* ---- FX banks ---- */
+.bank-title {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.16em;
+  color: var(--text-dim);
+  text-transform: uppercase;
+  padding-left: 2px;
+}
+.bank-title::after {
+  content: "";
+  flex: 1;
+  height: 1px;
+  background: var(--line);
+}
+
 /* ---- FX buttons ---- */
 .fx-btn {
   position: relative;
@@ -86,6 +105,36 @@
   color: var(--text-dim);
   letter-spacing: 0.1em;
 }
+.fx-btn .fx-pad {
+  position: absolute;
+  bottom: 10px;
+  right: 12px;
+  font-size: 10px;
+  font-weight: 800;
+  color: var(--text-dim);
+  border: 1px solid var(--line-bright);
+  border-radius: 4px;
+  padding: 2px 6px;
+  letter-spacing: 0.06em;
+}
+.fx-btn .fx-pad:empty { display: none; }
+.fx-btn.pressed .fx-pad,
+.fx-btn.latched .fx-pad {
+  color: var(--fx-color, var(--accent));
+  border-color: var(--fx-color, var(--accent));
+}
+.pad-pick {
+  min-width: 64px;
+  height: 44px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--bg);
+  font-size: 11px;
+  font-weight: 800;
+  padding: 0 10px;
+}
+.pad-pick.on { border-color: var(--accent); color: var(--accent); }
+
 .fx-btn.pressed,
 .fx-btn.latched {
   background: linear-gradient(180deg, var(--panel-3), var(--panel-2));

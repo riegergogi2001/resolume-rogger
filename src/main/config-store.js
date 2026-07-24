@@ -23,6 +23,7 @@ function fxButton(i, over = {}) {
     releaseValue: 0,        // hold release
     repeat: { enabled: false, intervalMs: 250 },
     macro: [],              // [{address, values:[...]}] — sent in order instead of single message
+    gamepadButton: -1,      // standard-mapping gamepad button index, -1 = unbound
     ...over,
   };
 }
@@ -64,28 +65,32 @@ function defaults() {
       autoReconnect: true,
     },
     ui: { theme: 'dark' },
+    // fxButtons 0-7 = FLASH bank (momentary hold), 8-15 = BUMP bank (one-shot).
+    // gamepadButton defaults: face+shoulder buttons drive flash, D-pad/sticks/menu drive bump.
     fxButtons: [
-      fxButton(0, { label: 'COL 1' }), fxButton(1, { label: 'COL 2' }),
-      fxButton(2, { label: 'COL 3' }), fxButton(3, { label: 'COL 4' }),
-      fxButton(4, { label: 'TAP', icon: '⏱', color: ACCENTS.amber, type: 'command', address: '/composition/tempocontroller/tempotap' }),
-      fxButton(5, { label: 'RESYNC', icon: '↻', color: ACCENTS.amber, type: 'command', address: '/composition/tempocontroller/resync' }),
-      fxButton(6, { label: 'L1 SOLO', icon: '◉', color: ACCENTS.purple, mode: 'toggle', address: '/composition/layers/1/solo' }),
-      fxButton(7, { label: 'L1 BYP', icon: '⊘', color: ACCENTS.purple, mode: 'toggle', address: '/composition/layers/1/bypassed' }),
-      fxButton(8, { label: 'CLR L1', icon: '✕', color: ACCENTS.red, address: '/composition/layers/1/clear' }),
-      fxButton(9, { label: 'CLR L2', icon: '✕', color: ACCENTS.red, address: '/composition/layers/2/clear' }),
-      fxButton(10, { label: 'CLR L3', icon: '✕', color: ACCENTS.red, address: '/composition/layers/3/clear' }),
-      fxButton(11, { label: 'CLR L4', icon: '✕', color: ACCENTS.red, address: '/composition/layers/4/clear' }),
-      fxButton(12, { label: 'CLR ALL', icon: '⏻', color: ACCENTS.red, address: '/composition/disconnectall' }),
-      fxButton(13, { label: 'MASTER 0', icon: '▼', color: ACCENTS.orange, type: 'float', address: '/composition/master', value: 0 }),
-      fxButton(14, { label: 'MASTER 1', icon: '▲', color: ACCENTS.green, type: 'float', address: '/composition/master', value: 1 }),
-      fxButton(15, { label: 'FLASH L4', icon: '⚡', color: ACCENTS.yellow, mode: 'hold', type: 'float', address: '/composition/layers/4/video/opacity', value: 1, releaseValue: 0 }),
+      fxButton(0, { label: 'FLASH L1', icon: '⚡', color: ACCENTS.yellow, mode: 'hold', type: 'float', address: '/composition/layers/1/video/opacity', value: 1, releaseValue: 0, gamepadButton: 0 }),
+      fxButton(1, { label: 'FLASH L2', icon: '⚡', color: ACCENTS.yellow, mode: 'hold', type: 'float', address: '/composition/layers/2/video/opacity', value: 1, releaseValue: 0, gamepadButton: 1 }),
+      fxButton(2, { label: 'FLASH L3', icon: '⚡', color: ACCENTS.yellow, mode: 'hold', type: 'float', address: '/composition/layers/3/video/opacity', value: 1, releaseValue: 0, gamepadButton: 2 }),
+      fxButton(3, { label: 'FLASH L4', icon: '⚡', color: ACCENTS.yellow, mode: 'hold', type: 'float', address: '/composition/layers/4/video/opacity', value: 1, releaseValue: 0, gamepadButton: 3 }),
+      fxButton(4, { label: 'SOLO L1', icon: '◉', color: ACCENTS.purple, mode: 'hold', address: '/composition/layers/1/solo', value: 1, releaseValue: 0, gamepadButton: 4 }),
+      fxButton(5, { label: 'SOLO L2', icon: '◉', color: ACCENTS.purple, mode: 'hold', address: '/composition/layers/2/solo', value: 1, releaseValue: 0, gamepadButton: 5 }),
+      fxButton(6, { label: 'SOLO L3', icon: '◉', color: ACCENTS.purple, mode: 'hold', address: '/composition/layers/3/solo', value: 1, releaseValue: 0, gamepadButton: 6 }),
+      fxButton(7, { label: 'SOLO L4', icon: '◉', color: ACCENTS.purple, mode: 'hold', address: '/composition/layers/4/solo', value: 1, releaseValue: 0, gamepadButton: 7 }),
+      fxButton(8, { label: 'COL 1', icon: '▶', gamepadButton: 12, address: '/composition/columns/1/connect' }),
+      fxButton(9, { label: 'COL 2', icon: '▶', gamepadButton: 13, address: '/composition/columns/2/connect' }),
+      fxButton(10, { label: 'COL 3', icon: '▶', gamepadButton: 14, address: '/composition/columns/3/connect' }),
+      fxButton(11, { label: 'COL 4', icon: '▶', gamepadButton: 15, address: '/composition/columns/4/connect' }),
+      fxButton(12, { label: 'COL 5', icon: '▶', gamepadButton: 10, address: '/composition/columns/5/connect' }),
+      fxButton(13, { label: 'COL 6', icon: '▶', gamepadButton: 11, address: '/composition/columns/6/connect' }),
+      fxButton(14, { label: 'CLR ALL', icon: '⏻', color: ACCENTS.red, address: '/composition/disconnectall', gamepadButton: 8 }),
+      fxButton(15, { label: 'RESYNC', icon: '↻', color: ACCENTS.amber, type: 'command', address: '/composition/tempocontroller/resync', gamepadButton: 9 }),
     ],
     faders: [
       fader(0, { label: 'MASTER', color: ACCENTS.green, address: '/composition/master' }),
       fader(1, { label: 'LAYER 1', address: '/composition/layers/1/video/opacity' }),
       fader(2, { label: 'LAYER 2', address: '/composition/layers/2/video/opacity' }),
       fader(3, { label: 'LAYER 3', address: '/composition/layers/3/video/opacity' }),
-      fader(4, { label: 'SPEED', color: ACCENTS.amber, address: '/composition/speed', defaultValue: 0.5 }),
+      fader(4, { label: 'LOGO', color: ACCENTS.white, address: '/composition/layers/4/video/opacity' }),
       fader(5, { label: 'XFADE', color: ACCENTS.magenta, address: '/composition/crossfader/phase', defaultValue: 0 }),
     ],
     colorButtons: Array.from({ length: 10 }, (_, i) => colorButton(i)),

@@ -22,8 +22,15 @@ body {
 
 #fx-grid {
   display: grid;
+  grid-template-rows: auto 1fr auto 1fr;
+  gap: 8px;
+  min-height: 0;
+}
+
+.fx-bank {
+  display: grid;
   grid-template-columns: repeat(4, 1fr);
-  grid-template-rows: repeat(4, 1fr);
+  grid-template-rows: repeat(2, 1fr);
   gap: 10px;
   min-height: 0;
 }

@@ -3,7 +3,8 @@ import { rogger } from './bridge.js';
 import * as state from './state.js';
 import { showToast } from './toast.js';
 import { renderTopbar } from './topbar.js';
-import { renderFxGrid } from './fx-grid.js';
+import { renderFxGrid, fxHandles } from './fx-grid.js';
+import { startGamepad } from './gamepad.js';
 import { renderFaders } from './faders.js';
 import { renderColorRow } from './color-row.js';
 import { openSettings } from './settings.js';
@@ -29,6 +30,7 @@ async function boot() {
   renderFaders(document.getElementById('fader-rack'), opts);
   renderColorRow(document.getElementById('color-row'), opts);
 
+  startGamepad(fxHandles);
   rogger.onOscError(msg => showToast(msg, { error: true }));
   document.body.dataset.ready = '1';
 }

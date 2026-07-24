@@ -23,6 +23,7 @@ function registerIpc({ ipcMain, engine, store, configPath, getWindow }) {
   ipcMain.on('learn:disarm', () => engine.disarmLearn());
 
   engine.on('status', s => getWindow()?.webContents.send('osc:status', s));
+  engine.on('message', m => getWindow()?.webContents.send('osc:message', m));
   engine.on('learn', m => getWindow()?.webContents.send('osc:learn', m));
   engine.on('error', err => getWindow()?.webContents.send('osc:error', String(err?.message ?? err)));
 

@@ -110,5 +110,18 @@ export function renderFaders(el, { isEditMode, onEdit }) {
     }
     track.addEventListener('pointerup', up);
     track.addEventListener('pointercancel', up);
+
+    // Bidirectional feedback: follow matching inbound OSC (e.g. the fader was
+    // moved inside Resolume) unless a finger currently owns this fader.
+    rogger.onMessage(msg => {
+      if (wrap.classList.contains('active')) return;
+      const c = cfg();
+      if (msg.address !== c.address) return;
+      const a = msg.args?.[0];
+      if (!a || typeof a.value !== 'number') return;
+      norm = normOf(c, a.value);
+      lastSent = a.value; // remote value is current — don't echo it back
+      paint();
+    });
   });
 }
