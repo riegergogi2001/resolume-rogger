@@ -31,5 +31,19 @@ export function renderColorRow(el, { isEditMode, onEdit }) {
     const off = () => b.classList.remove('pressed');
     b.addEventListener('pointerup', off);
     b.addEventListener('pointercancel', off);
+
+    // Feedback: show which preset the target app reports as connected.
+    rogger.onMessage(msg => {
+      const c = cfg();
+      if (msg.address !== c.address) return;
+      const a = msg.args?.[0];
+      if (!a || typeof a.value !== 'number') return;
+      if (a.value !== 0) {
+        el.querySelectorAll('.color-btn.selected').forEach(x => x.classList.remove('selected'));
+        b.classList.add('selected');
+      } else {
+        b.classList.remove('selected');
+      }
+    });
   });
 }

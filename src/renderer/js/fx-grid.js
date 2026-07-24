@@ -108,6 +108,25 @@ export function renderFxGrid(el, { isEditMode, onEdit }) {
     b.addEventListener('pointerup', release);
     b.addEventListener('pointercancel', release);
 
+    // Bidirectional feedback: reflect state reported by the target app.
+    rogger.onMessage(msg => {
+      const c = cfg();
+      if (msg.address !== c.address) return;
+      const a = msg.args?.[0];
+      if (!a || typeof a.value !== 'number') return;
+      const on = a.value !== 0;
+      if (c.mode === 'toggle') {
+        if (on) latched.add(i); else latched.delete(i);
+        b.classList.toggle('latched', on);
+      } else if (c.mode === 'hold') {
+        // remote state lights the button; a local hold owns the visuals
+        if (!holdActive) b.classList.toggle('latched', on);
+      } else if (on && !b.classList.contains('pressed')) {
+        b.classList.add('pressed'); // brief acknowledgment blink for taps
+        setTimeout(() => { if (!holdActive) b.classList.remove('pressed'); }, 160);
+      }
+    });
+
     fxHandles[i] = {
       press: () => { if (!isEditMode()) press(); },
       release,

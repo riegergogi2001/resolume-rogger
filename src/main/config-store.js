@@ -82,7 +82,7 @@ function defaults() {
       fxButton(11, { label: 'COL 4', icon: '▶', gamepadButton: 15, address: '/composition/columns/4/connect' }),
       fxButton(12, { label: 'COL 5', icon: '▶', gamepadButton: 10, address: '/composition/columns/5/connect' }),
       fxButton(13, { label: 'COL 6', icon: '▶', gamepadButton: 11, address: '/composition/columns/6/connect' }),
-      fxButton(14, { label: 'CLR ALL', icon: '⏻', color: ACCENTS.red, address: '/composition/disconnectall', gamepadButton: 8 }),
+      fxButton(14, { label: 'TAP', icon: '⏱', color: ACCENTS.amber, type: 'command', address: '/composition/tempocontroller/tempotap', gamepadButton: 8 }),
       fxButton(15, { label: 'RESYNC', icon: '↻', color: ACCENTS.amber, type: 'command', address: '/composition/tempocontroller/resync', gamepadButton: 9 }),
     ],
     faders: [
@@ -90,8 +90,8 @@ function defaults() {
       fader(1, { label: 'LAYER 1', address: '/composition/layers/1/video/opacity' }),
       fader(2, { label: 'LAYER 2', address: '/composition/layers/2/video/opacity' }),
       fader(3, { label: 'LAYER 3', address: '/composition/layers/3/video/opacity' }),
-      fader(4, { label: 'LOGO', color: ACCENTS.white, address: '/composition/layers/4/video/opacity' }),
-      fader(5, { label: 'XFADE', color: ACCENTS.magenta, address: '/composition/crossfader/phase', defaultValue: 0 }),
+      fader(4, { label: 'LAYER 4', address: '/composition/layers/4/video/opacity' }),
+      fader(5, { label: 'LOGO', color: ACCENTS.white, address: '/composition/layers/5/video/opacity' }),
     ],
     colorButtons: Array.from({ length: 10 }, (_, i) => colorButton(i)),
   };

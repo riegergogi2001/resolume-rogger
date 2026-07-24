@@ -39,10 +39,18 @@ test('defaults split into 8 flash (hold) and 8 bump (tap) buttons with unique ga
   assert.equal(new Set(pads).size, 16, 'every controller button bound exactly once');
 });
 
-test('default fader 5 targets the logo layer', () => {
-  const f = store.defaults().faders[4];
-  assert.equal(f.label, 'LOGO');
-  assert.equal(f.address, '/composition/layers/4/video/opacity');
+test('default faders are master, layers 1-4 and logo (no crossfader)', () => {
+  const faders = store.defaults().faders;
+  assert.deepEqual(faders.map(f => f.label),
+    ['MASTER', 'LAYER 1', 'LAYER 2', 'LAYER 3', 'LAYER 4', 'LOGO']);
+  assert.equal(faders[5].address, '/composition/layers/5/video/opacity');
+  assert.ok(faders.every(f => !f.address.includes('crossfader')));
+});
+
+test('default bump bank ends with tap tempo and resync', () => {
+  const fx = store.defaults().fxButtons;
+  assert.equal(fx[14].address, '/composition/tempocontroller/tempotap');
+  assert.equal(fx[15].address, '/composition/tempocontroller/resync');
 });
 
 test('defaults() returns fresh objects each call', () => {
