@@ -48,7 +48,8 @@ export function renderFaders(el, { isEditMode, onEdit }) {
       wrap.style.setProperty('--fader-color', c.color);
       wrap.querySelector('.fader-label').textContent = c.label;
       fill.style.height = `${norm * 100}%`;
-      thumb.style.top = `${(1 - norm) * 100}%`;
+      // keep the 44px thumb fully inside the track at both extremes
+      thumb.style.top = `calc((100% - 44px) * ${1 - norm} + 22px)`;
       valueEl.textContent = fmt(valueOf(c, norm));
     }
     paint();
