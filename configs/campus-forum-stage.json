@@ -13,126 +13,126 @@
   "fxButtons": [
     {
       "id": "fx1",
-      "label": "BOOM BLUR",
+      "label": "GENERA",
       "icon": "⚡",
-      "color": "#00e0ff",
-      "mode": "tap",
+      "color": "#2ee66b",
+      "mode": "hold",
       "type": "int",
-      "address": "/composition/video/effects/boomer/effect/blur",
+      "address": "/composition/layers/12/clips/2/connect",
       "value": 1,
       "offValue": 0,
-      "releaseValue": 0,
-      "releaseAddress": "",
+      "releaseValue": 1,
+      "releaseAddress": "/composition/layers/12/clear",
       "repeat": {
-        "enabled": true,
-        "intervalMs": 200
+        "enabled": false,
+        "intervalMs": 250
       },
       "macro": [],
       "gamepadButton": 0
     },
     {
       "id": "fx2",
-      "label": "BOOM EXPO",
-      "icon": "⚡",
-      "color": "#ffd93d",
-      "mode": "tap",
-      "type": "int",
-      "address": "/composition/video/effects/boomer/effect/exposure",
-      "value": 1,
-      "offValue": 0,
-      "releaseValue": 0,
-      "releaseAddress": "",
-      "repeat": {
-        "enabled": true,
-        "intervalMs": 200
-      },
-      "macro": [],
-      "gamepadButton": 1
-    },
-    {
-      "id": "fx3",
-      "label": "BOOM EDGE",
-      "icon": "⚡",
-      "color": "#2ee66b",
-      "mode": "tap",
-      "type": "int",
-      "address": "/composition/video/effects/boomer/effect/edge",
-      "value": 1,
-      "offValue": 0,
-      "releaseValue": 0,
-      "releaseAddress": "",
-      "repeat": {
-        "enabled": true,
-        "intervalMs": 200
-      },
-      "macro": [],
-      "gamepadButton": 2
-    },
-    {
-      "id": "fx4",
-      "label": "BOOM BLOW",
-      "icon": "⚡",
-      "color": "#ff7a1a",
-      "mode": "tap",
-      "type": "int",
-      "address": "/composition/video/effects/boomer/effect/blow",
-      "value": 1,
-      "offValue": 0,
-      "releaseValue": 0,
-      "releaseAddress": "",
-      "repeat": {
-        "enabled": true,
-        "intervalMs": 200
-      },
-      "macro": [],
-      "gamepadButton": 3
-    },
-    {
-      "id": "fx5",
-      "label": "PUSH WHT",
-      "icon": "⚡",
-      "color": "#eaeef5",
-      "mode": "tap",
-      "type": "int",
-      "address": "/composition/video/effects/pusher/effect/push",
-      "value": 1,
-      "offValue": 0,
-      "releaseValue": 0,
-      "releaseAddress": "",
-      "repeat": {
-        "enabled": true,
-        "intervalMs": 200
-      },
-      "macro": [],
-      "gamepadButton": 4
-    },
-    {
-      "id": "fx6",
-      "label": "PUSH BLK",
-      "icon": "⚡",
-      "color": "#8e9299",
-      "mode": "tap",
-      "type": "int",
-      "address": "/composition/video/effects/pusher2/effect/push",
-      "value": 1,
-      "offValue": 0,
-      "releaseValue": 0,
-      "releaseAddress": "",
-      "repeat": {
-        "enabled": true,
-        "intervalMs": 200
-      },
-      "macro": [],
-      "gamepadButton": 5
-    },
-    {
-      "id": "fx7",
       "label": "FLASH M",
       "icon": "⚡",
       "color": "#ffd93d",
       "mode": "hold",
       "type": "int",
       "address": "/composition/layers/12/clips/3/connect",
+      "value": 1,
+      "offValue": 0,
+      "releaseValue": 1,
+      "releaseAddress": "/composition/layers/12/clear",
+      "repeat": {
+        "enabled": false,
+        "intervalMs": 250
+      },
+      "macro": [],
+      "gamepadButton": 1
+    },
+    {
+      "id": "fx3",
+      "label": "FLASH M2",
+      "icon": "⚡",
+      "color": "#ffd93d",
+      "mode": "hold",
+      "type": "int",
+      "address": "/composition/layers/12/clips/4/connect",
+      "value": 1,
+      "offValue": 0,
+      "releaseValue": 1,
+      "releaseAddress": "/composition/layers/12/clear",
+      "repeat": {
+        "enabled": false,
+        "intervalMs": 250
+      },
+      "macro": [],
+      "gamepadButton": 2
+    },
+    {
+      "id": "fx4",
+      "label": "INVERT",
+      "icon": "⚡",
+      "color": "#ff4757",
+      "mode": "hold",
+      "type": "int",
+      "address": "/composition/layers/12/clips/5/connect",
+      "value": 1,
+      "offValue": 0,
+      "releaseValue": 1,
+      "releaseAddress": "/composition/layers/12/clear",
+      "repeat": {
+        "enabled": false,
+        "intervalMs": 250
+      },
+      "macro": [],
+      "gamepadButton": 3
+    },
+    {
+      "id": "fx5",
+      "label": "PIXELATE",
+      "icon": "⚡",
+      "color": "#00e0ff",
+      "mode": "hold",
+      "type": "int",
+      "address": "/composition/layers/12/clips/6/connect",
+      "value": 1,
+      "offValue": 0,
+      "releaseValue": 1,
+      "releaseAddress": "/composition/layers/12/clear",
+      "repeat": {
+        "enabled": false,
+        "intervalMs": 250
+      },
+      "macro": [],
+      "gamepadButton": 4
+    },
+    {
+      "id": "fx6",
+      "label": "FE STR",
+      "icon": "⚡",
+      "color": "#ff7a1a",
+      "mode": "hold",
+      "type": "int",
+      "address": "/composition/layers/12/clips/7/connect",
+      "value": 1,
+      "offValue": 0,
+      "releaseValue": 1,
+      "releaseAddress": "/composition/layers/12/clear",
+      "repeat": {
+        "enabled": false,
+        "intervalMs": 250
+      },
+      "macro": [],
+      "gamepadButton": 5
+    },
+    {
+      "id": "fx7",
+      "label": "SUCK IT!",
+      "icon": "⚡",
+      "color": "#ff3df0",
+      "mode": "hold",
+      "type": "int",
+      "address": "/composition/layers/12/clips/8/connect",
       "value": 1,
       "offValue": 0,
       "releaseValue": 1,
@@ -165,114 +165,114 @@
     },
     {
       "id": "fx9",
-      "label": "COL 1",
-      "icon": "▶",
+      "label": "BOOM BLUR",
+      "icon": "☄",
       "color": "#00e0ff",
       "mode": "tap",
       "type": "int",
-      "address": "/composition/columns/1/connect",
+      "address": "/composition/video/effects/boomer/effect/blur",
       "value": 1,
       "offValue": 0,
       "releaseValue": 0,
       "releaseAddress": "",
       "repeat": {
-        "enabled": false,
-        "intervalMs": 250
+        "enabled": true,
+        "intervalMs": 200
       },
       "macro": [],
       "gamepadButton": 12
     },
     {
       "id": "fx10",
-      "label": "COL 2",
-      "icon": "▶",
-      "color": "#00e0ff",
+      "label": "BOOM EXPO",
+      "icon": "☄",
+      "color": "#ffd93d",
       "mode": "tap",
       "type": "int",
-      "address": "/composition/columns/2/connect",
+      "address": "/composition/video/effects/boomer/effect/exposure",
       "value": 1,
       "offValue": 0,
       "releaseValue": 0,
       "releaseAddress": "",
       "repeat": {
-        "enabled": false,
-        "intervalMs": 250
+        "enabled": true,
+        "intervalMs": 200
       },
       "macro": [],
       "gamepadButton": 13
     },
     {
       "id": "fx11",
-      "label": "COL 3",
-      "icon": "▶",
-      "color": "#00e0ff",
+      "label": "BOOM EDGE",
+      "icon": "☄",
+      "color": "#2ee66b",
       "mode": "tap",
       "type": "int",
-      "address": "/composition/columns/3/connect",
+      "address": "/composition/video/effects/boomer/effect/edge",
       "value": 1,
       "offValue": 0,
       "releaseValue": 0,
       "releaseAddress": "",
       "repeat": {
-        "enabled": false,
-        "intervalMs": 250
+        "enabled": true,
+        "intervalMs": 200
       },
       "macro": [],
       "gamepadButton": 14
     },
     {
       "id": "fx12",
-      "label": "COL 4",
-      "icon": "▶",
-      "color": "#00e0ff",
+      "label": "BOOM BLOW",
+      "icon": "☄",
+      "color": "#ff7a1a",
       "mode": "tap",
       "type": "int",
-      "address": "/composition/columns/4/connect",
+      "address": "/composition/video/effects/boomer/effect/blow",
       "value": 1,
       "offValue": 0,
       "releaseValue": 0,
       "releaseAddress": "",
       "repeat": {
-        "enabled": false,
-        "intervalMs": 250
+        "enabled": true,
+        "intervalMs": 200
       },
       "macro": [],
       "gamepadButton": 15
     },
     {
       "id": "fx13",
-      "label": "COL 5",
-      "icon": "▶",
-      "color": "#00e0ff",
+      "label": "PUSH WHT",
+      "icon": "☄",
+      "color": "#eaeef5",
       "mode": "tap",
       "type": "int",
-      "address": "/composition/columns/5/connect",
+      "address": "/composition/video/effects/pusher/effect/push",
       "value": 1,
       "offValue": 0,
       "releaseValue": 0,
       "releaseAddress": "",
       "repeat": {
-        "enabled": false,
-        "intervalMs": 250
+        "enabled": true,
+        "intervalMs": 200
       },
       "macro": [],
       "gamepadButton": 10
     },
     {
       "id": "fx14",
-      "label": "COL 6",
-      "icon": "▶",
-      "color": "#00e0ff",
+      "label": "PUSH BLK",
+      "icon": "☄",
+      "color": "#8e9299",
       "mode": "tap",
       "type": "int",
-      "address": "/composition/columns/6/connect",
+      "address": "/composition/video/effects/pusher2/effect/push",
       "value": 1,
       "offValue": 0,
       "releaseValue": 0,
       "releaseAddress": "",
       "repeat": {
-        "enabled": false,
-        "intervalMs": 250
+        "enabled": true,
+        "intervalMs": 200
       },
       "macro": [],
       "gamepadButton": 11
