@@ -8,6 +8,7 @@ const fmt = v => (Math.abs(v) >= 10 ? v.toFixed(1) : v.toFixed(2));
 
 export function renderFaders(el, { isEditMode, onEdit }) {
   el.innerHTML = '';
+  el.style.gridTemplateColumns = `repeat(${state.get().faders.length}, 1fr)`;
 
   state.get().faders.forEach((_, i) => {
     const wrap = document.createElement('div');

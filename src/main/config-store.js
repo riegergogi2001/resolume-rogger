@@ -23,6 +23,7 @@ function fxButton(i, over = {}) {
     releaseValue: 0,        // hold release
     releaseAddress: '',     // hold release target; empty = same as address
     repeat: { enabled: false, intervalMs: 250 },
+    ramp: { enabled: false, from: 0, to: 1, durationMs: 1500 }, // hold: sweep value while pressed
     macro: [],              // [{address, values:[...]}] — sent in order instead of single message
     gamepadButton: -1,      // standard-mapping gamepad button index, -1 = unbound
     ...over,
@@ -87,6 +88,9 @@ function defaults() {
       fxButton(14, { label: 'COL 7', icon: '▶', gamepadButton: 8, address: '/composition/columns/7/connect' }),
       fxButton(15, { label: 'COL 8', icon: '▶', gamepadButton: 9, address: '/composition/columns/8/connect' }),
     ],
+    // Second page: same schema, no controller bindings by default.
+    fxButtons2: Array.from({ length: 16 }, (_, i) =>
+      fxButton(i, { id: `fx2-${i + 1}`, label: `2·FX ${i + 1}`, gamepadButton: -1 })),
     faders: [
       fader(0, { label: 'MASTER', color: ACCENTS.green, address: '/composition/master' }),
       fader(1, { label: 'LAYER 1', address: '/composition/layers/1/master' }),
@@ -94,6 +98,8 @@ function defaults() {
       fader(3, { label: 'LAYER 3', address: '/composition/layers/3/master' }),
       fader(4, { label: 'LAYER 4', address: '/composition/layers/4/master' }),
       fader(5, { label: 'LOGO', color: ACCENTS.white, address: '/composition/layers/5/master' }),
+      fader(6, { label: 'AUX 1', color: ACCENTS.amber, address: '/composition/layers/6/master' }),
+      fader(7, { label: 'AUX 2', color: ACCENTS.amber, address: '/composition/layers/7/master' }),
     ],
     colorButtons: Array.from({ length: 10 }, (_, i) => colorButton(i)),
   };
@@ -125,6 +131,7 @@ function mergeConfig(base, patch) {
     network: deepMerge(base.network, isPlainObject(patch.network) ? patch.network : {}),
     ui: deepMerge(base.ui, isPlainObject(patch.ui) ? patch.ui : {}),
     fxButtons: mergeControls(base.fxButtons, patch.fxButtons),
+    fxButtons2: mergeControls(base.fxButtons2, patch.fxButtons2),
     faders: mergeControls(base.faders, patch.faders),
     colorButtons: mergeControls(base.colorButtons, patch.colorButtons),
   };

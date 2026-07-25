@@ -11,7 +11,7 @@ const GLYPHS = ['◆', '●', '▲', '▼', '■', '◉', '✕', '⚡', '⏱', '
   '★', '♪', '☰', '◐', '▶', '◀', '⏸', '⏹', '✦', '☄', '♦', '▩'];
 const PALETTE = ['#00e0ff', '#ffb400', '#ff4757', '#2ee66b', '#b46bff',
   '#ff7a1a', '#eaeef5', '#3aa0ff', '#ff3df0', '#ffd93d'];
-const KIND_TITLES = { fxButtons: 'FX BUTTON', faders: 'FADER', colorButtons: 'COLOR PRESET' };
+const KIND_TITLES = { fxButtons: 'FX BUTTON', fxButtons2: 'FX BUTTON P2', faders: 'FADER', colorButtons: 'COLOR PRESET' };
 
 function h(tag, cls, text) {
   const e = document.createElement(tag);
@@ -257,6 +257,15 @@ export function openEditor(kind, index) {
       const rel = textInput(draft.releaseAddress ?? '', v => { draft.releaseAddress = v.trim(); });
       rel.placeholder = 'same as OSC address';
       body.append(field('Release address (optional)', rel));
+      body.append(checkRow('Ramp while held (value sweep)', draft.ramp?.enabled ?? false,
+        v => { draft.ramp = { ...draft.ramp, enabled: v }; }));
+      const rrow = h('div', 'row');
+      rrow.append(
+        field('Ramp from', numInput(draft.ramp?.from ?? 0, v => { draft.ramp = { ...draft.ramp, from: v }; })),
+        field('Ramp to', numInput(draft.ramp?.to ?? 1, v => { draft.ramp = { ...draft.ramp, to: v }; })),
+        field('Ramp time (ms)', numInput(draft.ramp?.durationMs ?? 1500,
+          v => { draft.ramp = { ...draft.ramp, durationMs: v }; }, '1')));
+      body.append(rrow);
     }
     // controller binding (ROG Ally X gamepad)
     const padWrap = h('div', 'field');
@@ -335,7 +344,7 @@ export function openEditor(kind, index) {
   function buildBody() {
     cleanupLearn();
     body.innerHTML = '';
-    if (kind === 'fxButtons') fxForm();
+    if (kind.startsWith('fxButtons')) fxForm();
     else if (kind === 'faders') faderForm();
     else colorForm();
   }
@@ -347,11 +356,15 @@ export function openEditor(kind, index) {
   const save = h('button', 'big-btn primary u-caps', 'Save');
   save.id = 'ed-save';
   save.addEventListener('pointerdown', () => {
-    if (kind === 'fxButtons' && draft.gamepadButton >= 0) {
-      // one controller button drives one FX button — steal the binding
-      state.get().fxButtons.forEach((c, j) => {
-        if (j !== index && c.gamepadButton === draft.gamepadButton) c.gamepadButton = -1;
-      });
+    if (kind.startsWith('fxButtons') && draft.gamepadButton >= 0) {
+      // one controller button drives one FX button — steal the binding across pages
+      for (const k of ['fxButtons', 'fxButtons2']) {
+        state.get()[k]?.forEach((c, j) => {
+          if (!(k === kind && j === index) && c.gamepadButton === draft.gamepadButton) {
+            c.gamepadButton = -1;
+          }
+        });
+      }
     }
     state.replaceControl(kind, index, draft);
     showToast(`${KIND_TITLES[kind]} ${index + 1} saved`);

@@ -30,10 +30,15 @@ export function startGamepad(handles) {
       const down = curr[bi];
       if (down === (prev[bi] ?? false)) continue;
       if (down && learnCb) { learnCb(bi); continue; } // learn consumes the press
-      const fx = state.get().fxButtons.findIndex(c => c.gamepadButton === bi);
-      if (fx === -1 || !handles[fx]) continue;
-      if (down) handles[fx].press();
-      else handles[fx].release();
+      const cfgAll = state.get();
+      let gi = cfgAll.fxButtons.findIndex(c => c.gamepadButton === bi);
+      if (gi === -1) {
+        const p2 = (cfgAll.fxButtons2 ?? []).findIndex(c => c.gamepadButton === bi);
+        gi = p2 === -1 ? -1 : 16 + p2;
+      }
+      if (gi === -1 || !handles[gi]) continue;
+      if (down) handles[gi].press();
+      else handles[gi].release();
     }
     prev = curr;
   }
