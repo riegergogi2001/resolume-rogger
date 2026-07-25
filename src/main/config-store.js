@@ -22,7 +22,7 @@ function fxButton(i, over = {}) {
     offValue: 0,            // toggle off
     releaseValue: 0,        // hold release
     releaseAddress: '',     // hold release target; empty = same as address
-    repeat: { enabled: false, intervalMs: 250 },
+    repeat: { enabled: false, intervalMs: 250, sync: false }, // sync = follow tapped beat
     ramp: { enabled: false, from: 0, to: 1, durationMs: 1500 }, // hold: sweep value while pressed
     macro: [],              // [{address, values:[...]}] — sent in order instead of single message
     gamepadButton: -1,      // standard-mapping gamepad button index, -1 = unbound

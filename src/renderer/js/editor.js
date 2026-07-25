@@ -305,7 +305,9 @@ export function openEditor(kind, index) {
 
     body.append(checkRow('Repeat while held', draft.repeat?.enabled ?? false,
       v => { draft.repeat = { ...draft.repeat, enabled: v }; }));
-    body.append(field('Repeat interval (ms)',
+    body.append(checkRow('Sync repeat to tapped BPM', draft.repeat?.sync ?? false,
+      v => { draft.repeat = { ...draft.repeat, sync: v }; }));
+    body.append(field('Repeat interval (ms, fallback when unsynced)',
       numInput(draft.repeat?.intervalMs ?? 250, v => { draft.repeat = { ...draft.repeat, intervalMs: v }; }, '1')));
 
     macroSection(body, draft);

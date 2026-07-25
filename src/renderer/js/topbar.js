@@ -1,6 +1,7 @@
 // Top bar: wordmark, OSC target readout, status lamp, EDIT latch, settings.
 import { rogger } from './bridge.js';
 import * as state from './state.js';
+import * as beat from './beat-clock.js';
 
 export function renderTopbar(el, { onToggleEdit, onOpenSettings }) {
   el.innerHTML = '';
@@ -36,44 +37,28 @@ export function renderTopbar(el, { onToggleEdit, onOpenSettings }) {
     return btn;
   }
 
-  // beat clock derived locally from the tap button (display only, no OSC)
-  let taps = [];
-  let beatMult = 1;
+  // beat clock readout (shared beat-clock module; repeats can sync to it)
   const bpm = document.createElement('div');
   bpm.className = 'bpm-readout u-caps u-num';
   bpm.id = 'bpm-readout';
-  function beatMs() {
-    if (taps.length < 2) return null;
-    return ((taps[taps.length - 1] - taps[0]) / (taps.length - 1)) * beatMult;
-  }
   function refreshBpm() {
-    const ms = beatMs();
+    const ms = beat.beatMs();
     bpm.textContent = ms ? `${(60000 / ms).toFixed(1)} bpm · ${Math.round(ms)} ms` : '— bpm';
   }
   refreshBpm();
-  function onTap() {
-    const now = performance.now();
-    if (taps.length && now - taps[taps.length - 1] > 2000) taps = [];
-    taps.push(now);
-    if (taps.length > 8) taps.shift();
-    beatMult = 1;
-    refreshBpm();
-  }
+  beat.onChange(refreshBpm);
   function multButton(id, label, factor) {
     const btn = document.createElement('button');
     btn.className = 'mini-btn u-num';
     btn.id = id;
     btn.textContent = label;
-    btn.addEventListener('pointerdown', () => {
-      beatMult = Math.min(4, Math.max(0.25, beatMult * factor));
-      refreshBpm();
-    });
+    btn.addEventListener('pointerdown', () => beat.scaleBeat(factor));
     return btn;
   }
   const half = multButton('bpm-half', '÷2', 0.5);
   const dbl = multButton('bpm-double', '×2', 2);
 
-  const tap = tempoButton('tap-tempo', 'Tap', '/composition/tempocontroller/tempotap', onTap);
+  const tap = tempoButton('tap-tempo', 'Tap', '/composition/tempocontroller/tempotap', beat.tap);
   const resync = tempoButton('tap-resync', 'Resync', '/composition/tempocontroller/resync');
 
   // battery + clock — show hardware state on a kiosk screen

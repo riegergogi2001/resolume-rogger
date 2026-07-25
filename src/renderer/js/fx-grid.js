@@ -4,6 +4,7 @@
 import { rogger } from './bridge.js';
 import * as state from './state.js';
 import { BUTTON_NAMES } from './gamepad.js';
+import { beatMs } from './beat-clock.js';
 
 function typedArgs(type, value) {
   if (type === 'command') return [];
@@ -126,10 +127,18 @@ export function renderFxGrid(el, { isEditMode, onEdit }) {
           startRamp(); // the sweep replaces the single press message
         } else {
           fire(c, c.value);
-          if (c.repeat?.enabled) {
-            repeatTimer = setInterval(() => fire(cfg(), cfg().value), Math.max(50, c.repeat.intervalMs));
-          }
+          if (c.repeat?.enabled) scheduleRepeat();
         }
+      }
+
+      // self-timing chain so beat-synced repeats follow tempo changes live
+      function scheduleRepeat() {
+        const r = cfg().repeat;
+        const iv = r.sync ? (beatMs() ?? r.intervalMs) : r.intervalMs;
+        repeatTimer = setTimeout(() => {
+          fire(cfg(), cfg().value);
+          scheduleRepeat();
+        }, Math.max(50, iv));
       }
 
       function release() {
@@ -137,7 +146,7 @@ export function renderFxGrid(el, { isEditMode, onEdit }) {
           cancelAnimationFrame(rampRaf);
           rampRaf = null;
         }
-        clearInterval(repeatTimer);
+        clearTimeout(repeatTimer);
         repeatTimer = null;
         b.classList.remove('pressed', 'flashing');
         if (holdActive) {
