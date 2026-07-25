@@ -10,6 +10,9 @@
   "ui": {
     "theme": "dark"
   },
+  "beat": {
+    "source": "tap"
+  },
   "triggers": {
     "lt": {
       "enabled": true,
@@ -288,12 +291,12 @@
     },
     {
       "id": "fx9",
-      "label": "KEEP GREYS",
-      "icon": "◐",
-      "color": "#eaeef5",
-      "mode": "toggle",
+      "label": "SPARE",
+      "icon": "·",
+      "color": "#3a3f47",
+      "mode": "hold",
       "type": "int",
-      "address": "/composition/groups/1/video/effects/colorize/effect/greyskeep",
+      "address": "/composition/layers/12/clear",
       "value": 1,
       "offValue": 0,
       "releaseValue": 0,
@@ -315,21 +318,21 @@
     },
     {
       "id": "fx10",
-      "label": "HAZE",
-      "icon": "✦",
-      "color": "#2ee66b",
-      "mode": "toggle",
+      "label": "BOOM ALL",
+      "icon": "☄",
+      "color": "#ff7a1a",
+      "mode": "hold",
       "type": "int",
-      "address": "/composition/layers/8/video/effects/outlinehaze/bypassed",
-      "value": 0,
-      "offValue": 1,
+      "address": "/composition/video/effects/boomer/effect/blur",
+      "value": 1,
+      "offValue": 0,
       "releaseValue": 0,
       "releaseAddress": "",
-      "extraAddress": "/composition/layers/9/video/effects/outlinehaze/bypassed",
+      "extraAddress": "",
       "repeat": {
-        "enabled": false,
-        "intervalMs": 250,
-        "sync": false
+        "enabled": true,
+        "intervalMs": 200,
+        "sync": true
       },
       "ramp": {
         "enabled": false,
@@ -337,7 +340,32 @@
         "to": 1,
         "durationMs": 1500
       },
-      "macro": [],
+      "macro": [
+        {
+          "address": "/composition/video/effects/boomer/effect/blur",
+          "values": [
+            1
+          ]
+        },
+        {
+          "address": "/composition/video/effects/boomer/effect/exposure",
+          "values": [
+            1
+          ]
+        },
+        {
+          "address": "/composition/video/effects/boomer/effect/edge",
+          "values": [
+            1
+          ]
+        },
+        {
+          "address": "/composition/video/effects/boomer/effect/blow",
+          "values": [
+            1
+          ]
+        }
+      ],
       "gamepadButton": -1
     },
     {
@@ -1518,12 +1546,12 @@
     },
     {
       "id": "fx3-21",
-      "label": "CO2",
-      "icon": "▲",
-      "color": "#00e5ff",
+      "label": "#21",
+      "icon": "·",
+      "color": "#3a3f47",
       "mode": "hold",
       "type": "int",
-      "address": "/composition/video/effects/co2/effect/fire",
+      "address": "/composition/layers/17/clips/21/connect",
       "value": 1,
       "offValue": 0,
       "releaseValue": 0,
@@ -1545,13 +1573,13 @@
     },
     {
       "id": "fx3-22",
-      "label": "AUTO VJ",
-      "icon": "↻",
-      "color": "#2ee66b",
-      "mode": "toggle",
+      "label": "#22",
+      "icon": "·",
+      "color": "#3a3f47",
+      "mode": "hold",
       "type": "int",
-      "address": "/composition/layers/1/autopilot/target",
-      "value": 3,
+      "address": "/composition/layers/17/clips/22/connect",
+      "value": 1,
       "offValue": 0,
       "releaseValue": 0,
       "releaseAddress": "",
@@ -1648,6 +1676,116 @@
           ]
         }
       ],
+      "gamepadButton": -1
+    }
+  ],
+  "utilButtons": [
+    {
+      "id": "util1",
+      "label": "KEEP GREYS",
+      "icon": "◐",
+      "color": "#eaeef5",
+      "mode": "toggle",
+      "type": "int",
+      "address": "/composition/groups/1/video/effects/colorize/effect/greyskeep",
+      "value": 1,
+      "offValue": 0,
+      "releaseValue": 0,
+      "releaseAddress": "",
+      "extraAddress": "",
+      "repeat": {
+        "enabled": false,
+        "intervalMs": 250,
+        "sync": false
+      },
+      "ramp": {
+        "enabled": false,
+        "from": 0,
+        "to": 1,
+        "durationMs": 1500
+      },
+      "macro": [],
+      "gamepadButton": -1
+    },
+    {
+      "id": "util2",
+      "label": "HAZE",
+      "icon": "✦",
+      "color": "#2ee66b",
+      "mode": "toggle",
+      "type": "int",
+      "address": "/composition/layers/8/video/effects/outlinehaze/bypassed",
+      "value": 0,
+      "offValue": 1,
+      "releaseValue": 0,
+      "releaseAddress": "",
+      "extraAddress": "/composition/layers/9/video/effects/outlinehaze/bypassed",
+      "repeat": {
+        "enabled": false,
+        "intervalMs": 250,
+        "sync": false
+      },
+      "ramp": {
+        "enabled": false,
+        "from": 0,
+        "to": 1,
+        "durationMs": 1500
+      },
+      "macro": [],
+      "gamepadButton": -1
+    },
+    {
+      "id": "util3",
+      "label": "CO2",
+      "icon": "▲",
+      "color": "#00e5ff",
+      "mode": "hold",
+      "type": "int",
+      "address": "/composition/video/effects/co2/effect/fire",
+      "value": 1,
+      "offValue": 0,
+      "releaseValue": 0,
+      "releaseAddress": "",
+      "extraAddress": "",
+      "repeat": {
+        "enabled": false,
+        "intervalMs": 250,
+        "sync": false
+      },
+      "ramp": {
+        "enabled": false,
+        "from": 0,
+        "to": 1,
+        "durationMs": 1500
+      },
+      "macro": [],
+      "gamepadButton": -1
+    },
+    {
+      "id": "util4",
+      "label": "AUTO VJ",
+      "icon": "↻",
+      "color": "#2ee66b",
+      "mode": "toggle",
+      "type": "int",
+      "address": "/composition/layers/1/autopilot/target",
+      "value": 3,
+      "offValue": 0,
+      "releaseValue": 0,
+      "releaseAddress": "",
+      "extraAddress": "",
+      "repeat": {
+        "enabled": false,
+        "intervalMs": 250,
+        "sync": false
+      },
+      "ramp": {
+        "enabled": false,
+        "from": 0,
+        "to": 1,
+        "durationMs": 1500
+      },
+      "macro": [],
       "gamepadButton": -1
     }
   ],
