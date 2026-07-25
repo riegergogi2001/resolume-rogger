@@ -36,9 +36,11 @@ function fader(i, over = {}) {
     label: `F${i + 1}`,
     color: ACCENTS.cyan,
     address: `/composition/layers/${i + 1}/master`,
+    extraAddress: '',       // optional second target fed the same value
     min: 0, max: 1, defaultValue: 1,
     invert: false,
     sensitivity: 1,
+    orientation: 'v',       // v = vertical column, h = horizontal strip
     ...over,
   };
 }
@@ -112,8 +114,8 @@ function defaults() {
       fader(3, { label: 'LAYER 3', address: '/composition/layers/3/master' }),
       fader(4, { label: 'LAYER 4', address: '/composition/layers/4/master' }),
       fader(5, { label: 'LOGO', color: ACCENTS.white, address: '/composition/layers/5/master' }),
-      fader(6, { label: 'AUX 1', color: ACCENTS.amber, address: '/composition/layers/6/master' }),
-      fader(7, { label: 'AUX 2', color: ACCENTS.amber, address: '/composition/layers/7/master' }),
+      fader(6, { label: 'AUX 1', color: ACCENTS.amber, address: '/composition/layers/6/master', orientation: 'h' }),
+      fader(7, { label: 'AUX 2', color: ACCENTS.amber, address: '/composition/layers/7/master', orientation: 'h' }),
     ],
     colorButtons: Array.from({ length: 10 }, (_, i) => colorButton(i)),
   };

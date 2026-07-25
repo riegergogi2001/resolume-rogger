@@ -53,6 +53,11 @@ app.whenReady().then(() => {
   createWindow();
 });
 
+ipcMain.on('app:quit', () => {
+  engine.close();
+  app.quit();
+});
+
 app.on('window-all-closed', () => {
   engine.close();
   app.quit();

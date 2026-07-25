@@ -220,6 +220,78 @@
   box-shadow: 0 0 14px color-mix(in srgb, var(--fader-color, var(--accent)) 45%, transparent);
 }
 
+/* horizontal strip variant */
+.fader--h {
+  flex-direction: row;
+  align-items: center;
+  gap: 12px;
+  height: 60px;
+  padding: 8px 12px;
+}
+.fader--h .fader-label {
+  min-width: 88px;
+  text-align: left;
+}
+.fader--h .fader-value {
+  min-width: 52px;
+  text-align: right;
+}
+.fader--h .fader-track {
+  flex: 1;
+  align-self: stretch;
+  min-height: 0;
+}
+.fader--h .fader-fill {
+  top: 0;
+  bottom: 0;
+  right: auto;
+  width: 0;
+  border-radius: 7px 0 0 7px;
+}
+.fader--h .fader-thumb {
+  top: 4px;
+  bottom: 4px;
+  height: auto;
+  width: 36px;
+  left: 0;
+  right: auto;
+  transform: none;
+}
+.fader--h .fader-thumb::after {
+  left: 50%;
+  right: auto;
+  top: 18%;
+  bottom: 18%;
+  width: 2px;
+  height: auto;
+  box-shadow: -6px 0 0 rgba(255,255,255,0.12), 6px 0 0 rgba(255,255,255,0.12);
+}
+
+/* topbar meta readouts (bpm / battery / clock) */
+.bpm-readout,
+.meta-readout {
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  color: var(--text-dim);
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  padding: 6px 10px;
+  white-space: nowrap;
+}
+.meta-readout.warn { color: var(--err); border-color: var(--err); }
+.mini-btn {
+  height: 48px;
+  min-width: 48px;
+  padding: 0 10px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--panel);
+  font-size: 13px;
+  font-weight: 800;
+}
+.mini-btn:active { background: var(--panel-3); }
+
 /* ---- Color presets ---- */
 .color-btn {
   display: flex;
