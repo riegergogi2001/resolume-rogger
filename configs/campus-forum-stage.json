@@ -49,7 +49,8 @@
       "releaseAddress": "",
       "repeat": {
         "enabled": false,
-        "intervalMs": 250
+        "intervalMs": 250,
+        "sync": false
       },
       "ramp": {
         "enabled": false,
@@ -74,7 +75,8 @@
       "releaseAddress": "",
       "repeat": {
         "enabled": false,
-        "intervalMs": 250
+        "intervalMs": 250,
+        "sync": false
       },
       "ramp": {
         "enabled": false,
@@ -99,7 +101,8 @@
       "releaseAddress": "",
       "repeat": {
         "enabled": false,
-        "intervalMs": 250
+        "intervalMs": 250,
+        "sync": false
       },
       "ramp": {
         "enabled": false,
@@ -124,7 +127,8 @@
       "releaseAddress": "",
       "repeat": {
         "enabled": false,
-        "intervalMs": 250
+        "intervalMs": 250,
+        "sync": false
       },
       "ramp": {
         "enabled": false,
@@ -149,7 +153,8 @@
       "releaseAddress": "",
       "repeat": {
         "enabled": false,
-        "intervalMs": 250
+        "intervalMs": 250,
+        "sync": false
       },
       "ramp": {
         "enabled": false,
@@ -174,7 +179,8 @@
       "releaseAddress": "",
       "repeat": {
         "enabled": false,
-        "intervalMs": 250
+        "intervalMs": 250,
+        "sync": false
       },
       "ramp": {
         "enabled": false,
@@ -199,7 +205,8 @@
       "releaseAddress": "",
       "repeat": {
         "enabled": false,
-        "intervalMs": 250
+        "intervalMs": 250,
+        "sync": false
       },
       "ramp": {
         "enabled": false,
@@ -224,7 +231,8 @@
       "releaseAddress": "",
       "repeat": {
         "enabled": false,
-        "intervalMs": 250
+        "intervalMs": 250,
+        "sync": false
       },
       "ramp": {
         "enabled": false,
@@ -249,7 +257,8 @@
       "releaseAddress": "",
       "repeat": {
         "enabled": true,
-        "intervalMs": 200
+        "intervalMs": 200,
+        "sync": true
       },
       "ramp": {
         "enabled": false,
@@ -274,7 +283,8 @@
       "releaseAddress": "",
       "repeat": {
         "enabled": true,
-        "intervalMs": 200
+        "intervalMs": 200,
+        "sync": true
       },
       "ramp": {
         "enabled": false,
@@ -299,7 +309,8 @@
       "releaseAddress": "",
       "repeat": {
         "enabled": true,
-        "intervalMs": 200
+        "intervalMs": 200,
+        "sync": true
       },
       "ramp": {
         "enabled": false,
@@ -324,7 +335,8 @@
       "releaseAddress": "",
       "repeat": {
         "enabled": true,
-        "intervalMs": 200
+        "intervalMs": 200,
+        "sync": true
       },
       "ramp": {
         "enabled": false,
@@ -349,7 +361,8 @@
       "releaseAddress": "",
       "repeat": {
         "enabled": true,
-        "intervalMs": 200
+        "intervalMs": 200,
+        "sync": true
       },
       "ramp": {
         "enabled": false,
@@ -374,7 +387,8 @@
       "releaseAddress": "",
       "repeat": {
         "enabled": true,
-        "intervalMs": 200
+        "intervalMs": 200,
+        "sync": true
       },
       "ramp": {
         "enabled": false,
@@ -399,7 +413,8 @@
       "releaseAddress": "",
       "repeat": {
         "enabled": false,
-        "intervalMs": 250
+        "intervalMs": 250,
+        "sync": false
       },
       "ramp": {
         "enabled": false,
@@ -424,7 +439,8 @@
       "releaseAddress": "",
       "repeat": {
         "enabled": false,
-        "intervalMs": 250
+        "intervalMs": 250,
+        "sync": false
       },
       "ramp": {
         "enabled": false,
@@ -451,7 +467,8 @@
       "releaseAddress": "",
       "repeat": {
         "enabled": false,
-        "intervalMs": 250
+        "intervalMs": 250,
+        "sync": false
       },
       "ramp": {
         "enabled": true,
@@ -476,7 +493,8 @@
       "releaseAddress": "",
       "repeat": {
         "enabled": false,
-        "intervalMs": 250
+        "intervalMs": 250,
+        "sync": false
       },
       "ramp": {
         "enabled": true,
@@ -501,7 +519,8 @@
       "releaseAddress": "",
       "repeat": {
         "enabled": false,
-        "intervalMs": 250
+        "intervalMs": 250,
+        "sync": false
       },
       "ramp": {
         "enabled": true,
@@ -526,7 +545,8 @@
       "releaseAddress": "",
       "repeat": {
         "enabled": false,
-        "intervalMs": 250
+        "intervalMs": 250,
+        "sync": false
       },
       "ramp": {
         "enabled": true,
@@ -551,7 +571,8 @@
       "releaseAddress": "",
       "repeat": {
         "enabled": false,
-        "intervalMs": 250
+        "intervalMs": 250,
+        "sync": false
       },
       "ramp": {
         "enabled": true,
@@ -576,7 +597,8 @@
       "releaseAddress": "",
       "repeat": {
         "enabled": false,
-        "intervalMs": 250
+        "intervalMs": 250,
+        "sync": false
       },
       "ramp": {
         "enabled": true,
@@ -601,7 +623,8 @@
       "releaseAddress": "",
       "repeat": {
         "enabled": false,
-        "intervalMs": 250
+        "intervalMs": 250,
+        "sync": false
       },
       "ramp": {
         "enabled": true,
@@ -626,7 +649,8 @@
       "releaseAddress": "",
       "repeat": {
         "enabled": false,
-        "intervalMs": 250
+        "intervalMs": 250,
+        "sync": false
       },
       "ramp": {
         "enabled": true,
@@ -651,7 +675,8 @@
       "releaseAddress": "",
       "repeat": {
         "enabled": false,
-        "intervalMs": 250
+        "intervalMs": 250,
+        "sync": false
       },
       "ramp": {
         "enabled": false,
@@ -676,7 +701,8 @@
       "releaseAddress": "",
       "repeat": {
         "enabled": false,
-        "intervalMs": 250
+        "intervalMs": 250,
+        "sync": false
       },
       "ramp": {
         "enabled": false,
@@ -700,8 +726,9 @@
       "releaseValue": 0,
       "releaseAddress": "",
       "repeat": {
-        "enabled": false,
-        "intervalMs": 250
+        "enabled": true,
+        "intervalMs": 250,
+        "sync": true
       },
       "ramp": {
         "enabled": false,
@@ -750,8 +777,9 @@
       "releaseValue": 0,
       "releaseAddress": "",
       "repeat": {
-        "enabled": false,
-        "intervalMs": 250
+        "enabled": true,
+        "intervalMs": 250,
+        "sync": true
       },
       "ramp": {
         "enabled": false,
@@ -789,7 +817,8 @@
       "releaseAddress": "",
       "repeat": {
         "enabled": false,
-        "intervalMs": 250
+        "intervalMs": 250,
+        "sync": false
       },
       "ramp": {
         "enabled": false,
@@ -814,7 +843,8 @@
       "releaseAddress": "",
       "repeat": {
         "enabled": false,
-        "intervalMs": 250
+        "intervalMs": 250,
+        "sync": false
       },
       "ramp": {
         "enabled": false,
@@ -839,7 +869,8 @@
       "releaseAddress": "",
       "repeat": {
         "enabled": false,
-        "intervalMs": 250
+        "intervalMs": 250,
+        "sync": false
       },
       "ramp": {
         "enabled": false,
@@ -864,7 +895,8 @@
       "releaseAddress": "",
       "repeat": {
         "enabled": false,
-        "intervalMs": 250
+        "intervalMs": 250,
+        "sync": false
       },
       "ramp": {
         "enabled": false,
