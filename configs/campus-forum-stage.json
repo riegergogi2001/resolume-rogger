@@ -59,7 +59,7 @@
         "durationMs": 1500
       },
       "macro": [],
-      "gamepadButton": 0
+      "gamepadButton": -1
     },
     {
       "id": "fx2",
@@ -371,7 +371,7 @@
         "durationMs": 1500
       },
       "macro": [],
-      "gamepadButton": 10
+      "gamepadButton": 0
     },
     {
       "id": "fx14",
