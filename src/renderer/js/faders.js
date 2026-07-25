@@ -9,9 +9,13 @@ import { beatMs } from './beat-clock.js';
 
 const fmt = v => (Math.abs(v) >= 10 ? v.toFixed(1) : v.toFixed(2));
 
-export function renderFaders(el, { isEditMode, onEdit }) {
+export function renderFaders(el, opts) {
+  renderFaderSet(el, opts, 'faders');
+}
+
+export function renderFaderSet(el, { isEditMode, onEdit }, kind) {
   el.innerHTML = '';
-  const all = state.get().faders;
+  const all = state.get()[kind] ?? [];
   const vIdx = [];
   const hIdx = [];
   all.forEach((f, i) => (f.orientation === 'h' ? hIdx : vIdx).push(i));
@@ -23,6 +27,7 @@ export function renderFaders(el, { isEditMode, onEdit }) {
   hRack.className = 'fader-rack-h';
   el.append(vRack, hRack);
   if (!hIdx.length) hRack.style.display = 'none';
+  if (!vIdx.length) vRack.style.display = 'none';
 
   function buildFader(i) {
     const isH = all[i].orientation === 'h';
@@ -42,7 +47,7 @@ export function renderFaders(el, { isEditMode, onEdit }) {
     const fill = wrap.querySelector('.fader-fill');
     const thumb = wrap.querySelector('.fader-thumb');
     const valueEl = wrap.querySelector('.fader-value');
-    const cfg = () => state.get().faders[i];
+    const cfg = () => state.get()[kind][i];
 
     // norm is the visual position 0..1 (bottom-up / left-right);
     // invert only affects the output value.
@@ -106,7 +111,7 @@ export function renderFaders(el, { isEditMode, onEdit }) {
     }
 
     track.addEventListener('pointerdown', e => {
-      if (isEditMode()) { onEdit('faders', i); return; }
+      if (isEditMode()) { onEdit(kind, i); return; }
       const now = performance.now();
       if (now - lastTapTime < 300) {
         norm = normOf(cfg(), cfg().defaultValue);

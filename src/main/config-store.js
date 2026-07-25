@@ -125,6 +125,10 @@ function defaults() {
       fader(6, { label: 'AUX 1', color: ACCENTS.amber, address: '/composition/layers/6/master', orientation: 'h', beatSync: { enabled: true, bpmAt1: 300 } }),
       fader(7, { label: 'AUX 2', color: ACCENTS.amber, address: '/composition/layers/7/master', orientation: 'h' }),
     ],
+    // Page-2 group faders: horizontal strips for layer-group masters.
+    groupFaders: Array.from({ length: 6 }, (_, i) =>
+      fader(i, { id: `gfader${i + 1}`, label: `GRP ${i + 1}`, orientation: 'h',
+        address: `/composition/groups/${i + 1}/master` })),
     colorButtons: Array.from({ length: 10 }, (_, i) => colorButton(i)),
     // Switchable color-picker destinations (the 3 squares at the row's end).
     colorTargets: {
@@ -194,6 +198,7 @@ function mergeConfig(base, patch) {
     fxButtons2: mergeControls(base.fxButtons2, patch.fxButtons2),
     fxButtons3: mergeControls(base.fxButtons3, patch.fxButtons3),
     faders: mergeControls(base.faders, patch.faders),
+    groupFaders: mergeControls(base.groupFaders, patch.groupFaders),
     colorButtons: mergeControls(base.colorButtons, patch.colorButtons),
   };
 }

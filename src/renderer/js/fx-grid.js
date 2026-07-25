@@ -5,7 +5,8 @@ import { rogger } from './bridge.js';
 import * as state from './state.js';
 import { showToast } from './toast.js';
 import { BUTTON_NAMES } from './gamepad.js';
-import { beatMs } from './beat-clock.js';
+import * as beat from './beat-clock.js';
+import { renderFaderSet } from './faders.js';
 
 function typedArgs(type, value) {
   if (type === 'command') return [];
@@ -25,7 +26,7 @@ function fire(btn, value, address = btn.address) {
 
 export const PAGE_DEFS = [
   { kind: 'fxButtons', label: 'Page 1', layout: 'banks' },
-  { kind: 'fxButtons2', label: 'Page 2', layout: 'banks' },
+  { kind: 'fxButtons2', label: 'Page 2', layout: 'mix', faderKind: 'groupFaders' },
   { kind: 'fxButtons3', label: 'DJ Intro', layout: 'grid' },
 ];
 // Flat press/release handles across all pages, in PAGE_DEFS order.
@@ -46,7 +47,7 @@ export function renderFxGrid(el, { isEditMode, onEdit }) {
   }
 
   let handleBase = 0;
-  PAGE_DEFS.forEach(({ kind, label, layout }, p) => {
+  PAGE_DEFS.forEach(({ kind, label, layout, faderKind }, p) => {
     const buttons = state.get()[kind] ?? [];
     const tab = document.createElement('button');
     tab.className = 'page-tab u-caps';
@@ -72,6 +73,42 @@ export function renderFxGrid(el, { isEditMode, onEdit }) {
       bumpBank.className = 'fx-bank';
       pageEl.append(flashTitle, flashBank, bumpTitle, bumpBank);
       pageEl.classList.add('fx-page--banks');
+    } else if (layout === 'mix') {
+      // top: 8 ramp/punch buttons; below: big tempo controls + group faders
+      const flashTitle = document.createElement('div');
+      flashTitle.className = 'bank-title';
+      flashTitle.textContent = 'Flash';
+      flashBank = document.createElement('div');
+      flashBank.className = 'fx-bank';
+      bumpBank = flashBank;
+      const tempoRow = document.createElement('div');
+      tempoRow.className = 'tempo-row';
+      function bigTempo(id, lbl, address, onPress) {
+        const btn = document.createElement('button');
+        btn.className = 'tempo-big u-caps';
+        btn.id = id;
+        btn.textContent = lbl;
+        btn.addEventListener('pointerdown', e => {
+          btn.setPointerCapture(e.pointerId);
+          rogger.sendTyped(address, [{ type: 'i', value: 1 }]);
+          if (onPress) onPress();
+        });
+        const up = () => rogger.sendTyped(address, [{ type: 'i', value: 0 }]);
+        btn.addEventListener('pointerup', up);
+        btn.addEventListener('pointercancel', up);
+        return btn;
+      }
+      tempoRow.append(
+        bigTempo('big-tap', 'Tap Tempo', '/composition/tempocontroller/tempotap', beat.tap),
+        bigTempo('big-resync', 'Resync', '/composition/tempocontroller/resync'));
+      const gTitle = document.createElement('div');
+      gTitle.className = 'bank-title';
+      gTitle.textContent = 'Groups';
+      const faderZone = document.createElement('div');
+      faderZone.className = 'page-fader-zone';
+      renderFaderSet(faderZone, { isEditMode, onEdit }, faderKind);
+      pageEl.append(flashTitle, flashBank, tempoRow, gTitle, faderZone);
+      pageEl.classList.add('fx-page--mix');
     } else {
       const head = document.createElement('div');
       head.className = 'bank-title';
@@ -103,7 +140,8 @@ export function renderFxGrid(el, { isEditMode, onEdit }) {
     const pageBase = handleBase;
     handleBase += buttons.length;
 
-    buttons.forEach((_, i) => {
+    const renderCount = layout === 'mix' ? Math.min(8, buttons.length) : buttons.length;
+    buttons.slice(0, renderCount).forEach((_, i) => {
       const b = document.createElement('button');
       b.className = 'fx-btn';
       b.dataset.index = i;
@@ -173,7 +211,7 @@ export function renderFxGrid(el, { isEditMode, onEdit }) {
       // self-timing chain so beat-synced repeats follow tempo changes live
       function scheduleRepeat() {
         const r = cfg().repeat;
-        const iv = r.sync ? (beatMs() ?? r.intervalMs) : r.intervalMs;
+        const iv = r.sync ? (beat.beatMs() ?? r.intervalMs) : r.intervalMs;
         repeatTimer = setTimeout(() => {
           fire(cfg(), cfg().value);
           scheduleRepeat();

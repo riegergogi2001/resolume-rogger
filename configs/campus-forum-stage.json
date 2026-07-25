@@ -1537,12 +1537,12 @@
     },
     {
       "id": "fx3-23",
-      "label": "#23",
-      "icon": "·",
-      "color": "#3a3f47",
-      "mode": "hold",
+      "label": "R1 LOGO",
+      "icon": "◆",
+      "color": "#eaeef5",
+      "mode": "tap",
       "type": "int",
-      "address": "/composition/layers/17/clips/23/connect",
+      "address": "/composition/layers/9/clips/2/connect",
       "value": 1,
       "offValue": 0,
       "releaseValue": 0,
@@ -1559,17 +1559,30 @@
         "to": 1,
         "durationMs": 1500
       },
-      "macro": [],
+      "macro": [
+        {
+          "address": "/composition/layers/9/clips/2/connect",
+          "values": [
+            1
+          ]
+        },
+        {
+          "address": "/composition/layers/8/clear",
+          "values": [
+            1
+          ]
+        }
+      ],
       "gamepadButton": -1
     },
     {
       "id": "fx3-24",
-      "label": "#24",
-      "icon": "·",
-      "color": "#3a3f47",
-      "mode": "hold",
+      "label": "LOGO OFF",
+      "icon": "✕",
+      "color": "#ff4757",
+      "mode": "tap",
       "type": "int",
-      "address": "/composition/layers/17/clips/24/connect",
+      "address": "/composition/layers/9/clear",
       "value": 1,
       "offValue": 0,
       "releaseValue": 0,
@@ -1586,7 +1599,20 @@
         "to": 1,
         "durationMs": 1500
       },
-      "macro": [],
+      "macro": [
+        {
+          "address": "/composition/layers/8/clear",
+          "values": [
+            1
+          ]
+        },
+        {
+          "address": "/composition/layers/9/clear",
+          "values": [
+            1
+          ]
+        }
+      ],
       "gamepadButton": -1
     }
   ],
@@ -1736,6 +1762,116 @@
       "orientation": "h",
       "beatSync": {
         "enabled": true,
+        "bpmAt1": 300
+      }
+    }
+  ],
+  "groupFaders": [
+    {
+      "id": "gfader1",
+      "label": "BG GRP",
+      "color": "#2ee66b",
+      "address": "/composition/groups/1/master",
+      "extraAddress": "",
+      "extraAddresses": [],
+      "min": 0,
+      "max": 1,
+      "defaultValue": 1,
+      "invert": false,
+      "sensitivity": 1,
+      "orientation": "h",
+      "beatSync": {
+        "enabled": false,
+        "bpmAt1": 300
+      }
+    },
+    {
+      "id": "gfader2",
+      "label": "BANNER",
+      "color": "#ffb400",
+      "address": "/composition/groups/2/master",
+      "extraAddress": "",
+      "extraAddresses": [],
+      "min": 0,
+      "max": 1,
+      "defaultValue": 1,
+      "invert": false,
+      "sensitivity": 1,
+      "orientation": "h",
+      "beatSync": {
+        "enabled": false,
+        "bpmAt1": 300
+      }
+    },
+    {
+      "id": "gfader3",
+      "label": "LOGOS",
+      "color": "#eaeef5",
+      "address": "/composition/groups/3/master",
+      "extraAddress": "",
+      "extraAddresses": [],
+      "min": 0,
+      "max": 1,
+      "defaultValue": 1,
+      "invert": false,
+      "sensitivity": 1,
+      "orientation": "h",
+      "beatSync": {
+        "enabled": false,
+        "bpmAt1": 300
+      }
+    },
+    {
+      "id": "gfader4",
+      "label": "FX RACK",
+      "color": "#b46bff",
+      "address": "/composition/groups/4/master",
+      "extraAddress": "",
+      "extraAddresses": [],
+      "min": 0,
+      "max": 1,
+      "defaultValue": 1,
+      "invert": false,
+      "sensitivity": 1,
+      "orientation": "h",
+      "beatSync": {
+        "enabled": false,
+        "bpmAt1": 300
+      }
+    },
+    {
+      "id": "gfader5",
+      "label": "TC GRP",
+      "color": "#00e0ff",
+      "address": "/composition/groups/5/master",
+      "extraAddress": "",
+      "extraAddresses": [],
+      "min": 0,
+      "max": 1,
+      "defaultValue": 1,
+      "invert": false,
+      "sensitivity": 1,
+      "orientation": "h",
+      "beatSync": {
+        "enabled": false,
+        "bpmAt1": 300
+      }
+    },
+    {
+      "id": "gfader6",
+      "label": "TIMES",
+      "color": "#8e9299",
+      "address": "/composition/groups/6/master",
+      "extraAddress": "",
+      "extraAddresses": [],
+      "min": 0,
+      "max": 1,
+      "defaultValue": 1,
+      "invert": false,
+      "sensitivity": 1,
+      "orientation": "h",
+      "beatSync": {
+        "enabled": false,
         "bpmAt1": 300
       }
     }
