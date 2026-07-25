@@ -1,7 +1,7 @@
 {
   "version": 1,
   "network": {
-    "targetIp": "192.168.192.64",
+    "targetIp": "192.168.20.157",
     "targetPort": 7432,
     "listenPort": 7001,
     "autoConnect": true,

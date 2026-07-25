@@ -13,6 +13,7 @@ contextBridge.exposeInMainWorld('rogger', {
   saveConfig: cfg => ipcRenderer.invoke('config:save', cfg),
   resetConfig: () => ipcRenderer.invoke('config:reset'),
   quit: () => ipcRenderer.send('app:quit'),
+  syncDjPage: () => ipcRenderer.invoke('dj:sync'),
   send: (address, values) => ipcRenderer.send('osc:send', address, values),
   sendTyped: (address, args) => ipcRenderer.send('osc:send-typed', address, args),
   getStatus: () => ipcRenderer.invoke('osc:status:get'),
