@@ -43,7 +43,7 @@ function fader(i, over = {}) {
     invert: false,
     sensitivity: 1,
     orientation: 'v',       // v = vertical column, h = horizontal strip
-    beatSync: { enabled: false, bpmAt1: 300 }, // ♪ button: value = bpm / bpmAt1
+    beatSync: { enabled: false, bpmAt1: 300, auto: false }, // ♪/auto: value = bpm / bpmAt1
     ...over,
   };
 }
@@ -89,6 +89,20 @@ function defaults() {
         analogAddress: '', from: 0, to: 1, releaseValue: 0,
       },
     },
+    // Analog stick axes: deflection maps onto a float param around `center`
+    // (out = center + axis * scale, clamped 0..1); spring-back re-centers.
+    sticks: {
+      ls: {
+        enabled: true, label: 'LS · PAN',
+        x: { address: '/composition/video/effects/transform/effect/positionx', center: 0.5, scale: 0.03 },
+        y: { address: '/composition/video/effects/transform/effect/positiony', center: 0.5, scale: -0.03 },
+      },
+      rs: {
+        enabled: false, label: 'RS',
+        x: { address: '', center: 0.5, scale: 0.05 },
+        y: { address: '', center: 0.5, scale: -0.05 },
+      },
+    },
     // fxButtons 0-7 = FLASH bank (momentary hold), 8-15 = BUMP bank (one-shot).
     // gamepadButton defaults: face+shoulder buttons drive flash, D-pad/sticks/menu drive bump.
     fxButtons: [
@@ -122,7 +136,7 @@ function defaults() {
       fader(3, { label: 'LAYER 3', address: '/composition/layers/3/master' }),
       fader(4, { label: 'LAYER 4', address: '/composition/layers/4/master' }),
       fader(5, { label: 'LOGO', color: ACCENTS.white, address: '/composition/layers/5/master' }),
-      fader(6, { label: 'AUX 1', color: ACCENTS.amber, address: '/composition/layers/6/master', orientation: 'h', beatSync: { enabled: true, bpmAt1: 300 } }),
+      fader(6, { label: 'AUX 1', color: ACCENTS.amber, address: '/composition/layers/6/master', orientation: 'h', beatSync: { enabled: true, bpmAt1: 300, auto: true } }),
       fader(7, { label: 'AUX 2', color: ACCENTS.amber, address: '/composition/layers/7/master', orientation: 'h' }),
     ],
     // Page-2 group faders: horizontal strips for layer-group masters.
@@ -194,6 +208,7 @@ function mergeConfig(base, patch) {
     ui: deepMerge(base.ui, isPlainObject(patch.ui) ? patch.ui : {}),
     triggers: deepMerge(base.triggers, isPlainObject(patch.triggers) ? patch.triggers : {}),
     colorTargets: deepMerge(base.colorTargets, isPlainObject(patch.colorTargets) ? patch.colorTargets : {}),
+    sticks: deepMerge(base.sticks, isPlainObject(patch.sticks) ? patch.sticks : {}),
     fxButtons: mergeControls(base.fxButtons, patch.fxButtons),
     fxButtons2: mergeControls(base.fxButtons2, patch.fxButtons2),
     fxButtons3: mergeControls(base.fxButtons3, patch.fxButtons3),

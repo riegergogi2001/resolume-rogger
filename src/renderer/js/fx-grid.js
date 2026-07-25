@@ -183,6 +183,8 @@ export function renderFxGrid(el, { isEditMode, onEdit }) {
 
       function press() {
         const c = cfg();
+        // tempotap buttons also drive the local beat clock (touch + gamepad)
+        if (c.address === '/composition/tempocontroller/tempotap') beat.tap();
         if (c.mode === 'toggle') {
           if (latched.has(i)) {
             latched.delete(i);
@@ -229,7 +231,14 @@ export function renderFxGrid(el, { isEditMode, onEdit }) {
         if (holdActive) {
           holdActive = false;
           const c = cfg();
-          fire(c, c.releaseValue, c.releaseAddress || c.address);
+          if (c.macro?.length) {
+            // release a macro by zeroing every step (clears etc. must let go)
+            for (const step of c.macro) {
+              rogger.send(step.address, (step.values ?? [1]).map(() => c.releaseValue ?? 0));
+            }
+          } else {
+            fire(c, c.releaseValue, c.releaseAddress || c.address);
+          }
         }
       }
 

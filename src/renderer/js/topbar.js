@@ -94,9 +94,12 @@ export function renderTopbar(el, { onToggleEdit, onOpenSettings }) {
   trig.className = 'trig-readout u-caps';
   function refreshTrig() {
     const t = state.get().triggers ?? {};
+    const s = state.get().sticks ?? {};
     const parts = [];
     if (t.lt?.enabled) parts.push(t.lt.label || 'LT');
     if (t.rt?.enabled) parts.push(t.rt.label || 'RT');
+    if (s.ls?.enabled) parts.push(s.ls.label || 'LS');
+    if (s.rs?.enabled) parts.push(s.rs.label || 'RS');
     trig.textContent = parts.join('  ·  ');
     trig.style.display = parts.length ? '' : 'none';
   }
