@@ -8,7 +8,7 @@ any OSC-compatible software over Wi-Fi.
 
 ## Surface
 
-- **Three FX pages** with tabs:
+- **Five pages** with tabs:
   - **Page 1** — FLASH bank (8 momentary punch buttons) and BUMP bank
     (a 2x2 utility quad — small toggles like keep-greys / haze / CO2 /
     auto-VJ — plus 7 one-shot punches).
@@ -17,14 +17,25 @@ any OSC-compatible software over Wi-Fi.
   - **DJ Intro** — a 24-slot clip grid built dynamically from the live
     composition (**Sync from Resolume** reads the name-source layer and
     targets its group's columns); customized slots survive syncs.
+  - **Colors** — advanced picker (hue strip + saturation/value pad, throttled
+    live sends), 16 quick swatches, and a ColorMorph strip: Color 1 / Color 3
+    wells, SPEED slider, MORPH on/off with OSC feedback. Drives the same
+    switchable targets as the main color row (BG / LOGO / FLASH / MORPH 1 /
+    MORPH 2).
+  - **APC40** — read-only cheat sheet of the AKAI APC40 mkII MIDI mapping
+    (grid, scene launch, track strip, knobs, faders, transport) with friendly
+    labels from the live composition; tap a control to see its OSC path.
+    Regenerate after remapping with `python3 tools/gen-akai-map.py`, which
+    also refreshes the shareable standalone page `docs/apc40-mapping.html` —
+    ship that file alongside the composition.
 - **8 main faders** — vertical MASTER + layer masters + logo, horizontal
   utility strips (multi-target fan-out, e.g. both pushers' fade-out from one
   fader). Double-tap resets; invert/sensitivity/min/max per fader; ♪ beat
   button and optional auto beat-follow (value = bpm / bpmAt1).
-- **10 color presets + target switch** — the 3 small squares at the row's end
+- **10 color presets + target switch** — the small squares at the row's end
   choose what the picker paints (background colorize / logo outline-haze /
-  strobe color); OFF fires the target's release steps. Feedback lights the
-  matching preset.
+  strobe color / ColorMorph Color 1 / Color 3); OFF fires the target's release
+  steps. Feedback lights the matching preset.
 - **Topbar** — OSC target, analog-mapping readout, beat clock (BPM + beat ms,
   /2 and x2, AUTO toggle to follow Resolume's BPM, beat-pulse tinted by the
   last picked color), battery, clock, tap/resync, status lamp
