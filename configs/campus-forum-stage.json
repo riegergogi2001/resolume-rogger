@@ -112,12 +112,12 @@
     },
     {
       "id": "fx4",
-      "label": "INVERT",
-      "icon": "⚡",
-      "color": "#ff4757",
-      "mode": "hold",
+      "label": "KEEP GREYS",
+      "icon": "◐",
+      "color": "#eaeef5",
+      "mode": "toggle",
       "type": "int",
-      "address": "/composition/layers/12/clips/5/connect",
+      "address": "/composition/groups/1/video/effects/colorize/effect/greyskeep",
       "value": 1,
       "offValue": 0,
       "releaseValue": 0,
@@ -342,7 +342,7 @@
       "color": "#eaeef5",
       "mode": "hold",
       "type": "int",
-      "address": "/composition/video/effects/pusher/effect/push",
+      "address": "/composition/video/effects/pusher/effect/push!",
       "value": 1,
       "offValue": 0,
       "releaseValue": 0,
@@ -367,7 +367,7 @@
       "color": "#8e9299",
       "mode": "hold",
       "type": "int",
-      "address": "/composition/video/effects/pusher2/effect/push",
+      "address": "/composition/video/effects/pusher2/effect/push!",
       "value": 1,
       "offValue": 0,
       "releaseValue": 0,
@@ -744,7 +744,7 @@
       "color": "#eaeef5",
       "mode": "hold",
       "type": "int",
-      "address": "/composition/video/effects/pusher/effect/push",
+      "address": "/composition/video/effects/pusher/effect/push!",
       "value": 1,
       "offValue": 0,
       "releaseValue": 0,
@@ -761,13 +761,13 @@
       },
       "macro": [
         {
-          "address": "/composition/video/effects/pusher/effect/push",
+          "address": "/composition/video/effects/pusher/effect/push!",
           "values": [
             1
           ]
         },
         {
-          "address": "/composition/video/effects/pusher2/effect/push",
+          "address": "/composition/video/effects/pusher2/effect/push!",
           "values": [
             1
           ]
@@ -882,88 +882,104 @@
       "label": "MASTER",
       "color": "#2ee66b",
       "address": "/composition/master",
+      "extraAddress": "",
       "min": 0,
       "max": 1,
       "defaultValue": 1,
       "invert": false,
-      "sensitivity": 1
+      "sensitivity": 1,
+      "orientation": "v"
     },
     {
       "id": "fader2",
-      "label": "VIDEO 1",
+      "label": "LAYER 1",
       "color": "#00e0ff",
       "address": "/composition/layers/1/master",
+      "extraAddress": "",
       "min": 0,
       "max": 1,
       "defaultValue": 1,
       "invert": false,
-      "sensitivity": 1
+      "sensitivity": 1,
+      "orientation": "v"
     },
     {
       "id": "fader3",
-      "label": "VIDEO 2",
+      "label": "LAYER 2",
       "color": "#00e0ff",
       "address": "/composition/layers/2/master",
+      "extraAddress": "",
       "min": 0,
       "max": 1,
       "defaultValue": 1,
       "invert": false,
-      "sensitivity": 1
+      "sensitivity": 1,
+      "orientation": "v"
     },
     {
       "id": "fader4",
-      "label": "VIDEO 3",
+      "label": "LAYER 3",
       "color": "#00e0ff",
       "address": "/composition/layers/3/master",
+      "extraAddress": "",
       "min": 0,
       "max": 1,
       "defaultValue": 1,
       "invert": false,
-      "sensitivity": 1
+      "sensitivity": 1,
+      "orientation": "v"
     },
     {
       "id": "fader5",
-      "label": "VIDEO 4",
+      "label": "LAYER 4",
       "color": "#00e0ff",
       "address": "/composition/layers/4/master",
+      "extraAddress": "",
       "min": 0,
       "max": 1,
       "defaultValue": 1,
       "invert": false,
-      "sensitivity": 1
+      "sensitivity": 1,
+      "orientation": "v"
     },
     {
       "id": "fader6",
       "label": "LOGO",
       "color": "#eaeef5",
       "address": "/composition/layers/9/master",
+      "extraAddress": "",
       "min": 0,
       "max": 1,
       "defaultValue": 1,
       "invert": false,
-      "sensitivity": 1
+      "sensitivity": 1,
+      "orientation": "v"
     },
     {
       "id": "fader7",
-      "label": "B TIME",
-      "color": "#ffb400",
-      "address": "/composition/video/effects/boomer/effect/fadeouttime",
-      "min": 0,
-      "max": 1,
-      "defaultValue": 0.35,
-      "invert": false,
-      "sensitivity": 1
-    },
-    {
-      "id": "fader8",
-      "label": "P TIME",
+      "label": "PUSH TIME",
       "color": "#ffb400",
       "address": "/composition/video/effects/pusher/effect/fadeouttime",
+      "extraAddress": "/composition/video/effects/pusher2/effect/fadeouttime",
       "min": 0,
       "max": 1,
       "defaultValue": 0.39,
       "invert": false,
-      "sensitivity": 1
+      "sensitivity": 1,
+      "orientation": "h"
+    },
+    {
+      "id": "fader8",
+      "label": "FX STR",
+      "color": "#b46bff",
+      "address": "/composition/layers/12/master",
+      "extraAddress": "",
+      "min": 0,
+      "max": 1,
+      "defaultValue": 1,
+      "invert": false,
+      "sensitivity": 1,
+      "orientation": "h"
     }
   ],
   "colorButtons": [

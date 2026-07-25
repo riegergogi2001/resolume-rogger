@@ -32,6 +32,7 @@ export function openSettings() {
           <div class="row"><button class="big-btn danger" id="set-reset">Reload default mapping</button></div>
         </div>
         <div class="panel-foot">
+          <button class="big-btn danger" id="set-exit">Exit app</button>
           <button class="big-btn" id="set-close">Close</button>
           <button class="big-btn primary" id="set-save">Save</button>
         </div>
@@ -85,4 +86,5 @@ export function openSettings() {
   });
 
   q('#set-close').addEventListener('pointerdown', () => overlay.remove());
+  q('#set-exit').addEventListener('pointerdown', () => rogger.quit());
 }

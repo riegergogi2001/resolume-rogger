@@ -65,9 +65,21 @@ body {
 
 #fader-rack {
   display: grid;
-  grid-template-columns: repeat(6, 1fr);
+  grid-template-rows: 1fr auto;
   gap: 10px;
   min-height: 0;
+}
+
+.fader-rack-v {
+  display: grid;
+  gap: 10px;
+  min-height: 0;
+}
+
+.fader-rack-h {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
 }
 
 #color-row {

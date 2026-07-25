@@ -1,6 +1,7 @@
-// 6 multitouch faders: per-fader pointer capture, rAF-throttled float sends,
-// min/max mapping, invert, sensitivity (>=1 absolute, <1 fine relative),
-// double-tap resets to default.
+// Multitouch faders in two racks: vertical columns and horizontal strips
+// (orientation per fader). Per-fader pointer capture, rAF-throttled float
+// sends (optionally mirrored to extraAddress), min/max mapping, invert,
+// sensitivity (>=1 absolute, <1 fine relative), double-tap resets to default.
 import { rogger } from './bridge.js';
 import * as state from './state.js';
 
@@ -8,17 +9,32 @@ const fmt = v => (Math.abs(v) >= 10 ? v.toFixed(1) : v.toFixed(2));
 
 export function renderFaders(el, { isEditMode, onEdit }) {
   el.innerHTML = '';
-  el.style.gridTemplateColumns = `repeat(${state.get().faders.length}, 1fr)`;
+  const all = state.get().faders;
+  const vIdx = [];
+  const hIdx = [];
+  all.forEach((f, i) => (f.orientation === 'h' ? hIdx : vIdx).push(i));
 
-  state.get().faders.forEach((_, i) => {
+  const vRack = document.createElement('div');
+  vRack.className = 'fader-rack-v';
+  vRack.style.gridTemplateColumns = `repeat(${Math.max(1, vIdx.length)}, 1fr)`;
+  const hRack = document.createElement('div');
+  hRack.className = 'fader-rack-h';
+  el.append(vRack, hRack);
+  if (!hIdx.length) hRack.style.display = 'none';
+
+  function buildFader(i) {
+    const isH = all[i].orientation === 'h';
     const wrap = document.createElement('div');
-    wrap.className = 'fader';
+    wrap.className = 'fader' + (isH ? ' fader--h' : '');
     wrap.dataset.index = i;
-    wrap.innerHTML = `
-      <div class="fader-label u-caps"></div>
-      <div class="fader-value u-num"></div>
-      <div class="fader-track"><div class="fader-fill"></div><div class="fader-thumb"></div></div>`;
-    el.appendChild(wrap);
+    wrap.innerHTML = isH
+      ? `<div class="fader-label u-caps"></div>
+         <div class="fader-track"><div class="fader-fill"></div><div class="fader-thumb"></div></div>
+         <div class="fader-value u-num"></div>`
+      : `<div class="fader-label u-caps"></div>
+         <div class="fader-value u-num"></div>
+         <div class="fader-track"><div class="fader-fill"></div><div class="fader-thumb"></div></div>`;
+    (isH ? hRack : vRack).appendChild(wrap);
 
     const track = wrap.querySelector('.fader-track');
     const fill = wrap.querySelector('.fader-fill');
@@ -26,7 +42,8 @@ export function renderFaders(el, { isEditMode, onEdit }) {
     const valueEl = wrap.querySelector('.fader-value');
     const cfg = () => state.get().faders[i];
 
-    // norm is the visual position 0..1 (bottom-up); invert only affects output.
+    // norm is the visual position 0..1 (bottom-up / left-right);
+    // invert only affects the output value.
     function normOf(c, value) {
       const n = (value - c.min) / (c.max - c.min || 1);
       const vis = c.invert ? 1 - n : n;
@@ -41,26 +58,33 @@ export function renderFaders(el, { isEditMode, onEdit }) {
     let lastSent = null;
     let raf = null;
     let lastTapTime = 0;
-    let startY = 0;
+    let startPos = 0;
     let startNorm = 0;
 
     function paint() {
       const c = cfg();
       wrap.style.setProperty('--fader-color', c.color);
       wrap.querySelector('.fader-label').textContent = c.label;
-      fill.style.height = `${norm * 100}%`;
-      // keep the 44px thumb fully inside the track at both extremes
-      thumb.style.top = `calc((100% - 44px) * ${1 - norm} + 22px)`;
+      if (isH) {
+        fill.style.width = `${norm * 100}%`;
+        thumb.style.left = `calc((100% - 36px) * ${norm})`;
+      } else {
+        fill.style.height = `${norm * 100}%`;
+        // keep the 44px thumb fully inside the track at both extremes
+        thumb.style.top = `calc((100% - 44px) * ${1 - norm} + 22px)`;
+      }
       valueEl.textContent = fmt(valueOf(c, norm));
     }
     paint();
     state.subscribe(paint);
 
     function sendValue() {
-      const v = valueOf(cfg(), norm);
+      const c = cfg();
+      const v = valueOf(c, norm);
       if (v === lastSent) return;
       lastSent = v;
-      rogger.sendTyped(cfg().address, [{ type: 'f', value: v }]);
+      rogger.sendTyped(c.address, [{ type: 'f', value: v }]);
+      if (c.extraAddress) rogger.sendTyped(c.extraAddress, [{ type: 'f', value: v }]);
     }
     function schedule() {
       if (raf) return;
@@ -69,6 +93,12 @@ export function renderFaders(el, { isEditMode, onEdit }) {
         sendValue();
         paint();
       });
+    }
+
+    function posNorm(e, rect) {
+      return isH
+        ? (e.clientX - rect.left) / rect.width
+        : 1 - (e.clientY - rect.top) / rect.height;
     }
 
     track.addEventListener('pointerdown', e => {
@@ -85,9 +115,9 @@ export function renderFaders(el, { isEditMode, onEdit }) {
       wrap.classList.add('active');
       const rect = track.getBoundingClientRect();
       if (cfg().sensitivity >= 1) {
-        norm = Math.min(1, Math.max(0, 1 - (e.clientY - rect.top) / rect.height));
+        norm = Math.min(1, Math.max(0, posNorm(e, rect)));
       }
-      startY = e.clientY;
+      startPos = isH ? e.clientX : e.clientY;
       startNorm = norm;
       schedule();
     });
@@ -97,9 +127,12 @@ export function renderFaders(el, { isEditMode, onEdit }) {
       const rect = track.getBoundingClientRect();
       const c = cfg();
       if (c.sensitivity >= 1) {
-        norm = 1 - (e.clientY - rect.top) / rect.height;
+        norm = posNorm(e, rect);
       } else {
-        norm = startNorm + ((startY - e.clientY) / rect.height) * c.sensitivity;
+        const delta = isH
+          ? (e.clientX - startPos) / rect.width
+          : (startPos - e.clientY) / rect.height;
+        norm = startNorm + delta * c.sensitivity;
       }
       norm = Math.min(1, Math.max(0, norm));
       schedule();
@@ -112,8 +145,8 @@ export function renderFaders(el, { isEditMode, onEdit }) {
     track.addEventListener('pointerup', up);
     track.addEventListener('pointercancel', up);
 
-    // Bidirectional feedback: follow matching inbound OSC (e.g. the fader was
-    // moved inside Resolume) unless a finger currently owns this fader.
+    // Bidirectional feedback: follow matching inbound OSC unless a finger
+    // currently owns this fader.
     rogger.onMessage(msg => {
       if (wrap.classList.contains('active')) return;
       const c = cfg();
@@ -124,5 +157,7 @@ export function renderFaders(el, { isEditMode, onEdit }) {
       lastSent = a.value; // remote value is current — don't echo it back
       paint();
     });
-  });
+  }
+
+  for (const i of [...vIdx, ...hIdx]) buildFader(i);
 }
