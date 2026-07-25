@@ -68,6 +68,20 @@ function defaults() {
       autoReconnect: true,
     },
     ui: { theme: 'dark' },
+    // Analog gamepad triggers: pressed depth maps onto a float param
+    // (from -> to), release snaps back; optional engage/disengage message.
+    triggers: {
+      lt: {
+        enabled: true, label: 'LT · MASTER DUCK',
+        engageAddress: '', engageValue: 1, engageReleaseValue: 0,
+        analogAddress: '/composition/master', from: 1, to: 0, releaseValue: 1,
+      },
+      rt: {
+        enabled: false, label: 'RT',
+        engageAddress: '', engageValue: 1, engageReleaseValue: 0,
+        analogAddress: '', from: 0, to: 1, releaseValue: 0,
+      },
+    },
     // fxButtons 0-7 = FLASH bank (momentary hold), 8-15 = BUMP bank (one-shot).
     // gamepadButton defaults: face+shoulder buttons drive flash, D-pad/sticks/menu drive bump.
     fxButtons: [
@@ -130,6 +144,7 @@ function mergeConfig(base, patch) {
     version: base.version,
     network: deepMerge(base.network, isPlainObject(patch.network) ? patch.network : {}),
     ui: deepMerge(base.ui, isPlainObject(patch.ui) ? patch.ui : {}),
+    triggers: deepMerge(base.triggers, isPlainObject(patch.triggers) ? patch.triggers : {}),
     fxButtons: mergeControls(base.fxButtons, patch.fxButtons),
     fxButtons2: mergeControls(base.fxButtons2, patch.fxButtons2),
     faders: mergeControls(base.faders, patch.faders),

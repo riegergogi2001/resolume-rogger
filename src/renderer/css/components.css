@@ -11,6 +11,16 @@
   font-size: 14px;
 }
 
+.trig-readout {
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  color: var(--text-dim);
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  padding: 6px 10px;
+}
+
 .topbar-spacer { flex: 1; }
 
 .status-pill {
