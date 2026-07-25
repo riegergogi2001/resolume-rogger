@@ -1,6 +1,7 @@
-// 10 color preset buttons — each fires its assigned OSC command or macro.
-// Feedback: single-address buttons light on a nonzero report; macro buttons
-// light when every reported parameter matches their target values.
+// 10 color preset buttons + a target switch (the small squares at the end).
+// Preset buttons with an rgb triplet route through the ACTIVE color target
+// (e.g. BG colorize, logo outline-haze, flash-master strobe color); legacy
+// buttons fire their own address/macro. Feedback lights the matching preset.
 import { rogger } from './bridge.js';
 import * as state from './state.js';
 
@@ -11,31 +12,53 @@ export function renderColorRow(el, { isEditMode, onEdit }) {
   const lastVals = new Map();
   const buttons = [];
 
-  function evaluateMacroSelection() {
+  const targetsCfg = () => state.get().colorTargets;
+  const activeTarget = () => {
+    const t = targetsCfg();
+    return t?.items?.find(x => x.id === t.active) ?? t?.items?.[0] ?? null;
+  };
+  const targetMode = () => state.get().colorButtons.some(c => Array.isArray(c.rgb) || c.isOff);
+
+  function evaluateSelection() {
     const cfgs = state.get().colorButtons;
+    const t = activeTarget();
     let winner = -1;
     cfgs.forEach((c, i) => {
-      if (!c.macro?.length || winner !== -1) return;
-      const ok = c.macro.every(step => {
-        const v = step.values?.[0];
-        if (typeof v !== 'number') return true;
-        const last = lastVals.get(step.address);
-        return typeof last === 'number' && Math.abs(last - v) < EPS;
-      });
-      if (ok) winner = i;
+      if (winner !== -1) return;
+      if (Array.isArray(c.rgb) && t?.colorBases?.length) {
+        const base = t.colorBases[0];
+        const ok = ['red', 'green', 'blue'].every((ch, k) => {
+          const last = lastVals.get(`${base}/${ch}`);
+          return typeof last === 'number' && Math.abs(last - c.rgb[k]) < EPS;
+        });
+        if (ok) winner = i;
+      } else if (c.macro?.length) {
+        const ok = c.macro.every(step => {
+          const v = step.values?.[0];
+          if (typeof v !== 'number') return true;
+          const last = lastVals.get(step.address);
+          return typeof last === 'number' && Math.abs(last - v) < EPS;
+        });
+        if (ok) winner = i;
+      }
     });
     cfgs.forEach((c, i) => {
-      if (c.macro?.length) buttons[i].classList.toggle('selected', i === winner);
+      if (Array.isArray(c.rgb) || c.macro?.length) {
+        buttons[i].classList.toggle('selected', i === winner);
+      }
     });
   }
 
   rogger.onMessage(msg => {
     const a = msg.args?.[0];
     if (!a || typeof a.value !== 'number') return;
-    const used = state.get().colorButtons.some(c => c.macro?.some(s => s.address === msg.address));
-    if (!used) return;
+    const t = activeTarget();
+    const watched =
+      t?.colorBases?.some(b => msg.address.startsWith(b + '/')) ||
+      state.get().colorButtons.some(c => c.macro?.some(s => s.address === msg.address));
+    if (!watched) return;
     lastVals.set(msg.address, a.value);
-    evaluateMacroSelection();
+    evaluateSelection();
   });
 
   state.get().colorButtons.forEach((_, i) => {
@@ -60,7 +83,17 @@ export function renderColorRow(el, { isEditMode, onEdit }) {
       b.setPointerCapture(e.pointerId);
       b.classList.add('pressed');
       const c = cfg();
-      if (c.macro?.length) {
+      const t = activeTarget();
+      if (c.isOff && t) {
+        for (const s of t.offSteps ?? []) rogger.send(s.address, s.values ?? []);
+      } else if (Array.isArray(c.rgb) && t) {
+        for (const s of t.onSteps ?? []) rogger.send(s.address, s.values ?? []);
+        for (const base of t.colorBases ?? []) {
+          rogger.sendTyped(`${base}/red`, [{ type: 'f', value: c.rgb[0] }]);
+          rogger.sendTyped(`${base}/green`, [{ type: 'f', value: c.rgb[1] }]);
+          rogger.sendTyped(`${base}/blue`, [{ type: 'f', value: c.rgb[2] }]);
+        }
+      } else if (c.macro?.length) {
         for (const step of c.macro) rogger.send(step.address, step.values ?? []);
       } else {
         rogger.send(c.address, c.args ?? []);
@@ -70,10 +103,10 @@ export function renderColorRow(el, { isEditMode, onEdit }) {
     b.addEventListener('pointerup', off);
     b.addEventListener('pointercancel', off);
 
-    // Feedback for single-address buttons (macro buttons use vector matching).
+    // Legacy single-address feedback (target/macro buttons use vector matching).
     rogger.onMessage(msg => {
       const c = cfg();
-      if (c.macro?.length) return;
+      if (Array.isArray(c.rgb) || c.isOff || c.macro?.length) return;
       if (msg.address !== c.address) return;
       const a = msg.args?.[0];
       if (!a || typeof a.value !== 'number') return;
@@ -85,4 +118,31 @@ export function renderColorRow(el, { isEditMode, onEdit }) {
       }
     });
   });
+
+  // The target switch: small squares choosing what the picker points at.
+  if (targetMode() && targetsCfg()?.items?.length) {
+    const sw = document.createElement('div');
+    sw.className = 'color-target-switch';
+    el.appendChild(sw);
+    targetsCfg().items.forEach(item => {
+      const tb = document.createElement('button');
+      tb.className = 'target-pick u-caps';
+      tb.dataset.target = item.id;
+      tb.textContent = item.label;
+      tb.style.setProperty('--sw', item.swatch);
+      tb.addEventListener('pointerdown', () => {
+        state.setColorTarget(item.id);
+        lastVals.clear();
+        evaluateSelection();
+      });
+      sw.appendChild(tb);
+    });
+    function refreshSwitch() {
+      const active = targetsCfg()?.active;
+      sw.querySelectorAll('.target-pick').forEach(x =>
+        x.classList.toggle('on', x.dataset.target === active));
+    }
+    refreshSwitch();
+    state.subscribe(refreshSwitch);
+  }
 }

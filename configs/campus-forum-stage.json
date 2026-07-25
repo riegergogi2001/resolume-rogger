@@ -1597,12 +1597,17 @@
       "color": "#2ee66b",
       "address": "/composition/master",
       "extraAddress": "",
+      "extraAddresses": [],
       "min": 0,
       "max": 1,
       "defaultValue": 1,
       "invert": false,
       "sensitivity": 1,
-      "orientation": "v"
+      "orientation": "v",
+      "beatSync": {
+        "enabled": false,
+        "bpmAt1": 300
+      }
     },
     {
       "id": "fader2",
@@ -1610,12 +1615,17 @@
       "color": "#00e0ff",
       "address": "/composition/layers/1/master",
       "extraAddress": "",
+      "extraAddresses": [],
       "min": 0,
       "max": 1,
       "defaultValue": 1,
       "invert": false,
       "sensitivity": 1,
-      "orientation": "v"
+      "orientation": "v",
+      "beatSync": {
+        "enabled": false,
+        "bpmAt1": 300
+      }
     },
     {
       "id": "fader3",
@@ -1623,12 +1633,17 @@
       "color": "#00e0ff",
       "address": "/composition/layers/2/master",
       "extraAddress": "",
+      "extraAddresses": [],
       "min": 0,
       "max": 1,
       "defaultValue": 1,
       "invert": false,
       "sensitivity": 1,
-      "orientation": "v"
+      "orientation": "v",
+      "beatSync": {
+        "enabled": false,
+        "bpmAt1": 300
+      }
     },
     {
       "id": "fader4",
@@ -1636,12 +1651,17 @@
       "color": "#00e0ff",
       "address": "/composition/layers/3/master",
       "extraAddress": "",
+      "extraAddresses": [],
       "min": 0,
       "max": 1,
       "defaultValue": 1,
       "invert": false,
       "sensitivity": 1,
-      "orientation": "v"
+      "orientation": "v",
+      "beatSync": {
+        "enabled": false,
+        "bpmAt1": 300
+      }
     },
     {
       "id": "fader5",
@@ -1649,12 +1669,17 @@
       "color": "#00e0ff",
       "address": "/composition/layers/4/master",
       "extraAddress": "",
+      "extraAddresses": [],
       "min": 0,
       "max": 1,
       "defaultValue": 1,
       "invert": false,
       "sensitivity": 1,
-      "orientation": "v"
+      "orientation": "v",
+      "beatSync": {
+        "enabled": false,
+        "bpmAt1": 300
+      }
     },
     {
       "id": "fader6",
@@ -1662,12 +1687,17 @@
       "color": "#eaeef5",
       "address": "/composition/layers/9/master",
       "extraAddress": "",
+      "extraAddresses": [],
       "min": 0,
       "max": 1,
       "defaultValue": 1,
       "invert": false,
       "sensitivity": 1,
-      "orientation": "v"
+      "orientation": "v",
+      "beatSync": {
+        "enabled": false,
+        "bpmAt1": 300
+      }
     },
     {
       "id": "fader7",
@@ -1675,25 +1705,39 @@
       "color": "#ffb400",
       "address": "/composition/video/effects/pusher/effect/fadeouttime",
       "extraAddress": "/composition/video/effects/pusher2/effect/fadeouttime",
+      "extraAddresses": [],
       "min": 0,
       "max": 1,
       "defaultValue": 0.39,
       "invert": false,
       "sensitivity": 1,
-      "orientation": "h"
+      "orientation": "h",
+      "beatSync": {
+        "enabled": false,
+        "bpmAt1": 300
+      }
     },
     {
       "id": "fader8",
-      "label": "FX STR",
+      "label": "STR SPD",
       "color": "#b46bff",
-      "address": "/composition/layers/12/master",
+      "address": "/composition/layers/12/clips/3/video/effects/flashmaster/effect/strobespeed",
       "extraAddress": "",
+      "extraAddresses": [
+        "/composition/layers/12/clips/4/video/effects/flashmaster/effect/strobespeed",
+        "/composition/layers/12/clips/7/video/effects/flashmaster/effect/strobespeed",
+        "/composition/layers/12/clips/9/video/effects/slicestrobe/effect/speed"
+      ],
       "min": 0,
       "max": 1,
-      "defaultValue": 1,
+      "defaultValue": 0.31,
       "invert": false,
       "sensitivity": 1,
-      "orientation": "h"
+      "orientation": "h",
+      "beatSync": {
+        "enabled": true,
+        "bpmAt1": 300
+      }
     }
   ],
   "colorButtons": [
@@ -1705,32 +1749,13 @@
       "args": [
         1
       ],
-      "macro": [
-        {
-          "address": "/composition/groups/1/video/effects/colorize/bypassed",
-          "values": [
-            0
-          ]
-        },
-        {
-          "address": "/composition/groups/1/video/effects/colorize/effect/color/red",
-          "values": [
-            1
-          ]
-        },
-        {
-          "address": "/composition/groups/1/video/effects/colorize/effect/color/green",
-          "values": [
-            0
-          ]
-        },
-        {
-          "address": "/composition/groups/1/video/effects/colorize/effect/color/blue",
-          "values": [
-            0
-          ]
-        }
-      ]
+      "macro": [],
+      "rgb": [
+        1,
+        0,
+        0
+      ],
+      "isOff": false
     },
     {
       "id": "color2",
@@ -1740,32 +1765,13 @@
       "args": [
         1
       ],
-      "macro": [
-        {
-          "address": "/composition/groups/1/video/effects/colorize/bypassed",
-          "values": [
-            0
-          ]
-        },
-        {
-          "address": "/composition/groups/1/video/effects/colorize/effect/color/red",
-          "values": [
-            1
-          ]
-        },
-        {
-          "address": "/composition/groups/1/video/effects/colorize/effect/color/green",
-          "values": [
-            0.4
-          ]
-        },
-        {
-          "address": "/composition/groups/1/video/effects/colorize/effect/color/blue",
-          "values": [
-            0
-          ]
-        }
-      ]
+      "macro": [],
+      "rgb": [
+        1,
+        0.4,
+        0
+      ],
+      "isOff": false
     },
     {
       "id": "color3",
@@ -1775,32 +1781,13 @@
       "args": [
         1
       ],
-      "macro": [
-        {
-          "address": "/composition/groups/1/video/effects/colorize/bypassed",
-          "values": [
-            0
-          ]
-        },
-        {
-          "address": "/composition/groups/1/video/effects/colorize/effect/color/red",
-          "values": [
-            1
-          ]
-        },
-        {
-          "address": "/composition/groups/1/video/effects/colorize/effect/color/green",
-          "values": [
-            0.85
-          ]
-        },
-        {
-          "address": "/composition/groups/1/video/effects/colorize/effect/color/blue",
-          "values": [
-            0
-          ]
-        }
-      ]
+      "macro": [],
+      "rgb": [
+        1,
+        0.85,
+        0
+      ],
+      "isOff": false
     },
     {
       "id": "color4",
@@ -1810,32 +1797,13 @@
       "args": [
         0
       ],
-      "macro": [
-        {
-          "address": "/composition/groups/1/video/effects/colorize/bypassed",
-          "values": [
-            0
-          ]
-        },
-        {
-          "address": "/composition/groups/1/video/effects/colorize/effect/color/red",
-          "values": [
-            0
-          ]
-        },
-        {
-          "address": "/composition/groups/1/video/effects/colorize/effect/color/green",
-          "values": [
-            1
-          ]
-        },
-        {
-          "address": "/composition/groups/1/video/effects/colorize/effect/color/blue",
-          "values": [
-            0.15
-          ]
-        }
-      ]
+      "macro": [],
+      "rgb": [
+        0,
+        1,
+        0.15
+      ],
+      "isOff": false
     },
     {
       "id": "color5",
@@ -1845,32 +1813,13 @@
       "args": [
         0
       ],
-      "macro": [
-        {
-          "address": "/composition/groups/1/video/effects/colorize/bypassed",
-          "values": [
-            0
-          ]
-        },
-        {
-          "address": "/composition/groups/1/video/effects/colorize/effect/color/red",
-          "values": [
-            0
-          ]
-        },
-        {
-          "address": "/composition/groups/1/video/effects/colorize/effect/color/green",
-          "values": [
-            0.9
-          ]
-        },
-        {
-          "address": "/composition/groups/1/video/effects/colorize/effect/color/blue",
-          "values": [
-            1
-          ]
-        }
-      ]
+      "macro": [],
+      "rgb": [
+        0,
+        0.9,
+        1
+      ],
+      "isOff": false
     },
     {
       "id": "color6",
@@ -1880,32 +1829,13 @@
       "args": [
         0.1
       ],
-      "macro": [
-        {
-          "address": "/composition/groups/1/video/effects/colorize/bypassed",
-          "values": [
-            0
-          ]
-        },
-        {
-          "address": "/composition/groups/1/video/effects/colorize/effect/color/red",
-          "values": [
-            0.1
-          ]
-        },
-        {
-          "address": "/composition/groups/1/video/effects/colorize/effect/color/green",
-          "values": [
-            0.3
-          ]
-        },
-        {
-          "address": "/composition/groups/1/video/effects/colorize/effect/color/blue",
-          "values": [
-            1
-          ]
-        }
-      ]
+      "macro": [],
+      "rgb": [
+        0.1,
+        0.3,
+        1
+      ],
+      "isOff": false
     },
     {
       "id": "color7",
@@ -1915,32 +1845,13 @@
       "args": [
         0.55
       ],
-      "macro": [
-        {
-          "address": "/composition/groups/1/video/effects/colorize/bypassed",
-          "values": [
-            0
-          ]
-        },
-        {
-          "address": "/composition/groups/1/video/effects/colorize/effect/color/red",
-          "values": [
-            0.55
-          ]
-        },
-        {
-          "address": "/composition/groups/1/video/effects/colorize/effect/color/green",
-          "values": [
-            0.15
-          ]
-        },
-        {
-          "address": "/composition/groups/1/video/effects/colorize/effect/color/blue",
-          "values": [
-            1
-          ]
-        }
-      ]
+      "macro": [],
+      "rgb": [
+        0.55,
+        0.15,
+        1
+      ],
+      "isOff": false
     },
     {
       "id": "color8",
@@ -1950,32 +1861,13 @@
       "args": [
         1
       ],
-      "macro": [
-        {
-          "address": "/composition/groups/1/video/effects/colorize/bypassed",
-          "values": [
-            0
-          ]
-        },
-        {
-          "address": "/composition/groups/1/video/effects/colorize/effect/color/red",
-          "values": [
-            1
-          ]
-        },
-        {
-          "address": "/composition/groups/1/video/effects/colorize/effect/color/green",
-          "values": [
-            0.1
-          ]
-        },
-        {
-          "address": "/composition/groups/1/video/effects/colorize/effect/color/blue",
-          "values": [
-            0.85
-          ]
-        }
-      ]
+      "macro": [],
+      "rgb": [
+        1,
+        0.1,
+        0.85
+      ],
+      "isOff": false
     },
     {
       "id": "color9",
@@ -1985,32 +1877,13 @@
       "args": [
         1
       ],
-      "macro": [
-        {
-          "address": "/composition/groups/1/video/effects/colorize/bypassed",
-          "values": [
-            0
-          ]
-        },
-        {
-          "address": "/composition/groups/1/video/effects/colorize/effect/color/red",
-          "values": [
-            1
-          ]
-        },
-        {
-          "address": "/composition/groups/1/video/effects/colorize/effect/color/green",
-          "values": [
-            1
-          ]
-        },
-        {
-          "address": "/composition/groups/1/video/effects/colorize/effect/color/blue",
-          "values": [
-            1
-          ]
-        }
-      ]
+      "macro": [],
+      "rgb": [
+        1,
+        1,
+        1
+      ],
+      "isOff": false
     },
     {
       "id": "color10",
@@ -2020,7 +1893,129 @@
       "args": [
         1
       ],
-      "macro": []
+      "macro": [],
+      "rgb": null,
+      "isOff": true
     }
-  ]
+  ],
+  "colorTargets": {
+    "active": "bg",
+    "items": [
+      {
+        "id": "bg",
+        "label": "BG",
+        "swatch": "#2ee66b",
+        "colorBases": [
+          "/composition/groups/1/video/effects/colorize/effect/color"
+        ],
+        "onSteps": [
+          {
+            "address": "/composition/groups/1/video/effects/colorize/bypassed",
+            "values": [
+              0
+            ]
+          }
+        ],
+        "offSteps": [
+          {
+            "address": "/composition/groups/1/video/effects/colorize/bypassed",
+            "values": [
+              1
+            ]
+          }
+        ]
+      },
+      {
+        "id": "logo",
+        "label": "LOGO",
+        "swatch": "#eaeef5",
+        "colorBases": [
+          "/composition/layers/8/video/effects/outlinehaze/effect/color",
+          "/composition/layers/9/video/effects/outlinehaze/effect/color"
+        ],
+        "onSteps": [],
+        "offSteps": [
+          {
+            "address": "/composition/layers/8/video/effects/outlinehaze/bypassed",
+            "values": [
+              1
+            ]
+          },
+          {
+            "address": "/composition/layers/9/video/effects/outlinehaze/bypassed",
+            "values": [
+              1
+            ]
+          }
+        ]
+      },
+      {
+        "id": "flash",
+        "label": "FLASH",
+        "swatch": "#ffd93d",
+        "colorBases": [
+          "/composition/layers/12/clips/3/video/effects/flashmaster/effect/color1",
+          "/composition/layers/12/clips/4/video/effects/flashmaster/effect/color1",
+          "/composition/layers/12/clips/7/video/effects/flashmaster/effect/color1"
+        ],
+        "onSteps": [],
+        "offSteps": [
+          {
+            "address": "/composition/layers/12/clips/3/video/effects/flashmaster/effect/color1/red",
+            "values": [
+              0
+            ]
+          },
+          {
+            "address": "/composition/layers/12/clips/3/video/effects/flashmaster/effect/color1/green",
+            "values": [
+              0
+            ]
+          },
+          {
+            "address": "/composition/layers/12/clips/3/video/effects/flashmaster/effect/color1/blue",
+            "values": [
+              0
+            ]
+          },
+          {
+            "address": "/composition/layers/12/clips/4/video/effects/flashmaster/effect/color1/red",
+            "values": [
+              1
+            ]
+          },
+          {
+            "address": "/composition/layers/12/clips/4/video/effects/flashmaster/effect/color1/green",
+            "values": [
+              1
+            ]
+          },
+          {
+            "address": "/composition/layers/12/clips/4/video/effects/flashmaster/effect/color1/blue",
+            "values": [
+              1
+            ]
+          },
+          {
+            "address": "/composition/layers/12/clips/7/video/effects/flashmaster/effect/color1/red",
+            "values": [
+              1
+            ]
+          },
+          {
+            "address": "/composition/layers/12/clips/7/video/effects/flashmaster/effect/color1/green",
+            "values": [
+              1
+            ]
+          },
+          {
+            "address": "/composition/layers/12/clips/7/video/effects/flashmaster/effect/color1/blue",
+            "values": [
+              1
+            ]
+          }
+        ]
+      }
+    ]
+  }
 }

@@ -38,10 +38,12 @@ function fader(i, over = {}) {
     color: ACCENTS.cyan,
     address: `/composition/layers/${i + 1}/master`,
     extraAddress: '',       // optional second target fed the same value
+    extraAddresses: [],     // any further targets fed the same value
     min: 0, max: 1, defaultValue: 1,
     invert: false,
     sensitivity: 1,
     orientation: 'v',       // v = vertical column, h = horizontal strip
+    beatSync: { enabled: false, bpmAt1: 300 }, // ♪ button: value = bpm / bpmAt1
     ...over,
   };
 }
@@ -56,6 +58,8 @@ function colorButton(i, over = {}) {
     address: `/composition/layers/5/clips/${i + 1}/connect`,
     args: [1],
     macro: [],              // [{address, values:[...]}] — sent in order instead of single message
+    rgb: null,              // [r,g,b] 0..1 — routes through the active color target
+    isOff: false,           // target-mode OFF button (fires the target's offSteps)
     ...over,
   };
 }
@@ -118,10 +122,44 @@ function defaults() {
       fader(3, { label: 'LAYER 3', address: '/composition/layers/3/master' }),
       fader(4, { label: 'LAYER 4', address: '/composition/layers/4/master' }),
       fader(5, { label: 'LOGO', color: ACCENTS.white, address: '/composition/layers/5/master' }),
-      fader(6, { label: 'AUX 1', color: ACCENTS.amber, address: '/composition/layers/6/master', orientation: 'h' }),
+      fader(6, { label: 'AUX 1', color: ACCENTS.amber, address: '/composition/layers/6/master', orientation: 'h', beatSync: { enabled: true, bpmAt1: 300 } }),
       fader(7, { label: 'AUX 2', color: ACCENTS.amber, address: '/composition/layers/7/master', orientation: 'h' }),
     ],
     colorButtons: Array.from({ length: 10 }, (_, i) => colorButton(i)),
+    // Switchable color-picker destinations (the 3 squares at the row's end).
+    colorTargets: {
+      active: 'bg',
+      items: [
+        {
+          id: 'bg', label: 'BG', swatch: '#2ee66b',
+          colorBases: ['/composition/groups/1/video/effects/colorize/effect/color'],
+          onSteps: [{ address: '/composition/groups/1/video/effects/colorize/bypassed', values: [0] }],
+          offSteps: [{ address: '/composition/groups/1/video/effects/colorize/bypassed', values: [1] }],
+        },
+        {
+          id: 'logo', label: 'LOGO', swatch: '#eaeef5',
+          colorBases: [
+            '/composition/layers/8/video/effects/outlinehaze/effect/color',
+            '/composition/layers/9/video/effects/outlinehaze/effect/color',
+          ],
+          onSteps: [],
+          offSteps: [
+            { address: '/composition/layers/8/video/effects/outlinehaze/bypassed', values: [1] },
+            { address: '/composition/layers/9/video/effects/outlinehaze/bypassed', values: [1] },
+          ],
+        },
+        {
+          id: 'flash', label: 'FLASH', swatch: '#ffd93d',
+          colorBases: [
+            '/composition/layers/12/clips/3/video/effects/flashmaster/effect/color1',
+            '/composition/layers/12/clips/4/video/effects/flashmaster/effect/color1',
+            '/composition/layers/12/clips/7/video/effects/flashmaster/effect/color1',
+          ],
+          onSteps: [],
+          offSteps: [],
+        },
+      ],
+    },
   };
 }
 
@@ -151,6 +189,7 @@ function mergeConfig(base, patch) {
     network: deepMerge(base.network, isPlainObject(patch.network) ? patch.network : {}),
     ui: deepMerge(base.ui, isPlainObject(patch.ui) ? patch.ui : {}),
     triggers: deepMerge(base.triggers, isPlainObject(patch.triggers) ? patch.triggers : {}),
+    colorTargets: deepMerge(base.colorTargets, isPlainObject(patch.colorTargets) ? patch.colorTargets : {}),
     fxButtons: mergeControls(base.fxButtons, patch.fxButtons),
     fxButtons2: mergeControls(base.fxButtons2, patch.fxButtons2),
     fxButtons3: mergeControls(base.fxButtons3, patch.fxButtons3),

@@ -46,3 +46,9 @@ export function setAll(next) {
   config = next;
   notify();
 }
+
+export function setColorTarget(id) {
+  if (config.colorTargets) config.colorTargets.active = id;
+  notify();
+  persist();
+}
