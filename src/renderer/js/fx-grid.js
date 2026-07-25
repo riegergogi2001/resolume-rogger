@@ -22,8 +22,12 @@ function fire(btn, value, address = btn.address) {
   if (btn.extraAddress && address === btn.address) rogger.sendTyped(btn.extraAddress, args);
 }
 
-export const PAGE_KINDS = ['fxButtons', 'fxButtons2'];
-// Flat press/release handles: page 1 = 0-15, page 2 = 16-31 (gamepad uses these).
+export const PAGE_DEFS = [
+  { kind: 'fxButtons', label: 'Page 1', layout: 'banks' },
+  { kind: 'fxButtons2', label: 'Page 2', layout: 'banks' },
+  { kind: 'fxButtons3', label: 'DJ Intro', layout: 'grid' },
+];
+// Flat press/release handles across all pages, in PAGE_DEFS order.
 export const fxHandles = [];
 
 export function renderFxGrid(el, { isEditMode, onEdit }) {
@@ -40,33 +44,48 @@ export function renderFxGrid(el, { isEditMode, onEdit }) {
     tabs.querySelectorAll('.page-tab').forEach((t, i) => t.classList.toggle('on', i === p));
   }
 
-  PAGE_KINDS.forEach((kind, p) => {
+  let handleBase = 0;
+  PAGE_DEFS.forEach(({ kind, label, layout }, p) => {
+    const buttons = state.get()[kind] ?? [];
     const tab = document.createElement('button');
     tab.className = 'page-tab u-caps';
     tab.dataset.page = p;
-    tab.textContent = `Page ${p + 1}`;
+    tab.textContent = label;
     tab.addEventListener('pointerdown', () => setPage(p));
     tabs.appendChild(tab);
 
     const pageEl = document.createElement('div');
     pageEl.className = 'fx-page';
-    const flashTitle = document.createElement('div');
-    flashTitle.className = 'bank-title';
-    flashTitle.textContent = 'Flash';
-    const flashBank = document.createElement('div');
-    flashBank.className = 'fx-bank';
-    const bumpTitle = document.createElement('div');
-    bumpTitle.className = 'bank-title';
-    bumpTitle.textContent = 'Bump';
-    const bumpBank = document.createElement('div');
-    bumpBank.className = 'fx-bank';
-    pageEl.append(flashTitle, flashBank, bumpTitle, bumpBank);
+    let flashBank;
+    let bumpBank;
+    if (layout === 'banks') {
+      const flashTitle = document.createElement('div');
+      flashTitle.className = 'bank-title';
+      flashTitle.textContent = 'Flash';
+      flashBank = document.createElement('div');
+      flashBank.className = 'fx-bank';
+      const bumpTitle = document.createElement('div');
+      bumpTitle.className = 'bank-title';
+      bumpTitle.textContent = 'Bump';
+      bumpBank = document.createElement('div');
+      bumpBank.className = 'fx-bank';
+      pageEl.append(flashTitle, flashBank, bumpTitle, bumpBank);
+      pageEl.classList.add('fx-page--banks');
+    } else {
+      flashBank = document.createElement('div');
+      flashBank.className = 'fx-bank grid24';
+      bumpBank = flashBank;
+      pageEl.append(flashBank);
+      pageEl.classList.add('fx-page--grid');
+    }
     el.appendChild(pageEl);
     pageEls.push(pageEl);
 
     const latched = new Set();
+    const pageBase = handleBase;
+    handleBase += buttons.length;
 
-    state.get()[kind].forEach((_, i) => {
+    buttons.forEach((_, i) => {
       const b = document.createElement('button');
       b.className = 'fx-btn';
       b.dataset.index = i;
@@ -74,7 +93,7 @@ export function renderFxGrid(el, { isEditMode, onEdit }) {
       b.innerHTML =
         '<span class="fx-icon"></span><span class="fx-mode u-caps"></span>' +
         '<span class="fx-label u-caps"></span><span class="fx-pad u-num"></span>';
-      (i < 8 ? flashBank : bumpBank).appendChild(b);
+      (layout === 'banks' && i >= 8 ? bumpBank : flashBank).appendChild(b);
 
       let repeatTimer = null;
       let holdActive = false;
@@ -184,7 +203,7 @@ export function renderFxGrid(el, { isEditMode, onEdit }) {
         }
       });
 
-      fxHandles[p * 16 + i] = {
+      fxHandles[pageBase + i] = {
         press: () => { if (!isEditMode()) press(); },
         release,
       };

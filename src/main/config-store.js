@@ -108,6 +108,9 @@ function defaults() {
     // Second page: same schema, no controller bindings by default.
     fxButtons2: Array.from({ length: 16 }, (_, i) =>
       fxButton(i, { id: `fx2-${i + 1}`, label: `2·FX ${i + 1}`, gamepadButton: -1 })),
+    // Third page: dense 24-slot clip-select grid (e.g. DJ intro name straps).
+    fxButtons3: Array.from({ length: 24 }, (_, i) =>
+      fxButton(i, { id: `fx3-${i + 1}`, label: `3·FX ${i + 1}`, gamepadButton: -1 })),
     faders: [
       fader(0, { label: 'MASTER', color: ACCENTS.green, address: '/composition/master' }),
       fader(1, { label: 'LAYER 1', address: '/composition/layers/1/master' }),
@@ -150,6 +153,7 @@ function mergeConfig(base, patch) {
     triggers: deepMerge(base.triggers, isPlainObject(patch.triggers) ? patch.triggers : {}),
     fxButtons: mergeControls(base.fxButtons, patch.fxButtons),
     fxButtons2: mergeControls(base.fxButtons2, patch.fxButtons2),
+    fxButtons3: mergeControls(base.fxButtons3, patch.fxButtons3),
     faders: mergeControls(base.faders, patch.faders),
     colorButtons: mergeControls(base.colorButtons, patch.colorButtons),
   };

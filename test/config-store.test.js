@@ -16,6 +16,7 @@ test('defaults() has full control sets and network defaults', () => {
   assert.equal(cfg.version, 1);
   assert.equal(cfg.fxButtons.length, 16);
   assert.equal(cfg.fxButtons2.length, 16);
+  assert.equal(cfg.fxButtons3.length, 24);
   assert.equal(cfg.faders.length, 8);
   assert.equal(cfg.colorButtons.length, 10);
   assert.equal(cfg.network.targetPort, 7000);

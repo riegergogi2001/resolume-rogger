@@ -79,10 +79,13 @@ export function startGamepad(handles) {
       if (down === (prev[bi] ?? false)) continue;
       if (down && learnCb) { learnCb(bi); continue; } // learn consumes the press
       const cfgAll = state.get();
-      let gi = cfgAll.fxButtons.findIndex(c => c.gamepadButton === bi);
-      if (gi === -1) {
-        const p2 = (cfgAll.fxButtons2 ?? []).findIndex(c => c.gamepadButton === bi);
-        gi = p2 === -1 ? -1 : 16 + p2;
+      let gi = -1;
+      let base = 0;
+      for (const kind of ['fxButtons', 'fxButtons2', 'fxButtons3']) {
+        const arr = cfgAll[kind] ?? [];
+        const idx = arr.findIndex(c => c.gamepadButton === bi);
+        if (idx !== -1) { gi = base + idx; break; }
+        base += arr.length;
       }
       if (gi === -1 || !handles[gi]) continue;
       if (down) handles[gi].press();
