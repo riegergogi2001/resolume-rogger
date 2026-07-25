@@ -27,6 +27,12 @@
         "enabled": false,
         "intervalMs": 250
       },
+      "ramp": {
+        "enabled": false,
+        "from": 0,
+        "to": 1,
+        "durationMs": 1500
+      },
       "macro": [],
       "gamepadButton": 0
     },
@@ -45,6 +51,12 @@
       "repeat": {
         "enabled": false,
         "intervalMs": 250
+      },
+      "ramp": {
+        "enabled": false,
+        "from": 0,
+        "to": 1,
+        "durationMs": 1500
       },
       "macro": [],
       "gamepadButton": 1
@@ -65,6 +77,12 @@
         "enabled": false,
         "intervalMs": 250
       },
+      "ramp": {
+        "enabled": false,
+        "from": 0,
+        "to": 1,
+        "durationMs": 1500
+      },
       "macro": [],
       "gamepadButton": 2
     },
@@ -83,6 +101,12 @@
       "repeat": {
         "enabled": false,
         "intervalMs": 250
+      },
+      "ramp": {
+        "enabled": false,
+        "from": 0,
+        "to": 1,
+        "durationMs": 1500
       },
       "macro": [],
       "gamepadButton": 3
@@ -103,6 +127,12 @@
         "enabled": false,
         "intervalMs": 250
       },
+      "ramp": {
+        "enabled": false,
+        "from": 0,
+        "to": 1,
+        "durationMs": 1500
+      },
       "macro": [],
       "gamepadButton": 4
     },
@@ -121,6 +151,12 @@
       "repeat": {
         "enabled": false,
         "intervalMs": 250
+      },
+      "ramp": {
+        "enabled": false,
+        "from": 0,
+        "to": 1,
+        "durationMs": 1500
       },
       "macro": [],
       "gamepadButton": 5
@@ -141,6 +177,12 @@
         "enabled": false,
         "intervalMs": 250
       },
+      "ramp": {
+        "enabled": false,
+        "from": 0,
+        "to": 1,
+        "durationMs": 1500
+      },
       "macro": [],
       "gamepadButton": 6
     },
@@ -159,6 +201,12 @@
       "repeat": {
         "enabled": false,
         "intervalMs": 250
+      },
+      "ramp": {
+        "enabled": false,
+        "from": 0,
+        "to": 1,
+        "durationMs": 1500
       },
       "macro": [],
       "gamepadButton": 7
@@ -179,6 +227,12 @@
         "enabled": true,
         "intervalMs": 200
       },
+      "ramp": {
+        "enabled": false,
+        "from": 0,
+        "to": 1,
+        "durationMs": 1500
+      },
       "macro": [],
       "gamepadButton": 12
     },
@@ -197,6 +251,12 @@
       "repeat": {
         "enabled": true,
         "intervalMs": 200
+      },
+      "ramp": {
+        "enabled": false,
+        "from": 0,
+        "to": 1,
+        "durationMs": 1500
       },
       "macro": [],
       "gamepadButton": 13
@@ -217,6 +277,12 @@
         "enabled": true,
         "intervalMs": 200
       },
+      "ramp": {
+        "enabled": false,
+        "from": 0,
+        "to": 1,
+        "durationMs": 1500
+      },
       "macro": [],
       "gamepadButton": 14
     },
@@ -235,6 +301,12 @@
       "repeat": {
         "enabled": true,
         "intervalMs": 200
+      },
+      "ramp": {
+        "enabled": false,
+        "from": 0,
+        "to": 1,
+        "durationMs": 1500
       },
       "macro": [],
       "gamepadButton": 15
@@ -255,6 +327,12 @@
         "enabled": true,
         "intervalMs": 200
       },
+      "ramp": {
+        "enabled": false,
+        "from": 0,
+        "to": 1,
+        "durationMs": 1500
+      },
       "macro": [],
       "gamepadButton": 10
     },
@@ -273,6 +351,12 @@
       "repeat": {
         "enabled": true,
         "intervalMs": 200
+      },
+      "ramp": {
+        "enabled": false,
+        "from": 0,
+        "to": 1,
+        "durationMs": 1500
       },
       "macro": [],
       "gamepadButton": 11
@@ -293,6 +377,12 @@
         "enabled": false,
         "intervalMs": 250
       },
+      "ramp": {
+        "enabled": false,
+        "from": 0,
+        "to": 1,
+        "durationMs": 1500
+      },
       "macro": [],
       "gamepadButton": 8
     },
@@ -312,8 +402,416 @@
         "enabled": false,
         "intervalMs": 250
       },
+      "ramp": {
+        "enabled": false,
+        "from": 0,
+        "to": 1,
+        "durationMs": 1500
+      },
       "macro": [],
       "gamepadButton": 9
+    }
+  ],
+  "fxButtons2": [
+    {
+      "id": "fx2-1",
+      "label": "EDGE FX",
+      "icon": "◐",
+      "color": "#00e0ff",
+      "mode": "hold",
+      "type": "float",
+      "address": "/composition/groups/1/video/effects/edgedetection/opacity",
+      "value": 1,
+      "offValue": 0,
+      "releaseValue": 0,
+      "releaseAddress": "",
+      "repeat": {
+        "enabled": false,
+        "intervalMs": 250
+      },
+      "ramp": {
+        "enabled": true,
+        "from": 0,
+        "to": 1,
+        "durationMs": 2000
+      },
+      "macro": [],
+      "gamepadButton": -1
+    },
+    {
+      "id": "fx2-2",
+      "label": "ACUARELA",
+      "icon": "◐",
+      "color": "#2ee66b",
+      "mode": "hold",
+      "type": "float",
+      "address": "/composition/groups/1/video/effects/acuarela/opacity",
+      "value": 1,
+      "offValue": 0,
+      "releaseValue": 0,
+      "releaseAddress": "",
+      "repeat": {
+        "enabled": false,
+        "intervalMs": 250
+      },
+      "ramp": {
+        "enabled": true,
+        "from": 0,
+        "to": 1,
+        "durationMs": 2000
+      },
+      "macro": [],
+      "gamepadButton": -1
+    },
+    {
+      "id": "fx2-3",
+      "label": "BLOOM",
+      "icon": "◐",
+      "color": "#ffd93d",
+      "mode": "hold",
+      "type": "float",
+      "address": "/composition/groups/1/video/effects/bloom/opacity",
+      "value": 1,
+      "offValue": 0,
+      "releaseValue": 0,
+      "releaseAddress": "",
+      "repeat": {
+        "enabled": false,
+        "intervalMs": 250
+      },
+      "ramp": {
+        "enabled": true,
+        "from": 0,
+        "to": 1,
+        "durationMs": 2000
+      },
+      "macro": [],
+      "gamepadButton": -1
+    },
+    {
+      "id": "fx2-4",
+      "label": "GOO",
+      "icon": "◐",
+      "color": "#b46bff",
+      "mode": "hold",
+      "type": "float",
+      "address": "/composition/groups/1/video/effects/goo/opacity",
+      "value": 1,
+      "offValue": 0,
+      "releaseValue": 0,
+      "releaseAddress": "",
+      "repeat": {
+        "enabled": false,
+        "intervalMs": 250
+      },
+      "ramp": {
+        "enabled": true,
+        "from": 0,
+        "to": 1,
+        "durationMs": 2000
+      },
+      "macro": [],
+      "gamepadButton": -1
+    },
+    {
+      "id": "fx2-5",
+      "label": "INF ZOOM",
+      "icon": "◐",
+      "color": "#ff7a1a",
+      "mode": "hold",
+      "type": "float",
+      "address": "/composition/groups/1/video/effects/infinitezoom/opacity",
+      "value": 1,
+      "offValue": 0,
+      "releaseValue": 0,
+      "releaseAddress": "",
+      "repeat": {
+        "enabled": false,
+        "intervalMs": 250
+      },
+      "ramp": {
+        "enabled": true,
+        "from": 0,
+        "to": 1,
+        "durationMs": 2000
+      },
+      "macro": [],
+      "gamepadButton": -1
+    },
+    {
+      "id": "fx2-6",
+      "label": "METASHAPE",
+      "icon": "◐",
+      "color": "#3aa0ff",
+      "mode": "hold",
+      "type": "float",
+      "address": "/composition/groups/1/video/effects/metashape/opacity",
+      "value": 1,
+      "offValue": 0,
+      "releaseValue": 0,
+      "releaseAddress": "",
+      "repeat": {
+        "enabled": false,
+        "intervalMs": 250
+      },
+      "ramp": {
+        "enabled": true,
+        "from": 0,
+        "to": 1,
+        "durationMs": 2000
+      },
+      "macro": [],
+      "gamepadButton": -1
+    },
+    {
+      "id": "fx2-7",
+      "label": "GLITCH",
+      "icon": "◐",
+      "color": "#ff3df0",
+      "mode": "hold",
+      "type": "float",
+      "address": "/composition/groups/1/video/effects/shiftglitch/opacity",
+      "value": 1,
+      "offValue": 0,
+      "releaseValue": 0,
+      "releaseAddress": "",
+      "repeat": {
+        "enabled": false,
+        "intervalMs": 250
+      },
+      "ramp": {
+        "enabled": true,
+        "from": 0,
+        "to": 1,
+        "durationMs": 2000
+      },
+      "macro": [],
+      "gamepadButton": -1
+    },
+    {
+      "id": "fx2-8",
+      "label": "HUE SPIN",
+      "icon": "◐",
+      "color": "#ffd93d",
+      "mode": "hold",
+      "type": "float",
+      "address": "/composition/groups/1/video/effects/huerotate/effect/huerotate",
+      "value": 1,
+      "offValue": 0,
+      "releaseValue": 0.57,
+      "releaseAddress": "",
+      "repeat": {
+        "enabled": false,
+        "intervalMs": 250
+      },
+      "ramp": {
+        "enabled": true,
+        "from": 0,
+        "to": 1,
+        "durationMs": 2000
+      },
+      "macro": [],
+      "gamepadButton": -1
+    },
+    {
+      "id": "fx2-9",
+      "label": "COL 3",
+      "icon": "▶",
+      "color": "#00e0ff",
+      "mode": "hold",
+      "type": "int",
+      "address": "/composition/columns/3/connect",
+      "value": 1,
+      "offValue": 0,
+      "releaseValue": 0,
+      "releaseAddress": "",
+      "repeat": {
+        "enabled": false,
+        "intervalMs": 250
+      },
+      "ramp": {
+        "enabled": false,
+        "from": 0,
+        "to": 1,
+        "durationMs": 1500
+      },
+      "macro": [],
+      "gamepadButton": -1
+    },
+    {
+      "id": "fx2-10",
+      "label": "COL 4",
+      "icon": "▶",
+      "color": "#00e0ff",
+      "mode": "hold",
+      "type": "int",
+      "address": "/composition/columns/4/connect",
+      "value": 1,
+      "offValue": 0,
+      "releaseValue": 0,
+      "releaseAddress": "",
+      "repeat": {
+        "enabled": false,
+        "intervalMs": 250
+      },
+      "ramp": {
+        "enabled": false,
+        "from": 0,
+        "to": 1,
+        "durationMs": 1500
+      },
+      "macro": [],
+      "gamepadButton": -1
+    },
+    {
+      "id": "fx2-11",
+      "label": "COL 5",
+      "icon": "▶",
+      "color": "#00e0ff",
+      "mode": "hold",
+      "type": "int",
+      "address": "/composition/columns/5/connect",
+      "value": 1,
+      "offValue": 0,
+      "releaseValue": 0,
+      "releaseAddress": "",
+      "repeat": {
+        "enabled": false,
+        "intervalMs": 250
+      },
+      "ramp": {
+        "enabled": false,
+        "from": 0,
+        "to": 1,
+        "durationMs": 1500
+      },
+      "macro": [],
+      "gamepadButton": -1
+    },
+    {
+      "id": "fx2-12",
+      "label": "COL 6",
+      "icon": "▶",
+      "color": "#00e0ff",
+      "mode": "hold",
+      "type": "int",
+      "address": "/composition/columns/6/connect",
+      "value": 1,
+      "offValue": 0,
+      "releaseValue": 0,
+      "releaseAddress": "",
+      "repeat": {
+        "enabled": false,
+        "intervalMs": 250
+      },
+      "ramp": {
+        "enabled": false,
+        "from": 0,
+        "to": 1,
+        "durationMs": 1500
+      },
+      "macro": [],
+      "gamepadButton": -1
+    },
+    {
+      "id": "fx2-13",
+      "label": "TAP",
+      "icon": "⏱",
+      "color": "#ffb400",
+      "mode": "hold",
+      "type": "int",
+      "address": "/composition/tempocontroller/tempotap",
+      "value": 1,
+      "offValue": 0,
+      "releaseValue": 0,
+      "releaseAddress": "",
+      "repeat": {
+        "enabled": false,
+        "intervalMs": 250
+      },
+      "ramp": {
+        "enabled": false,
+        "from": 0,
+        "to": 1,
+        "durationMs": 1500
+      },
+      "macro": [],
+      "gamepadButton": -1
+    },
+    {
+      "id": "fx2-14",
+      "label": "RESYNC",
+      "icon": "⏱",
+      "color": "#ffb400",
+      "mode": "hold",
+      "type": "int",
+      "address": "/composition/tempocontroller/resync",
+      "value": 1,
+      "offValue": 0,
+      "releaseValue": 0,
+      "releaseAddress": "",
+      "repeat": {
+        "enabled": false,
+        "intervalMs": 250
+      },
+      "ramp": {
+        "enabled": false,
+        "from": 0,
+        "to": 1,
+        "durationMs": 1500
+      },
+      "macro": [],
+      "gamepadButton": -1
+    },
+    {
+      "id": "fx2-15",
+      "label": "CLR FX",
+      "icon": "✕",
+      "color": "#ff4757",
+      "mode": "hold",
+      "type": "int",
+      "address": "/composition/layers/12/clear",
+      "value": 1,
+      "offValue": 0,
+      "releaseValue": 0,
+      "releaseAddress": "",
+      "repeat": {
+        "enabled": false,
+        "intervalMs": 250
+      },
+      "ramp": {
+        "enabled": false,
+        "from": 0,
+        "to": 1,
+        "durationMs": 1500
+      },
+      "macro": [],
+      "gamepadButton": -1
+    },
+    {
+      "id": "fx2-16",
+      "label": "CLR LOGO",
+      "icon": "✕",
+      "color": "#ff4757",
+      "mode": "hold",
+      "type": "int",
+      "address": "/composition/layers/9/clear",
+      "value": 1,
+      "offValue": 0,
+      "releaseValue": 0,
+      "releaseAddress": "",
+      "repeat": {
+        "enabled": false,
+        "intervalMs": 250
+      },
+      "ramp": {
+        "enabled": false,
+        "from": 0,
+        "to": 1,
+        "durationMs": 1500
+      },
+      "macro": [],
+      "gamepadButton": -1
     }
   ],
   "faders": [
@@ -380,6 +878,28 @@
       "min": 0,
       "max": 1,
       "defaultValue": 1,
+      "invert": false,
+      "sensitivity": 1
+    },
+    {
+      "id": "fader7",
+      "label": "B TIME",
+      "color": "#ffb400",
+      "address": "/composition/video/effects/boomer/effect/fadeouttime",
+      "min": 0,
+      "max": 1,
+      "defaultValue": 0.35,
+      "invert": false,
+      "sensitivity": 1
+    },
+    {
+      "id": "fader8",
+      "label": "P TIME",
+      "color": "#ffb400",
+      "address": "/composition/video/effects/pusher/effect/fadeouttime",
+      "min": 0,
+      "max": 1,
+      "defaultValue": 0.39,
       "invert": false,
       "sensitivity": 1
     }

@@ -15,7 +15,8 @@ test('defaults() has full control sets and network defaults', () => {
   const cfg = store.defaults();
   assert.equal(cfg.version, 1);
   assert.equal(cfg.fxButtons.length, 16);
-  assert.equal(cfg.faders.length, 6);
+  assert.equal(cfg.fxButtons2.length, 16);
+  assert.equal(cfg.faders.length, 8);
   assert.equal(cfg.colorButtons.length, 10);
   assert.equal(cfg.network.targetPort, 7000);
   assert.equal(cfg.network.listenPort, 7001);
@@ -40,10 +41,10 @@ test('defaults split into 8 flash (hold) and 8 bump (tap) buttons with unique ga
   assert.equal(new Set(pads).size, 16, 'every controller button bound exactly once');
 });
 
-test('default faders are master, layers 1-4 and logo (no crossfader)', () => {
+test('default faders are master, layers 1-4, logo and two aux (no crossfader)', () => {
   const faders = store.defaults().faders;
   assert.deepEqual(faders.map(f => f.label),
-    ['MASTER', 'LAYER 1', 'LAYER 2', 'LAYER 3', 'LAYER 4', 'LOGO']);
+    ['MASTER', 'LAYER 1', 'LAYER 2', 'LAYER 3', 'LAYER 4', 'LOGO', 'AUX 1', 'AUX 2']);
   assert.equal(faders[5].address, '/composition/layers/5/master');
   assert.ok(faders.every(f => !f.address.includes('crossfader')));
 });
