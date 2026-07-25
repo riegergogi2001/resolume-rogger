@@ -13,6 +13,18 @@ const configPath = app.isPackaged
 const engine = new OscEngine();
 let win = null;
 
+// one instance only — a second copy would fight over the OSC listen port
+if (!app.requestSingleInstanceLock()) {
+  app.quit();
+} else {
+  app.on('second-instance', () => {
+    if (win) {
+      if (win.isMinimized()) win.restore();
+      win.focus();
+    }
+  });
+}
+
 function createWindow() {
   win = new BrowserWindow({
     width: 1280,
