@@ -4,6 +4,8 @@
 // sensitivity (>=1 absolute, <1 fine relative), double-tap resets to default.
 import { rogger } from './bridge.js';
 import * as state from './state.js';
+import { showToast } from './toast.js';
+import { beatMs } from './beat-clock.js';
 
 const fmt = v => (Math.abs(v) >= 10 ? v.toFixed(1) : v.toFixed(2));
 
@@ -83,8 +85,10 @@ export function renderFaders(el, { isEditMode, onEdit }) {
       const v = valueOf(c, norm);
       if (v === lastSent) return;
       lastSent = v;
-      rogger.sendTyped(c.address, [{ type: 'f', value: v }]);
-      if (c.extraAddress) rogger.sendTyped(c.extraAddress, [{ type: 'f', value: v }]);
+      const args = [{ type: 'f', value: v }];
+      rogger.sendTyped(c.address, args);
+      if (c.extraAddress) rogger.sendTyped(c.extraAddress, args);
+      for (const a of c.extraAddresses ?? []) rogger.sendTyped(a, args);
     }
     function schedule() {
       if (raf) return;
@@ -144,6 +148,25 @@ export function renderFaders(el, { isEditMode, onEdit }) {
     }
     track.addEventListener('pointerup', up);
     track.addEventListener('pointercancel', up);
+
+    // ♪ button: set the value from the tapped beat (value = bpm / bpmAt1)
+    if (all[i].beatSync?.enabled) {
+      const beatBtn = document.createElement('button');
+      beatBtn.className = 'mini-btn beat-btn u-num';
+      beatBtn.textContent = '♪';
+      beatBtn.addEventListener('pointerdown', () => {
+        const ms = beatMs();
+        if (!ms) { showToast('Tap a tempo first', { error: true }); return; }
+        const c = cfg();
+        const bpm = 60000 / ms;
+        const value = Math.min(c.max, Math.max(c.min,
+          c.min + (c.max - c.min) * (bpm / (c.beatSync.bpmAt1 || 300))));
+        norm = normOf(c, value);
+        lastSent = null; // force the send even if unchanged
+        schedule();
+      });
+      wrap.appendChild(beatBtn);
+    }
 
     // Bidirectional feedback: follow matching inbound OSC unless a finger
     // currently owns this fader.

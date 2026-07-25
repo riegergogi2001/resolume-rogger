@@ -291,6 +291,13 @@
   font-weight: 800;
 }
 .mini-btn:active { background: var(--panel-3); }
+.fader .beat-btn {
+  height: 44px;
+  min-width: 44px;
+  color: var(--fader-color, var(--accent));
+  border-color: var(--line-bright);
+}
+.fader:not(.fader--h) .beat-btn { align-self: center; }
 
 /* ---- Color presets ---- */
 .color-btn {
