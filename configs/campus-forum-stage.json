@@ -10,6 +10,30 @@
   "ui": {
     "theme": "dark"
   },
+  "triggers": {
+    "lt": {
+      "enabled": true,
+      "label": "LT · MASTER DUCK",
+      "engageAddress": "",
+      "engageValue": 1,
+      "engageReleaseValue": 0,
+      "analogAddress": "/composition/master",
+      "from": 1,
+      "to": 0,
+      "releaseValue": 1
+    },
+    "rt": {
+      "enabled": true,
+      "label": "RT · STROBE STOMP",
+      "engageAddress": "/composition/layers/12/clips/9/connect",
+      "engageValue": 1,
+      "engageReleaseValue": 0,
+      "analogAddress": "/composition/layers/12/master",
+      "from": 0,
+      "to": 1,
+      "releaseValue": 1
+    }
+  },
   "fxButtons": [
     {
       "id": "fx1",
@@ -184,7 +208,7 @@
         "durationMs": 1500
       },
       "macro": [],
-      "gamepadButton": 6
+      "gamepadButton": -1
     },
     {
       "id": "fx8",
@@ -209,7 +233,7 @@
         "durationMs": 1500
       },
       "macro": [],
-      "gamepadButton": 7
+      "gamepadButton": -1
     },
     {
       "id": "fx9",
@@ -363,12 +387,12 @@
     },
     {
       "id": "fx15",
-      "label": "COL 1",
-      "icon": "▶",
-      "color": "#00e0ff",
+      "label": "CLR FX",
+      "icon": "✕",
+      "color": "#ff4757",
       "mode": "hold",
       "type": "int",
-      "address": "/composition/columns/1/connect",
+      "address": "/composition/layers/12/clear",
       "value": 1,
       "offValue": 0,
       "releaseValue": 0,
@@ -388,12 +412,12 @@
     },
     {
       "id": "fx16",
-      "label": "COL 2",
-      "icon": "▶",
-      "color": "#00e0ff",
+      "label": "CLR LOGO",
+      "icon": "✕",
+      "color": "#ff4757",
       "mode": "hold",
       "type": "int",
-      "address": "/composition/columns/2/connect",
+      "address": "/composition/layers/9/clear",
       "value": 1,
       "offValue": 0,
       "releaseValue": 0,
@@ -615,106 +639,6 @@
     },
     {
       "id": "fx2-9",
-      "label": "COL 3",
-      "icon": "▶",
-      "color": "#00e0ff",
-      "mode": "hold",
-      "type": "int",
-      "address": "/composition/columns/3/connect",
-      "value": 1,
-      "offValue": 0,
-      "releaseValue": 0,
-      "releaseAddress": "",
-      "repeat": {
-        "enabled": false,
-        "intervalMs": 250
-      },
-      "ramp": {
-        "enabled": false,
-        "from": 0,
-        "to": 1,
-        "durationMs": 1500
-      },
-      "macro": [],
-      "gamepadButton": -1
-    },
-    {
-      "id": "fx2-10",
-      "label": "COL 4",
-      "icon": "▶",
-      "color": "#00e0ff",
-      "mode": "hold",
-      "type": "int",
-      "address": "/composition/columns/4/connect",
-      "value": 1,
-      "offValue": 0,
-      "releaseValue": 0,
-      "releaseAddress": "",
-      "repeat": {
-        "enabled": false,
-        "intervalMs": 250
-      },
-      "ramp": {
-        "enabled": false,
-        "from": 0,
-        "to": 1,
-        "durationMs": 1500
-      },
-      "macro": [],
-      "gamepadButton": -1
-    },
-    {
-      "id": "fx2-11",
-      "label": "COL 5",
-      "icon": "▶",
-      "color": "#00e0ff",
-      "mode": "hold",
-      "type": "int",
-      "address": "/composition/columns/5/connect",
-      "value": 1,
-      "offValue": 0,
-      "releaseValue": 0,
-      "releaseAddress": "",
-      "repeat": {
-        "enabled": false,
-        "intervalMs": 250
-      },
-      "ramp": {
-        "enabled": false,
-        "from": 0,
-        "to": 1,
-        "durationMs": 1500
-      },
-      "macro": [],
-      "gamepadButton": -1
-    },
-    {
-      "id": "fx2-12",
-      "label": "COL 6",
-      "icon": "▶",
-      "color": "#00e0ff",
-      "mode": "hold",
-      "type": "int",
-      "address": "/composition/columns/6/connect",
-      "value": 1,
-      "offValue": 0,
-      "releaseValue": 0,
-      "releaseAddress": "",
-      "repeat": {
-        "enabled": false,
-        "intervalMs": 250
-      },
-      "ramp": {
-        "enabled": false,
-        "from": 0,
-        "to": 1,
-        "durationMs": 1500
-      },
-      "macro": [],
-      "gamepadButton": -1
-    },
-    {
-      "id": "fx2-13",
       "label": "TAP",
       "icon": "⏱",
       "color": "#ffb400",
@@ -739,9 +663,9 @@
       "gamepadButton": -1
     },
     {
-      "id": "fx2-14",
+      "id": "fx2-10",
       "label": "RESYNC",
-      "icon": "⏱",
+      "icon": "↻",
       "color": "#ffb400",
       "mode": "hold",
       "type": "int",
@@ -764,13 +688,151 @@
       "gamepadButton": -1
     },
     {
-      "id": "fx2-15",
-      "label": "CLR FX",
-      "icon": "✕",
-      "color": "#ff4757",
+      "id": "fx2-11",
+      "label": "BOOM ALL",
+      "icon": "☄",
+      "color": "#ff7a1a",
       "mode": "hold",
       "type": "int",
-      "address": "/composition/layers/12/clear",
+      "address": "/composition/video/effects/boomer/effect/blur",
+      "value": 1,
+      "offValue": 0,
+      "releaseValue": 0,
+      "releaseAddress": "",
+      "repeat": {
+        "enabled": false,
+        "intervalMs": 250
+      },
+      "ramp": {
+        "enabled": false,
+        "from": 0,
+        "to": 1,
+        "durationMs": 1500
+      },
+      "macro": [
+        {
+          "address": "/composition/video/effects/boomer/effect/blur",
+          "values": [
+            1
+          ]
+        },
+        {
+          "address": "/composition/video/effects/boomer/effect/exposure",
+          "values": [
+            1
+          ]
+        },
+        {
+          "address": "/composition/video/effects/boomer/effect/edge",
+          "values": [
+            1
+          ]
+        },
+        {
+          "address": "/composition/video/effects/boomer/effect/blow",
+          "values": [
+            1
+          ]
+        }
+      ],
+      "gamepadButton": -1
+    },
+    {
+      "id": "fx2-12",
+      "label": "PUSH X2",
+      "icon": "☄",
+      "color": "#eaeef5",
+      "mode": "hold",
+      "type": "int",
+      "address": "/composition/video/effects/pusher/effect/push",
+      "value": 1,
+      "offValue": 0,
+      "releaseValue": 0,
+      "releaseAddress": "",
+      "repeat": {
+        "enabled": false,
+        "intervalMs": 250
+      },
+      "ramp": {
+        "enabled": false,
+        "from": 0,
+        "to": 1,
+        "durationMs": 1500
+      },
+      "macro": [
+        {
+          "address": "/composition/video/effects/pusher/effect/push",
+          "values": [
+            1
+          ]
+        },
+        {
+          "address": "/composition/video/effects/pusher2/effect/push",
+          "values": [
+            1
+          ]
+        }
+      ],
+      "gamepadButton": -1
+    },
+    {
+      "id": "fx2-13",
+      "label": "PULLMAXX",
+      "icon": "▩",
+      "color": "#3aa0ff",
+      "mode": "hold",
+      "type": "int",
+      "address": "/composition/layers/8/clips/17/connect",
+      "value": 1,
+      "offValue": 0,
+      "releaseValue": 0,
+      "releaseAddress": "",
+      "repeat": {
+        "enabled": false,
+        "intervalMs": 250
+      },
+      "ramp": {
+        "enabled": false,
+        "from": 0,
+        "to": 1,
+        "durationMs": 1500
+      },
+      "macro": [],
+      "gamepadButton": -1
+    },
+    {
+      "id": "fx2-14",
+      "label": "HUE RST",
+      "icon": "↻",
+      "color": "#ffd93d",
+      "mode": "tap",
+      "type": "float",
+      "address": "/composition/groups/1/video/effects/huerotate/effect/huerotate",
+      "value": 0.57,
+      "offValue": 0,
+      "releaseValue": 0,
+      "releaseAddress": "",
+      "repeat": {
+        "enabled": false,
+        "intervalMs": 250
+      },
+      "ramp": {
+        "enabled": false,
+        "from": 0,
+        "to": 1,
+        "durationMs": 1500
+      },
+      "macro": [],
+      "gamepadButton": -1
+    },
+    {
+      "id": "fx2-15",
+      "label": "ZOOM RST",
+      "icon": "◎",
+      "color": "#ff7a1a",
+      "mode": "hold",
+      "type": "int",
+      "address": "/composition/groups/1/video/effects/infinitezoom/effect/reset",
       "value": 1,
       "offValue": 0,
       "releaseValue": 0,
@@ -790,12 +852,12 @@
     },
     {
       "id": "fx2-16",
-      "label": "CLR LOGO",
-      "icon": "✕",
-      "color": "#ff4757",
+      "label": "ACUA RST",
+      "icon": "◎",
+      "color": "#2ee66b",
       "mode": "hold",
       "type": "int",
-      "address": "/composition/layers/9/clear",
+      "address": "/composition/groups/1/video/effects/acuarela/effect/reset",
       "value": 1,
       "offValue": 0,
       "releaseValue": 0,

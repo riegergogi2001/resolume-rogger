@@ -37,6 +37,20 @@ export function renderTopbar(el, { onToggleEdit, onOpenSettings }) {
   const tap = tempoButton('tap-tempo', 'Tap', '/composition/tempocontroller/tempotap');
   const resync = tempoButton('tap-resync', 'Resync', '/composition/tempocontroller/resync');
 
+  // analog trigger assignments are invisible hardware — surface them
+  const trig = document.createElement('div');
+  trig.className = 'trig-readout u-caps';
+  function refreshTrig() {
+    const t = state.get().triggers ?? {};
+    const parts = [];
+    if (t.lt?.enabled) parts.push(t.lt.label || 'LT');
+    if (t.rt?.enabled) parts.push(t.rt.label || 'RT');
+    trig.textContent = parts.join('  ·  ');
+    trig.style.display = parts.length ? '' : 'none';
+  }
+  refreshTrig();
+  state.subscribe(refreshTrig);
+
   const edit = document.createElement('button');
   edit.className = 'topbar-btn u-caps';
   edit.id = 'edit-toggle';
@@ -53,7 +67,7 @@ export function renderTopbar(el, { onToggleEdit, onOpenSettings }) {
   gear.textContent = '⚙';
   gear.addEventListener('pointerdown', onOpenSettings);
 
-  el.append(mark, target, spacer, tap, resync, pill, edit, gear);
+  el.append(mark, target, trig, spacer, tap, resync, pill, edit, gear);
 
   function refreshTarget() {
     const n = state.get().network;
