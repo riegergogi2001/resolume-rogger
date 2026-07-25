@@ -26,6 +26,7 @@ export function scaleBeat(factor) {
 
 export function setMode(m) {
   mode = m;
+  mult = 1; // switching source starts from the plain beat
   notify();
 }
 
