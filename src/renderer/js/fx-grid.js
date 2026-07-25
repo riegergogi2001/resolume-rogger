@@ -17,7 +17,9 @@ function fire(btn, value, address = btn.address) {
     for (const step of btn.macro) rogger.send(step.address, step.values ?? []);
     return;
   }
-  rogger.sendTyped(address, typedArgs(btn.type, value));
+  const args = typedArgs(btn.type, value);
+  rogger.sendTyped(address, args);
+  if (btn.extraAddress && address === btn.address) rogger.sendTyped(btn.extraAddress, args);
 }
 
 export const PAGE_KINDS = ['fxButtons', 'fxButtons2'];

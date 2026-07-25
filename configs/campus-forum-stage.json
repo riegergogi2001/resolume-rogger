@@ -47,6 +47,7 @@
       "offValue": 0,
       "releaseValue": 0,
       "releaseAddress": "",
+      "extraAddress": "",
       "repeat": {
         "enabled": false,
         "intervalMs": 250,
@@ -73,6 +74,7 @@
       "offValue": 0,
       "releaseValue": 0,
       "releaseAddress": "",
+      "extraAddress": "",
       "repeat": {
         "enabled": false,
         "intervalMs": 250,
@@ -99,6 +101,7 @@
       "offValue": 0,
       "releaseValue": 0,
       "releaseAddress": "",
+      "extraAddress": "",
       "repeat": {
         "enabled": false,
         "intervalMs": 250,
@@ -115,16 +118,17 @@
     },
     {
       "id": "fx4",
-      "label": "KEEP GREYS",
-      "icon": "◐",
-      "color": "#eaeef5",
-      "mode": "toggle",
+      "label": "INVERT",
+      "icon": "⚡",
+      "color": "#ff4757",
+      "mode": "hold",
       "type": "int",
-      "address": "/composition/groups/1/video/effects/colorize/effect/greyskeep",
+      "address": "/composition/layers/12/clips/5/connect",
       "value": 1,
       "offValue": 0,
       "releaseValue": 0,
       "releaseAddress": "",
+      "extraAddress": "",
       "repeat": {
         "enabled": false,
         "intervalMs": 250,
@@ -151,6 +155,7 @@
       "offValue": 0,
       "releaseValue": 0,
       "releaseAddress": "",
+      "extraAddress": "",
       "repeat": {
         "enabled": false,
         "intervalMs": 250,
@@ -177,6 +182,7 @@
       "offValue": 0,
       "releaseValue": 0,
       "releaseAddress": "",
+      "extraAddress": "",
       "repeat": {
         "enabled": false,
         "intervalMs": 250,
@@ -203,6 +209,7 @@
       "offValue": 0,
       "releaseValue": 0,
       "releaseAddress": "",
+      "extraAddress": "",
       "repeat": {
         "enabled": false,
         "intervalMs": 250,
@@ -229,6 +236,7 @@
       "offValue": 0,
       "releaseValue": 0,
       "releaseAddress": "",
+      "extraAddress": "",
       "repeat": {
         "enabled": false,
         "intervalMs": 250,
@@ -245,6 +253,60 @@
     },
     {
       "id": "fx9",
+      "label": "KEEP GREYS",
+      "icon": "◐",
+      "color": "#eaeef5",
+      "mode": "toggle",
+      "type": "int",
+      "address": "/composition/groups/1/video/effects/colorize/effect/greyskeep",
+      "value": 1,
+      "offValue": 0,
+      "releaseValue": 0,
+      "releaseAddress": "",
+      "extraAddress": "",
+      "repeat": {
+        "enabled": false,
+        "intervalMs": 250,
+        "sync": false
+      },
+      "ramp": {
+        "enabled": false,
+        "from": 0,
+        "to": 1,
+        "durationMs": 1500
+      },
+      "macro": [],
+      "gamepadButton": -1
+    },
+    {
+      "id": "fx10",
+      "label": "HAZE",
+      "icon": "✦",
+      "color": "#2ee66b",
+      "mode": "toggle",
+      "type": "int",
+      "address": "/composition/layers/8/video/effects/outlinehaze/bypassed",
+      "value": 0,
+      "offValue": 1,
+      "releaseValue": 0,
+      "releaseAddress": "",
+      "extraAddress": "/composition/layers/9/video/effects/outlinehaze/bypassed",
+      "repeat": {
+        "enabled": false,
+        "intervalMs": 250,
+        "sync": false
+      },
+      "ramp": {
+        "enabled": false,
+        "from": 0,
+        "to": 1,
+        "durationMs": 1500
+      },
+      "macro": [],
+      "gamepadButton": -1
+    },
+    {
+      "id": "fx11",
       "label": "BOOM BLUR",
       "icon": "☄",
       "color": "#00e0ff",
@@ -255,6 +317,7 @@
       "offValue": 0,
       "releaseValue": 0,
       "releaseAddress": "",
+      "extraAddress": "",
       "repeat": {
         "enabled": true,
         "intervalMs": 200,
@@ -270,7 +333,7 @@
       "gamepadButton": 12
     },
     {
-      "id": "fx10",
+      "id": "fx12",
       "label": "BOOM EXPO",
       "icon": "☄",
       "color": "#ffd93d",
@@ -281,6 +344,7 @@
       "offValue": 0,
       "releaseValue": 0,
       "releaseAddress": "",
+      "extraAddress": "",
       "repeat": {
         "enabled": true,
         "intervalMs": 200,
@@ -296,7 +360,7 @@
       "gamepadButton": 13
     },
     {
-      "id": "fx11",
+      "id": "fx13",
       "label": "BOOM EDGE",
       "icon": "☄",
       "color": "#2ee66b",
@@ -307,6 +371,7 @@
       "offValue": 0,
       "releaseValue": 0,
       "releaseAddress": "",
+      "extraAddress": "",
       "repeat": {
         "enabled": true,
         "intervalMs": 200,
@@ -322,7 +387,7 @@
       "gamepadButton": 14
     },
     {
-      "id": "fx12",
+      "id": "fx14",
       "label": "BOOM BLOW",
       "icon": "☄",
       "color": "#ff7a1a",
@@ -333,6 +398,7 @@
       "offValue": 0,
       "releaseValue": 0,
       "releaseAddress": "",
+      "extraAddress": "",
       "repeat": {
         "enabled": true,
         "intervalMs": 200,
@@ -348,7 +414,7 @@
       "gamepadButton": 15
     },
     {
-      "id": "fx13",
+      "id": "fx15",
       "label": "PUSH WHT",
       "icon": "☄",
       "color": "#eaeef5",
@@ -359,6 +425,7 @@
       "offValue": 0,
       "releaseValue": 0,
       "releaseAddress": "",
+      "extraAddress": "",
       "repeat": {
         "enabled": true,
         "intervalMs": 200,
@@ -374,7 +441,7 @@
       "gamepadButton": 0
     },
     {
-      "id": "fx14",
+      "id": "fx16",
       "label": "PUSH BLK",
       "icon": "☄",
       "color": "#8e9299",
@@ -385,6 +452,7 @@
       "offValue": 0,
       "releaseValue": 0,
       "releaseAddress": "",
+      "extraAddress": "",
       "repeat": {
         "enabled": true,
         "intervalMs": 200,
@@ -398,58 +466,6 @@
       },
       "macro": [],
       "gamepadButton": 11
-    },
-    {
-      "id": "fx15",
-      "label": "CLR FX",
-      "icon": "✕",
-      "color": "#ff4757",
-      "mode": "hold",
-      "type": "int",
-      "address": "/composition/layers/12/clear",
-      "value": 1,
-      "offValue": 0,
-      "releaseValue": 0,
-      "releaseAddress": "",
-      "repeat": {
-        "enabled": false,
-        "intervalMs": 250,
-        "sync": false
-      },
-      "ramp": {
-        "enabled": false,
-        "from": 0,
-        "to": 1,
-        "durationMs": 1500
-      },
-      "macro": [],
-      "gamepadButton": 8
-    },
-    {
-      "id": "fx16",
-      "label": "CLR LOGO",
-      "icon": "✕",
-      "color": "#ff4757",
-      "mode": "hold",
-      "type": "int",
-      "address": "/composition/layers/9/clear",
-      "value": 1,
-      "offValue": 0,
-      "releaseValue": 0,
-      "releaseAddress": "",
-      "repeat": {
-        "enabled": false,
-        "intervalMs": 250,
-        "sync": false
-      },
-      "ramp": {
-        "enabled": false,
-        "from": 0,
-        "to": 1,
-        "durationMs": 1500
-      },
-      "macro": [],
-      "gamepadButton": 9
     }
   ],
   "fxButtons2": [
@@ -465,6 +481,7 @@
       "offValue": 0,
       "releaseValue": 0,
       "releaseAddress": "",
+      "extraAddress": "",
       "repeat": {
         "enabled": false,
         "intervalMs": 250,
@@ -491,6 +508,7 @@
       "offValue": 0,
       "releaseValue": 0,
       "releaseAddress": "",
+      "extraAddress": "",
       "repeat": {
         "enabled": false,
         "intervalMs": 250,
@@ -517,6 +535,7 @@
       "offValue": 0,
       "releaseValue": 0,
       "releaseAddress": "",
+      "extraAddress": "",
       "repeat": {
         "enabled": false,
         "intervalMs": 250,
@@ -543,6 +562,7 @@
       "offValue": 0,
       "releaseValue": 0,
       "releaseAddress": "",
+      "extraAddress": "",
       "repeat": {
         "enabled": false,
         "intervalMs": 250,
@@ -569,6 +589,7 @@
       "offValue": 0,
       "releaseValue": 0,
       "releaseAddress": "",
+      "extraAddress": "",
       "repeat": {
         "enabled": false,
         "intervalMs": 250,
@@ -595,6 +616,7 @@
       "offValue": 0,
       "releaseValue": 0,
       "releaseAddress": "",
+      "extraAddress": "",
       "repeat": {
         "enabled": false,
         "intervalMs": 250,
@@ -621,6 +643,7 @@
       "offValue": 0,
       "releaseValue": 0,
       "releaseAddress": "",
+      "extraAddress": "",
       "repeat": {
         "enabled": false,
         "intervalMs": 250,
@@ -647,6 +670,7 @@
       "offValue": 0,
       "releaseValue": 0.57,
       "releaseAddress": "",
+      "extraAddress": "",
       "repeat": {
         "enabled": false,
         "intervalMs": 250,
@@ -663,16 +687,17 @@
     },
     {
       "id": "fx2-9",
-      "label": "TAP",
-      "icon": "⏱",
-      "color": "#ffb400",
+      "label": "CLR FX",
+      "icon": "✕",
+      "color": "#ff4757",
       "mode": "hold",
       "type": "int",
-      "address": "/composition/tempocontroller/tempotap",
+      "address": "/composition/layers/12/clear",
       "value": 1,
       "offValue": 0,
       "releaseValue": 0,
       "releaseAddress": "",
+      "extraAddress": "",
       "repeat": {
         "enabled": false,
         "intervalMs": 250,
@@ -689,16 +714,17 @@
     },
     {
       "id": "fx2-10",
-      "label": "RESYNC",
-      "icon": "↻",
-      "color": "#ffb400",
+      "label": "CLR LOGO",
+      "icon": "✕",
+      "color": "#ff4757",
       "mode": "hold",
       "type": "int",
-      "address": "/composition/tempocontroller/resync",
+      "address": "/composition/layers/9/clear",
       "value": 1,
       "offValue": 0,
       "releaseValue": 0,
       "releaseAddress": "",
+      "extraAddress": "",
       "repeat": {
         "enabled": false,
         "intervalMs": 250,
@@ -725,6 +751,7 @@
       "offValue": 0,
       "releaseValue": 0,
       "releaseAddress": "",
+      "extraAddress": "",
       "repeat": {
         "enabled": true,
         "intervalMs": 250,
@@ -776,6 +803,7 @@
       "offValue": 0,
       "releaseValue": 0,
       "releaseAddress": "",
+      "extraAddress": "",
       "repeat": {
         "enabled": true,
         "intervalMs": 250,
@@ -815,6 +843,7 @@
       "offValue": 0,
       "releaseValue": 0,
       "releaseAddress": "",
+      "extraAddress": "",
       "repeat": {
         "enabled": false,
         "intervalMs": 250,
@@ -841,6 +870,7 @@
       "offValue": 0,
       "releaseValue": 0,
       "releaseAddress": "",
+      "extraAddress": "",
       "repeat": {
         "enabled": false,
         "intervalMs": 250,
@@ -867,6 +897,7 @@
       "offValue": 0,
       "releaseValue": 0,
       "releaseAddress": "",
+      "extraAddress": "",
       "repeat": {
         "enabled": false,
         "intervalMs": 250,
@@ -893,6 +924,7 @@
       "offValue": 0,
       "releaseValue": 0,
       "releaseAddress": "",
+      "extraAddress": "",
       "repeat": {
         "enabled": false,
         "intervalMs": 250,
