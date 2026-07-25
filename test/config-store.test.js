@@ -101,6 +101,29 @@ test('load() deep-merges partial configs over defaults and repairs array lengths
   assert.ok(cfg.fxButtons[0].address.startsWith('/'), 'missing fields filled in merged entry');
 });
 
+test('load() unions colorTargets by id so configs saved before morph targets keep them', () => {
+  const file = path.join(dir, 'config.json');
+  // a config saved when only bg/logo/flash existed, with a customized bg
+  fs.writeFileSync(file, JSON.stringify({
+    colorTargets: {
+      active: 'logo',
+      items: [
+        { id: 'bg', swatch: '#123456' },
+        { id: 'logo' },
+        { id: 'flash' },
+      ],
+    },
+  }));
+  const cfg = store.load(file);
+  const ids = cfg.colorTargets.items.map(x => x.id);
+  assert.deepEqual(ids, ['bg', 'logo', 'flash', 'morph1', 'morph2'], 'new targets survive old saves');
+  assert.equal(cfg.colorTargets.active, 'logo', 'saved active target kept');
+  assert.equal(cfg.colorTargets.items[0].swatch, '#123456', 'saved customization kept');
+  assert.ok(cfg.colorTargets.items[3].colorBases[0].includes('colormorph/effect/color1'));
+  assert.ok(cfg.colorTargets.items[4].colorBases[0].includes('colormorph/effect/color3'));
+  assert.equal(cfg.colorMorph.speedAddress, '/composition/video/effects/colormorph/effect/speed');
+});
+
 test('save() creates parent directories', () => {
   const file = path.join(dir, 'nested', 'deep', 'config.json');
   store.save(file, store.defaults());

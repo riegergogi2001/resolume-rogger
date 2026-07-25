@@ -5,3 +5,4 @@ config.dev.json
 *.log
 test-artifacts/
 .DS_Store
+.playwright-mcp/

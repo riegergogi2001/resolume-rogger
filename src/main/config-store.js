@@ -182,7 +182,25 @@ function defaults() {
           onSteps: [],
           offSteps: [],
         },
+        // ColorMorph composition FX: two live colors (Color 1 + Color 3).
+        {
+          id: 'morph1', label: 'MORPH 1', swatch: '#ff3b30',
+          colorBases: ['/composition/video/effects/colormorph/effect/color1'],
+          onSteps: [{ address: '/composition/video/effects/colormorph/bypassed', values: [0] }],
+          offSteps: [{ address: '/composition/video/effects/colormorph/bypassed', values: [1] }],
+        },
+        {
+          id: 'morph2', label: 'MORPH 2', swatch: '#ff3df0',
+          colorBases: ['/composition/video/effects/colormorph/effect/color3'],
+          onSteps: [{ address: '/composition/video/effects/colormorph/bypassed', values: [0] }],
+          offSteps: [{ address: '/composition/video/effects/colormorph/bypassed', values: [1] }],
+        },
       ],
+    },
+    // ColorMorph extras driven by the COLORS page (speed slider + on/off).
+    colorMorph: {
+      speedAddress: '/composition/video/effects/colormorph/effect/speed',
+      bypassAddress: '/composition/video/effects/colormorph/bypassed',
     },
   };
 }
@@ -206,6 +224,18 @@ function mergeControls(defaultsArr, patchArr) {
   return defaultsArr.map((d, i) => (isPlainObject(patchArr[i]) ? deepMerge(d, patchArr[i]) : d));
 }
 
+// Saved target items merge by id onto the defaults, so configs saved before a
+// new target existed (e.g. the ColorMorph pair) don't erase it.
+function mergeColorTargets(base, patch) {
+  if (!isPlainObject(patch)) return base;
+  const items = base.items.map(d => {
+    const saved = Array.isArray(patch.items) ? patch.items.find(x => x?.id === d.id) : null;
+    return saved ? deepMerge(d, saved) : d;
+  });
+  const active = items.some(x => x.id === patch.active) ? patch.active : base.active;
+  return { active, items };
+}
+
 function mergeConfig(base, patch) {
   return {
     ...base,
@@ -213,7 +243,8 @@ function mergeConfig(base, patch) {
     network: deepMerge(base.network, isPlainObject(patch.network) ? patch.network : {}),
     ui: deepMerge(base.ui, isPlainObject(patch.ui) ? patch.ui : {}),
     triggers: deepMerge(base.triggers, isPlainObject(patch.triggers) ? patch.triggers : {}),
-    colorTargets: deepMerge(base.colorTargets, isPlainObject(patch.colorTargets) ? patch.colorTargets : {}),
+    colorTargets: mergeColorTargets(base.colorTargets, patch.colorTargets),
+    colorMorph: deepMerge(base.colorMorph, isPlainObject(patch.colorMorph) ? patch.colorMorph : {}),
     sticks: deepMerge(base.sticks, isPlainObject(patch.sticks) ? patch.sticks : {}),
     haptics: deepMerge(base.haptics, isPlainObject(patch.haptics) ? patch.haptics : {}),
     beat: deepMerge(base.beat, isPlainObject(patch.beat) ? patch.beat : {}),

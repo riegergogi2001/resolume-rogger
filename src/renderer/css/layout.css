@@ -100,6 +100,16 @@ body {
 .fx-bank.grid24 .fx-btn .fx-label { font-size: 13px; }
 .fx-bank.grid24 .fx-btn .fx-icon { font-size: 18px; }
 
+/* custom pages (Colors / APC40) manage their own internal grid */
+.fx-page--custom.active.color-lab {
+  grid-template-rows: auto auto 1fr auto auto;
+}
+.fx-page--custom.active.akai-page {
+  grid-template-rows: auto 1fr auto;
+  overflow-y: auto;
+  touch-action: pan-y;
+}
+
 #fader-rack {
   display: grid;
   grid-template-rows: 1fr auto;

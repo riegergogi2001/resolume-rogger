@@ -8,6 +8,8 @@ import { showToast } from './toast.js';
 import { BUTTON_NAMES } from './gamepad.js';
 import * as beat from './beat-clock.js';
 import { renderFaderSet } from './faders.js';
+import { renderColorLab } from './color-lab.js';
+import { renderAkaiPage } from './akai-page.js';
 
 function typedArgs(type, value) {
   if (type === 'command') return [];
@@ -29,6 +31,8 @@ export const PAGE_DEFS = [
   { kind: 'fxButtons', label: 'Page 1', layout: 'banks' },
   { kind: 'fxButtons2', label: 'Page 2', layout: 'mix', faderKind: 'groupFaders' },
   { kind: 'fxButtons3', label: 'DJ Intro', layout: 'grid' },
+  { kind: null, label: 'Colors', layout: 'colors' },
+  { kind: null, label: 'APC40', layout: 'akai' },
 ];
 // Handle order for the gamepad: all pages, then the utility quad.
 export const HANDLE_KINDS = ['fxButtons', 'fxButtons2', 'fxButtons3', 'utilButtons'];
@@ -213,7 +217,13 @@ export function renderFxGrid(el, { isEditMode, onEdit }) {
       return t;
     }
 
-    if (layout === 'banks') {
+    if (layout === 'colors') {
+      pageEl.classList.add('fx-page--custom');
+      renderColorLab(pageEl);
+    } else if (layout === 'akai') {
+      pageEl.classList.add('fx-page--custom');
+      renderAkaiPage(pageEl);
+    } else if (layout === 'banks') {
       const flashBank = document.createElement('div');
       flashBank.className = 'fx-bank';
       const bumpBank = document.createElement('div');
