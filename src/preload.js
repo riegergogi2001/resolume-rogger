@@ -14,6 +14,7 @@ contextBridge.exposeInMainWorld('rogger', {
   resetConfig: () => ipcRenderer.invoke('config:reset'),
   quit: () => ipcRenderer.send('app:quit'),
   syncDjPage: () => ipcRenderer.invoke('dj:sync'),
+  seedBpm: () => ipcRenderer.invoke('beat:seed'),
   send: (address, values) => ipcRenderer.send('osc:send', address, values),
   sendTyped: (address, args) => ipcRenderer.send('osc:send-typed', address, args),
   getStatus: () => ipcRenderer.invoke('osc:status:get'),

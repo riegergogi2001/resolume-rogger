@@ -75,6 +75,7 @@ function defaults() {
       autoReconnect: true,
     },
     ui: { theme: 'dark' },
+    beat: { source: 'tap' }, // 'tap' = manual, 'auto' = follow Resolume's BPM
     // Analog gamepad triggers: pressed depth maps onto a float param
     // (from -> to), release snaps back; optional engage/disengage message.
     triggers: {
@@ -212,6 +213,7 @@ function mergeConfig(base, patch) {
     colorTargets: deepMerge(base.colorTargets, isPlainObject(patch.colorTargets) ? patch.colorTargets : {}),
     sticks: deepMerge(base.sticks, isPlainObject(patch.sticks) ? patch.sticks : {}),
     haptics: deepMerge(base.haptics, isPlainObject(patch.haptics) ? patch.haptics : {}),
+    beat: deepMerge(base.beat, isPlainObject(patch.beat) ? patch.beat : {}),
     fxButtons: mergeControls(base.fxButtons, patch.fxButtons),
     fxButtons2: mergeControls(base.fxButtons2, patch.fxButtons2),
     fxButtons3: mergeControls(base.fxButtons3, patch.fxButtons3),
