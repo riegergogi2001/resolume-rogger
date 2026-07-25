@@ -84,6 +84,8 @@ export function renderColorRow(el, { isEditMode, onEdit }) {
       b.classList.add('pressed');
       const c = cfg();
       const t = activeTarget();
+      // the beat pulse borrows the last picked color
+      if (!c.isOff) document.documentElement.style.setProperty('--beat-color', c.color);
       if (c.isOff && t) {
         for (const s of t.offSteps ?? []) rogger.send(s.address, s.values ?? []);
       } else if (Array.isArray(c.rgb) && t) {

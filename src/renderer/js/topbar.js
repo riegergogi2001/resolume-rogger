@@ -46,7 +46,16 @@ export function renderTopbar(el, { onToggleEdit, onOpenSettings }) {
     bpm.textContent = ms ? `${(60000 / ms).toFixed(1)} bpm · ${Math.round(ms)} ms` : '— bpm';
   }
   refreshBpm();
-  beat.onChange(refreshBpm);
+  // beat pulse: the readout flashes on the beat, tinted by the last picked color
+  function refreshPulse() {
+    const ms = beat.beatMs();
+    if (!ms) { bpm.classList.remove('pulsing'); return; }
+    bpm.style.animationDuration = `${Math.round(ms)}ms`;
+    bpm.classList.remove('pulsing');
+    void bpm.offsetWidth; // restart the animation from phase zero
+    bpm.classList.add('pulsing');
+  }
+  beat.onChange(() => { refreshBpm(); refreshPulse(); });
   function multButton(id, label, factor) {
     const btn = document.createElement('button');
     btn.className = 'mini-btn u-num';
