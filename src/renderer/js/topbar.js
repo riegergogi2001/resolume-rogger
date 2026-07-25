@@ -64,8 +64,9 @@ export function renderTopbar(el, { onToggleEdit, onOpenSettings }) {
     btn.addEventListener('pointerdown', () => beat.scaleBeat(factor));
     return btn;
   }
-  const half = multButton('bpm-half', '÷2', 0.5);
-  const dbl = multButton('bpm-double', '×2', 2);
+  // BPM-centric: /2 halves the displayed BPM (doubles the beat time), x2 doubles it
+  const half = multButton('bpm-half', '÷2', 2);
+  const dbl = multButton('bpm-double', '×2', 0.5);
 
   // beat source: manual taps or auto-follow the target app's BPM
   const srcBtn = document.createElement('button');
@@ -73,7 +74,7 @@ export function renderTopbar(el, { onToggleEdit, onOpenSettings }) {
   srcBtn.id = 'bpm-source';
   function applySource(src) {
     beat.setMode(src);
-    srcBtn.textContent = src === 'auto' ? 'Auto' : 'Tap';
+    srcBtn.textContent = 'Auto'; // lit = follow Resolume, unlit = manual taps
     srcBtn.classList.toggle('on', src === 'auto');
     if (src === 'auto') {
       rogger.seedBpm().then(bpm => { if (bpm) beat.setAutoBpm(bpm); }).catch(() => {});
