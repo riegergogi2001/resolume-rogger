@@ -64,7 +64,7 @@ body {
 }
 
 .fx-page--grid.active {
-  grid-template-rows: 1fr;
+  grid-template-rows: auto 1fr;
 }
 .fx-bank.grid24 {
   grid-template-columns: repeat(6, 1fr);

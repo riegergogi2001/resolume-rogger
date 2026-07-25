@@ -3,6 +3,7 @@
 // e.g. rising strobe), macros, and gamepad bindings shown as badges.
 import { rogger } from './bridge.js';
 import * as state from './state.js';
+import { showToast } from './toast.js';
 import { BUTTON_NAMES } from './gamepad.js';
 import { beatMs } from './beat-clock.js';
 
@@ -72,10 +73,27 @@ export function renderFxGrid(el, { isEditMode, onEdit }) {
       pageEl.append(flashTitle, flashBank, bumpTitle, bumpBank);
       pageEl.classList.add('fx-page--banks');
     } else {
+      const head = document.createElement('div');
+      head.className = 'bank-title';
+      head.textContent = label;
+      const sync = document.createElement('button');
+      sync.className = 'mini-btn u-caps';
+      sync.id = `sync-${kind}`;
+      sync.textContent = 'Sync from Resolume';
+      sync.addEventListener('pointerdown', async () => {
+        try {
+          const cfg = await rogger.syncDjPage();
+          state.setAll(cfg);
+          showToast('DJ page synced from Resolume');
+        } catch {
+          showToast('Sync failed — enable the Resolume webserver', { error: true });
+        }
+      });
+      head.appendChild(sync);
       flashBank = document.createElement('div');
       flashBank.className = 'fx-bank grid24';
       bumpBank = flashBank;
-      pageEl.append(flashBank);
+      pageEl.append(head, flashBank);
       pageEl.classList.add('fx-page--grid');
     }
     el.appendChild(pageEl);
