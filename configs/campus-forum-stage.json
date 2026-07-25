@@ -34,17 +34,22 @@
       "releaseValue": 1
     }
   },
+  "haptics": {
+    "enabled": true,
+    "press": true,
+    "strobe": true
+  },
   "sticks": {
     "ls": {
       "enabled": true,
       "label": "LS · PAN",
       "x": {
-        "address": "/composition/video/effects/transform/effect/positionx",
+        "address": "/composition/video/effects/transform/positionx",
         "center": 0.5,
         "scale": 0.03
       },
       "y": {
-        "address": "/composition/video/effects/transform/effect/positiony",
+        "address": "/composition/video/effects/transform/positiony",
         "center": 0.5,
         "scale": -0.03
       }
@@ -53,12 +58,12 @@
       "enabled": true,
       "label": "RS · ZOOM/ROT",
       "x": {
-        "address": "/composition/video/effects/transform/effect/rotationz",
+        "address": "/composition/video/effects/transform/rotationz",
         "center": 0.5,
         "scale": 0.05
       },
       "y": {
-        "address": "/composition/video/effects/transform/effect/scale",
+        "address": "/composition/video/effects/transform/scale",
         "center": 0.1,
         "scale": -0.05
       }
@@ -1513,12 +1518,12 @@
     },
     {
       "id": "fx3-21",
-      "label": "#21",
-      "icon": "·",
-      "color": "#3a3f47",
+      "label": "CO2",
+      "icon": "▲",
+      "color": "#00e5ff",
       "mode": "hold",
       "type": "int",
-      "address": "/composition/layers/17/clips/21/connect",
+      "address": "/composition/video/effects/co2/effect/fire",
       "value": 1,
       "offValue": 0,
       "releaseValue": 0,
@@ -1540,13 +1545,13 @@
     },
     {
       "id": "fx3-22",
-      "label": "#22",
-      "icon": "·",
-      "color": "#3a3f47",
-      "mode": "hold",
+      "label": "AUTO VJ",
+      "icon": "↻",
+      "color": "#2ee66b",
+      "mode": "toggle",
       "type": "int",
-      "address": "/composition/layers/17/clips/22/connect",
-      "value": 1,
+      "address": "/composition/layers/1/autopilot/target",
+      "value": 3,
       "offValue": 0,
       "releaseValue": 0,
       "releaseAddress": "",
@@ -1770,7 +1775,7 @@
       "extraAddresses": [],
       "min": 0,
       "max": 1,
-      "defaultValue": 0.39,
+      "defaultValue": 0.37,
       "invert": false,
       "sensitivity": 1,
       "orientation": "h",
