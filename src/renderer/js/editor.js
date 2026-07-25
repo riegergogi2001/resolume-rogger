@@ -11,7 +11,7 @@ const GLYPHS = ['◆', '●', '▲', '▼', '■', '◉', '✕', '⚡', '⏱', '
   '★', '♪', '☰', '◐', '▶', '◀', '⏸', '⏹', '✦', '☄', '♦', '▩'];
 const PALETTE = ['#00e0ff', '#ffb400', '#ff4757', '#2ee66b', '#b46bff',
   '#ff7a1a', '#eaeef5', '#3aa0ff', '#ff3df0', '#ffd93d'];
-const KIND_TITLES = { fxButtons: 'FX BUTTON', fxButtons2: 'FX BUTTON P2', faders: 'FADER', colorButtons: 'COLOR PRESET' };
+const KIND_TITLES = { fxButtons: 'FX BUTTON', fxButtons2: 'FX BUTTON P2', fxButtons3: 'DJ INTRO', faders: 'FADER', colorButtons: 'COLOR PRESET' };
 
 function h(tag, cls, text) {
   const e = document.createElement(tag);
@@ -360,7 +360,7 @@ export function openEditor(kind, index) {
   save.addEventListener('pointerdown', () => {
     if (kind.startsWith('fxButtons') && draft.gamepadButton >= 0) {
       // one controller button drives one FX button — steal the binding across pages
-      for (const k of ['fxButtons', 'fxButtons2']) {
+      for (const k of ['fxButtons', 'fxButtons2', 'fxButtons3']) {
         state.get()[k]?.forEach((c, j) => {
           if (!(k === kind && j === index) && c.gamepadButton === draft.gamepadButton) {
             c.gamepadButton = -1;
