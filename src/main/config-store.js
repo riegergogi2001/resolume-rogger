@@ -89,6 +89,8 @@ function defaults() {
         analogAddress: '', from: 0, to: 1, releaseValue: 0,
       },
     },
+    // Controller haptics: press ticks + trigger-depth strobe pulse.
+    haptics: { enabled: true, press: true, strobe: true },
     // Analog stick axes: deflection maps onto a float param around `center`
     // (out = center + axis * scale, clamped 0..1); spring-back re-centers.
     sticks: {
@@ -209,6 +211,7 @@ function mergeConfig(base, patch) {
     triggers: deepMerge(base.triggers, isPlainObject(patch.triggers) ? patch.triggers : {}),
     colorTargets: deepMerge(base.colorTargets, isPlainObject(patch.colorTargets) ? patch.colorTargets : {}),
     sticks: deepMerge(base.sticks, isPlainObject(patch.sticks) ? patch.sticks : {}),
+    haptics: deepMerge(base.haptics, isPlainObject(patch.haptics) ? patch.haptics : {}),
     fxButtons: mergeControls(base.fxButtons, patch.fxButtons),
     fxButtons2: mergeControls(base.fxButtons2, patch.fxButtons2),
     fxButtons3: mergeControls(base.fxButtons3, patch.fxButtons3),

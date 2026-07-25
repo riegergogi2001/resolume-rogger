@@ -280,6 +280,19 @@
   white-space: nowrap;
 }
 .meta-readout.warn { color: var(--err); border-color: var(--err); }
+.bpm-readout.pulsing {
+  animation-name: beat-pulse;
+  animation-iteration-count: infinite;
+  animation-timing-function: ease-out;
+}
+@keyframes beat-pulse {
+  0% {
+    box-shadow: 0 0 16px var(--beat-color), inset 0 0 8px color-mix(in srgb, var(--beat-color) 40%, transparent);
+    border-color: var(--beat-color);
+    color: var(--text);
+  }
+  40%, 100% { box-shadow: none; }
+}
 .mini-btn {
   height: 48px;
   min-width: 48px;

@@ -28,6 +28,17 @@ export function startGamepad(handles) {
   let prev = [];
   const trigState = { lt: { engaged: false, last: null }, rt: { engaged: false, last: null } };
   const stickLast = {};
+  let activePad = null;
+  let lastRumbleAt = 0;
+
+  // moderate magnitudes — feedback, not a massage chair
+  function rumble(strong, weak, ms) {
+    const act = activePad?.vibrationActuator;
+    if (!act?.playEffect) return;
+    act.playEffect('dual-rumble', {
+      duration: ms, strongMagnitude: strong, weakMagnitude: weak,
+    }).catch(() => {});
+  }
 
   function axisValue(btn) {
     if (btn == null) return 0;
@@ -38,7 +49,9 @@ export function startGamepad(handles) {
   function tick() {
     requestAnimationFrame(tick);
     const pad = pads().find(p => p && p.buttons?.length);
-    if (!pad) { prev = []; return; }
+    if (!pad) { prev = []; activePad = null; return; }
+    activePad = pad;
+    const haptics = state.get()?.haptics ?? {};
     const tcfg = state.get()?.triggers ?? {};
     const analogIdx = new Set(ANALOG_TRIGGERS.filter(([k]) => tcfg[k]?.enabled).map(([, i]) => i));
 
@@ -60,6 +73,14 @@ export function startGamepad(handles) {
         if (out !== st.last) {
           st.last = out;
           rogger.sendTyped(t.analogAddress, [{ type: 'f', value: out }]);
+        }
+      }
+      // strobe stomp feedback: depth-scaled pulses while RT is engaged
+      if (key === 'rt' && engaged && haptics.enabled && haptics.strobe) {
+        const now = performance.now();
+        if (now - lastRumbleAt > 130) {
+          lastRumbleAt = now;
+          rumble(v * 0.7, v * 0.4, 110);
         }
       }
       if (!engaged && st.engaged) {
@@ -116,8 +137,12 @@ export function startGamepad(handles) {
         base += arr.length;
       }
       if (gi === -1 || !handles[gi]) continue;
-      if (down) handles[gi].press();
-      else handles[gi].release();
+      if (down) {
+        handles[gi].press();
+        if (haptics.enabled && haptics.press) rumble(0.15, 0.4, 50);
+      } else {
+        handles[gi].release();
+      }
     }
     prev = curr;
   }
