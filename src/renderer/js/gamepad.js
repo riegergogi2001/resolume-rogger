@@ -21,10 +21,13 @@ function pads() {
 }
 
 const ANALOG_TRIGGERS = [['lt', 6], ['rt', 7]];
+const STICK_AXES = [['ls', 0, 1], ['rs', 2, 3]];
+const STICK_DEADZONE = 0.08;
 
 export function startGamepad(handles) {
   let prev = [];
   const trigState = { lt: { engaged: false, last: null }, rt: { engaged: false, last: null } };
+  const stickLast = {};
 
   function axisValue(btn) {
     if (btn == null) return 0;
@@ -67,6 +70,31 @@ export function startGamepad(handles) {
         }
         if (t.engageAddress) {
           rogger.sendTyped(t.engageAddress, [{ type: 'i', value: Math.trunc(t.engageReleaseValue ?? 0) }]);
+        }
+      }
+    }
+
+    // stick axes: deflection drives a param, spring-back re-centers it
+    const scfg = state.get()?.sticks ?? {};
+    for (const [key, xi, yi] of STICK_AXES) {
+      const s = scfg[key];
+      if (!s?.enabled) continue;
+      for (const [axIdx, a] of [[xi, s.x], [yi, s.y]]) {
+        if (!a?.address) continue;
+        let v = pad.axes?.[axIdx] ?? 0;
+        if (Math.abs(v) < STICK_DEADZONE) v = 0;
+        const id = key + axIdx;
+        if (v === 0) {
+          if (stickLast[id] !== undefined) {
+            rogger.sendTyped(a.address, [{ type: 'f', value: a.center }]);
+            stickLast[id] = undefined;
+          }
+          continue;
+        }
+        const out = Math.min(1, Math.max(0, a.center + v * a.scale));
+        if (out !== stickLast[id]) {
+          stickLast[id] = out;
+          rogger.sendTyped(a.address, [{ type: 'f', value: out }]);
         }
       }
     }

@@ -5,7 +5,7 @@
 import { rogger } from './bridge.js';
 import * as state from './state.js';
 import { showToast } from './toast.js';
-import { beatMs } from './beat-clock.js';
+import { beatMs, onChange as onBeatChange } from './beat-clock.js';
 
 const fmt = v => (Math.abs(v) >= 10 ? v.toFixed(1) : v.toFixed(2));
 
@@ -154,23 +154,30 @@ export function renderFaderSet(el, { isEditMode, onEdit }, kind) {
     track.addEventListener('pointerup', up);
     track.addEventListener('pointercancel', up);
 
-    // ♪ button: set the value from the tapped beat (value = bpm / bpmAt1)
+    // beat sync: ♪ applies the tapped beat; auto mode follows every change
+    function applyBeat() {
+      const ms = beatMs();
+      if (!ms) return false;
+      const c = cfg();
+      const bpm = 60000 / ms;
+      const value = Math.min(c.max, Math.max(c.min,
+        c.min + (c.max - c.min) * (bpm / (c.beatSync.bpmAt1 || 300))));
+      norm = normOf(c, value);
+      lastSent = null; // force the send even if unchanged
+      schedule();
+      return true;
+    }
     if (all[i].beatSync?.enabled) {
       const beatBtn = document.createElement('button');
       beatBtn.className = 'mini-btn beat-btn u-num';
       beatBtn.textContent = '♪';
       beatBtn.addEventListener('pointerdown', () => {
-        const ms = beatMs();
-        if (!ms) { showToast('Tap a tempo first', { error: true }); return; }
-        const c = cfg();
-        const bpm = 60000 / ms;
-        const value = Math.min(c.max, Math.max(c.min,
-          c.min + (c.max - c.min) * (bpm / (c.beatSync.bpmAt1 || 300))));
-        norm = normOf(c, value);
-        lastSent = null; // force the send even if unchanged
-        schedule();
+        if (!applyBeat()) showToast('Tap a tempo first', { error: true });
       });
       wrap.appendChild(beatBtn);
+      onBeatChange(() => {
+        if (cfg().beatSync?.auto) applyBeat();
+      });
     }
 
     // Bidirectional feedback: follow matching inbound OSC unless a finger

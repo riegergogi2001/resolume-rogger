@@ -45,8 +45,10 @@ function registerIpc({ ipcMain, engine, store, configPath, seedPath, getWindow }
     const clips = layer.clips ?? [];
     const SW = ['#00e0ff', '#ffd93d', '#2ee66b', '#b46bff', '#ff7a1a', '#3aa0ff', '#ff3df0', '#eaeef5'];
     config.fxButtons3 = config.fxButtons3.map((b, i) => {
-      if (i >= clips.length) return b; // keep custom utility slots past the clip list
       const cn = clips[i]?.name?.value ?? null;
+      // unnamed clip slot: never clobber a customized button (e.g. LOGO OFF)
+      const isPlaceholder = b.label.startsWith('#') || b.label.startsWith('3·FX');
+      if (!cn && !isPlaceholder) return b;
       return {
         ...b,
         label: cn ?? `#${i + 1}`,

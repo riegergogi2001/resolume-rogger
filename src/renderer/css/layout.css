@@ -74,6 +74,13 @@ body {
   display: flex;
   gap: 10px;
 }
+
+/* page-2 group faders: two columns, 3-3 side by side */
+.page-fader-zone .fader-rack-h {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
 .tempo-big {
   flex: 1;
   height: 64px;
