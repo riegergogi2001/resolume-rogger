@@ -130,7 +130,7 @@ export function startGamepad(handles) {
       const cfgAll = state.get();
       let gi = -1;
       let base = 0;
-      for (const kind of ['fxButtons', 'fxButtons2', 'fxButtons3']) {
+      for (const kind of ['fxButtons', 'fxButtons2', 'fxButtons3', 'utilButtons']) {
         const arr = cfgAll[kind] ?? [];
         const idx = arr.findIndex(c => c.gamepadButton === bi);
         if (idx !== -1) { gi = base + idx; break; }

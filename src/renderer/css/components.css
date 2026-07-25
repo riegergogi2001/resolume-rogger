@@ -343,6 +343,29 @@
 }
 .color-btn.selected .color-label { color: var(--text); }
 
+/* ---- Utility quad (four small buttons in one slot) ---- */
+.fx-quad {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  grid-template-rows: 1fr 1fr;
+  gap: 6px;
+  min-height: 0;
+}
+.fx-btn--small {
+  padding: 6px 8px;
+  border-left-width: 3px;
+  border-radius: 7px;
+}
+.fx-btn--small .fx-icon { font-size: 13px; }
+.fx-btn--small .fx-label { font-size: 10px; letter-spacing: 0.03em; }
+.fx-btn--small .fx-mode { display: none; }
+.fx-btn--small .fx-pad {
+  bottom: 4px;
+  right: 6px;
+  font-size: 8px;
+  padding: 1px 4px;
+}
+
 /* ---- Edit mode ---- */
 body.edit-mode .fx-btn,
 body.edit-mode .fader,

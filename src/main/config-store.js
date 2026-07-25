@@ -132,6 +132,9 @@ function defaults() {
     // Third page: dense 24-slot clip-select grid (e.g. DJ intro name straps).
     fxButtons3: Array.from({ length: 24 }, (_, i) =>
       fxButton(i, { id: `fx3-${i + 1}`, label: `3·FX ${i + 1}`, gamepadButton: -1 })),
+    // Page-1 utility quad: four small buttons sharing one bump slot.
+    utilButtons: Array.from({ length: 4 }, (_, i) =>
+      fxButton(i, { id: `util${i + 1}`, label: `U${i + 1}`, mode: 'toggle', gamepadButton: -1 })),
     faders: [
       fader(0, { label: 'MASTER', color: ACCENTS.green, address: '/composition/master' }),
       fader(1, { label: 'LAYER 1', address: '/composition/layers/1/master' }),
@@ -217,6 +220,7 @@ function mergeConfig(base, patch) {
     fxButtons: mergeControls(base.fxButtons, patch.fxButtons),
     fxButtons2: mergeControls(base.fxButtons2, patch.fxButtons2),
     fxButtons3: mergeControls(base.fxButtons3, patch.fxButtons3),
+    utilButtons: mergeControls(base.utilButtons, patch.utilButtons),
     faders: mergeControls(base.faders, patch.faders),
     groupFaders: mergeControls(base.groupFaders, patch.groupFaders),
     colorButtons: mergeControls(base.colorButtons, patch.colorButtons),
