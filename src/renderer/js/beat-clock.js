@@ -2,6 +2,8 @@
 // button repeats. Purely local — taps come from the TAP button, no OSC here.
 let taps = [];
 let mult = 1;
+let mode = 'tap'; // 'tap' = manual taps, 'auto' = follow the target app's BPM
+let autoBpm = null;
 const subs = new Set();
 
 function notify() {
@@ -22,8 +24,26 @@ export function scaleBeat(factor) {
   notify();
 }
 
-// Current beat length in ms (taps averaged, x mult), or null before 2 taps.
+export function setMode(m) {
+  mode = m;
+  notify();
+}
+
+export function getMode() {
+  return mode;
+}
+
+export function setAutoBpm(bpm) {
+  if (!bpm || !Number.isFinite(bpm)) return;
+  const changed = autoBpm === null || Math.abs(bpm - autoBpm) > 0.05;
+  autoBpm = bpm;
+  if (changed) notify();
+}
+
+// Current beat length in ms (x mult): auto BPM when following the target app,
+// otherwise tap-averaged; null before 2 taps.
 export function beatMs() {
+  if (mode === 'auto' && autoBpm) return (60000 / autoBpm) * mult;
   if (taps.length < 2) return null;
   return ((taps[taps.length - 1] - taps[0]) / (taps.length - 1)) * mult;
 }

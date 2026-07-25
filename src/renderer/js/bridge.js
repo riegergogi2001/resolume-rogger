@@ -34,6 +34,7 @@ function mockBridge() {
     resetConfig: async () => { config = null; window.__savedConfig = null; return loadConfig(); },
     quit: () => { window.__quitCalled = true; },
     syncDjPage: async () => { window.__djSynced = true; return config ?? loadConfig(); },
+    seedBpm: async () => 128,
     send: (address, values = []) => window.__oscLog.push({ address, values }),
     sendTyped: (address, args = []) => window.__oscLog.push({ address, args }),
     applyNetwork: async network => { window.__oscLog.push({ applyNetwork: network }); },

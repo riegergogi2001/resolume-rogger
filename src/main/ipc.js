@@ -29,6 +29,15 @@ function registerIpc({ ipcMain, engine, store, configPath, seedPath, getWindow }
   });
   ipcMain.handle('osc:test', () => engine.testConnection());
 
+  // One-shot BPM seed for auto beat mode (changes then arrive as OSC feedback).
+  ipcMain.handle('beat:seed', async () => {
+    const base = `http://${config.network.targetIp}:9292/api/v1`;
+    const res = await fetch(`${base}/composition`, { signal: AbortSignal.timeout(5000) });
+    if (!res.ok) throw new Error(`Resolume webserver answered ${res.status}`);
+    const comp = await res.json();
+    return comp.tempocontroller?.tempo?.value ?? null;
+  });
+
   // Rebuild the DJ intro page from the live composition (read-only REST GET):
   // clip names come from the name-source layer, triggers hit its group column.
   ipcMain.handle('dj:sync', async () => {

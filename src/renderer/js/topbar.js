@@ -67,6 +67,32 @@ export function renderTopbar(el, { onToggleEdit, onOpenSettings }) {
   const half = multButton('bpm-half', '÷2', 0.5);
   const dbl = multButton('bpm-double', '×2', 2);
 
+  // beat source: manual taps or auto-follow the target app's BPM
+  const srcBtn = document.createElement('button');
+  srcBtn.className = 'mini-btn u-caps';
+  srcBtn.id = 'bpm-source';
+  function applySource(src) {
+    beat.setMode(src);
+    srcBtn.textContent = src === 'auto' ? 'Auto' : 'Tap';
+    srcBtn.classList.toggle('on', src === 'auto');
+    if (src === 'auto') {
+      rogger.seedBpm().then(bpm => { if (bpm) beat.setAutoBpm(bpm); }).catch(() => {});
+    }
+  }
+  srcBtn.addEventListener('pointerdown', () => {
+    const next = beat.getMode() === 'auto' ? 'tap' : 'auto';
+    if (state.get().beat) state.get().beat.source = next;
+    state.persist();
+    applySource(next);
+  });
+  applySource(state.get().beat?.source ?? 'tap');
+  rogger.onMessage(msg => {
+    if (msg.address !== '/composition/tempocontroller/tempo') return;
+    const a = msg.args?.[0];
+    if (!a || typeof a.value !== 'number') return;
+    beat.setAutoBpm(20 + a.value * 480); // tempo feedback arrives normalized
+  });
+
   const tap = tempoButton('tap-tempo', 'Tap', '/composition/tempocontroller/tempotap', beat.tap);
   const resync = tempoButton('tap-resync', 'Resync', '/composition/tempocontroller/resync');
 
@@ -131,7 +157,7 @@ export function renderTopbar(el, { onToggleEdit, onOpenSettings }) {
   gear.textContent = '⚙';
   gear.addEventListener('pointerdown', onOpenSettings);
 
-  el.append(mark, target, trig, spacer, bpm, half, dbl, batt, clock, tap, resync, pill, edit, gear);
+  el.append(mark, target, trig, spacer, bpm, srcBtn, half, dbl, batt, clock, tap, resync, pill, edit, gear);
 
   function refreshTarget() {
     const n = state.get().network;
