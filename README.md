@@ -22,12 +22,9 @@ any OSC-compatible software over Wi-Fi.
     wells, SPEED slider, MORPH on/off with OSC feedback. Drives the same
     switchable targets as the main color row (BG / LOGO / FLASH / MORPH 1 /
     MORPH 2).
-  - **APC40** — read-only cheat sheet of the AKAI APC40 mkII MIDI mapping
-    (grid, scene launch, track strip, knobs, faders, transport) with friendly
-    labels from the live composition; tap a control to see its OSC path.
-    Regenerate after remapping with `python3 tools/gen-akai-map.py`, which
-    also refreshes the shareable standalone page `docs/apc40-mapping.html` —
-    ship that file alongside the composition.
+  - The APC40 mkII mapping cheat sheet ships as a standalone shareable page,
+    `docs/apc40-mapping.html` (regenerate after remapping with
+    `python3 tools/gen-akai-map.py`) — send it along with the composition.
   - **Agent** — cockpit for the AI VJ agent (`agent/rogger_agent.py`, a Mac
     sidecar that listens to line-in/mic, tracks beats with the BeatNet ML
     model — DSP fallback — and detects build-ups / drops / breakdowns).

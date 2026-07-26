@@ -210,7 +210,7 @@ function defaults() {
       protectedPatterns: ['^TC', 'TC/PB', 'TIMER', 'LFV', 'SYNC', '^AB\\b', 'AUDIO', 'INPUT', 'ROUTE'],
       // confidence tiers: >=act full speed; >=cautious low/medium impact only;
       // >=hold force HoldCurrentVisual; below hold notify the operator
-      confidence: { act: 0.9, cautious: 0.65, hold: 0.4 },
+      confidence: { act: 0.8, cautious: 0.55, hold: 0.35 },
       supervisorBackoffMs: 30000, // manual touch pauses autopilot this long
       rebuildIntervalMs: 60000,   // composition re-inspection cadence
     },
@@ -218,26 +218,57 @@ function defaults() {
     // ARM lives page-local only: the agent always boots disarmed.
     agent: {
       feedBeatClock: false,
+      // Cues fire on sidecar events; `variants` rotate per fire so repeats
+      // vary the look like a live VJ instead of hammering one clip.
       rules: [
         {
-          id: 'drop', label: 'DROP', event: 'drop', enabled: true,
+          id: 'drop', label: 'DROP HIT', event: 'drop', enabled: true,
           cooldownMs: 8000, pulseMs: 600,
           macro: [{ address: '/composition/layers/12/clips/3/connect', values: [1] }],
+          variants: [
+            [{ address: '/composition/layers/12/clips/3/connect', values: [1] }], // FLASH MASTER
+            [{ address: '/composition/layers/12/clips/8/connect', values: [1] }], // SUCK IT!
+            [{ address: '/composition/layers/12/clips/4/connect', values: [1] }], // FLASH MASTER 2
+          ],
         },
         {
-          id: 'build', label: 'BUILD START', event: 'buildstart', enabled: true,
+          id: 'build', label: 'BUILD STROBE', event: 'buildstart', enabled: true,
           cooldownMs: 12000, pulseMs: 4000,
           macro: [{ address: '/composition/layers/12/clips/9/connect', values: [1] }],
         },
         {
-          id: 'breakdown', label: 'BREAKDOWN', event: 'breakdown', enabled: true,
+          id: 'fakebuild', label: 'FAKE TEASE', event: 'fakebuild', enabled: true,
+          cooldownMs: 15000, pulseMs: 800,
+          macro: [{ address: '/composition/layers/12/clips/7/connect', values: [1] }], // FE STR
+        },
+        {
+          id: 'breakdown', label: 'BREAK CALM', event: 'breakdown', enabled: true,
           cooldownMs: 12000, pulseMs: 0,
           macro: [{ address: '/composition/video/effects/colormorph/bypassed', values: [1] }],
         },
         {
-          id: 'downbeat', label: 'DOWNBEAT', event: 'downbeat', enabled: false,
-          cooldownMs: 1500, pulseMs: 0,
-          macro: [],
+          id: 'vocal', label: 'VOCAL AQUARELLA', event: 'vocalstart', enabled: true,
+          cooldownMs: 10000, pulseMs: 0,
+          macro: [{ address: '/composition/groups/1/video/effects/acuarela/bypassed', values: [0] }],
+        },
+        {
+          id: 'vocalend', label: 'VOCAL OUT', event: 'vocalend', enabled: true,
+          cooldownMs: 1000, pulseMs: 0,
+          macro: [{ address: '/composition/groups/1/video/effects/acuarela/bypassed', values: [1] }],
+        },
+        {
+          id: 'bump', label: 'BAR BUMP', event: 'downbeat', enabled: true,
+          cooldownMs: 7000, pulseMs: 300,
+          macro: [{ address: '/composition/video/effects/pusher/effect/push!', values: [1] }],
+          variants: [
+            [{ address: '/composition/video/effects/pusher/effect/push!', values: [1] }],
+            [{ address: '/composition/video/effects/pusher2/effect/push!', values: [1] }],
+          ],
+        },
+        {
+          id: 'steady', label: 'STEADY RESET', event: 'steady', enabled: false,
+          cooldownMs: 20000, pulseMs: 0,
+          macro: [{ address: '/composition/groups/1/video/effects/acuarela/bypassed', values: [1] }],
         },
       ],
     },

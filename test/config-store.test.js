@@ -130,9 +130,11 @@ test('load() unions agent rules by id and keeps saved tweaks', () => {
     agent: { feedBeatClock: true, rules: [{ id: 'drop', cooldownMs: 4000 }] },
   }));
   const cfg = store.load(file);
-  assert.deepEqual(cfg.agent.rules.map(r => r.id), ['drop', 'build', 'breakdown', 'downbeat']);
+  assert.deepEqual(cfg.agent.rules.map(r => r.id),
+    ['drop', 'build', 'fakebuild', 'breakdown', 'vocal', 'vocalend', 'bump', 'steady']);
   assert.equal(cfg.agent.rules[0].cooldownMs, 4000, 'saved cooldown kept');
   assert.ok(cfg.agent.rules[0].macro[0].address.includes('/clips/3/connect'), 'default macro kept');
+  assert.ok(cfg.agent.rules[0].variants.length >= 2, 'drop cue keeps its variants');
   assert.equal(cfg.agent.feedBeatClock, true);
 });
 
