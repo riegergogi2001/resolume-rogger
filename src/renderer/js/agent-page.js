@@ -96,16 +96,30 @@ export function renderAgentPage(el) {
   // ---- rules ----
   const rulesEl = document.createElement('div');
   rulesEl.className = 'agent-rules';
+  const variantCursor = new Map();   // rule id → next variant index
 
   function fireRule(rule) {
-    for (const step of rule.macro ?? []) rogger.send(step.address, step.values ?? []);
+    // variants rotate per fire so repeats vary the look
+    const pool = rule.variants?.length ? rule.variants : [rule.macro ?? []];
+    const n = variantCursor.get(rule.id) ?? 0;
+    variantCursor.set(rule.id, (n + 1) % pool.length);
+    const steps = pool[n % pool.length] ?? [];
+    for (const step of steps) rogger.send(step.address, step.values ?? []);
     if (rule.pulseMs > 0) {
       setTimeout(() => {
-        for (const step of rule.macro ?? []) {
+        for (const step of steps) {
           rogger.send(step.address, (step.values ?? [1]).map(() => 0));
         }
       }, rule.pulseMs);
     }
+  }
+
+  function ruleSummary(rule) {
+    const pool = rule.variants?.length ? rule.variants : [rule.macro ?? []];
+    const first = pool[0]?.[0]?.address?.split('/').slice(-2).join('/') ?? 'no macro';
+    const extra = pool.length > 1 ? ` +${pool.length - 1}var` : '';
+    return `${rule.event} → ${first}${extra} · cd ${(rule.cooldownMs / 1000).toFixed(0)}s` +
+      (rule.pulseMs ? ` · ${(rule.pulseMs / 1000).toFixed(1)}s` : '');
   }
 
   function buildRules() {
@@ -114,13 +128,11 @@ export function renderAgentPage(el) {
       const row = document.createElement('div');
       row.className = 'agent-rule';
       row.dataset.rule = rule.id;
-      const macroTxt = (rule.macro ?? [])
-        .map(s => s.address.split('/').slice(-2).join('/')).join(' + ') || 'no macro';
       row.innerHTML =
         `<button class="rule-enable ${rule.enabled ? 'on' : ''}"></button>` +
         `<div class="rule-main"><span class="rule-label u-caps">${rule.label}</span>` +
-        `<span class="rule-macro u-num">${macroTxt} · cd ${(rule.cooldownMs / 1000).toFixed(0)}s` +
-        `${rule.pulseMs ? ` · pulse ${(rule.pulseMs / 1000).toFixed(1)}s` : ''}</span></div>` +
+        `<span class="rule-macro u-num">${ruleSummary(rule)}</span></div>` +
+        '<button class="rule-edit u-caps">Edit</button>' +
         '<button class="rule-test u-caps">Test</button>';
       row.querySelector('.rule-enable').addEventListener('pointerdown', () => {
         const rules = cfg().rules;
@@ -128,11 +140,67 @@ export function renderAgentPage(el) {
         row.querySelector('.rule-enable').classList.toggle('on', rules[i].enabled);
         state.persist();
       });
+      row.querySelector('.rule-edit').addEventListener('pointerdown', () => openCueEditor(i));
       row.querySelector('.rule-test').addEventListener('pointerdown', () => {
         fireRule(cfg().rules[i]);
         flashRule(rule.id);
       });
       rulesEl.appendChild(row);
+    });
+  }
+
+  // ---- compact cue editor (label / event / timing / macro JSON) ----
+  const CUE_EVENTS = ['drop', 'buildstart', 'breakdown', 'steady', 'fakebuild',
+    'vocalstart', 'vocalend', 'downbeat'];
+
+  function openCueEditor(i) {
+    const root = document.getElementById('overlay-root');
+    if (root.querySelector('.overlay')) return;
+    const rule = cfg().rules[i];
+    const overlay = document.createElement('div');
+    overlay.className = 'overlay';
+    const macroJson = JSON.stringify(rule.variants?.length ? rule.variants : rule.macro, null, 1);
+    overlay.innerHTML =
+      '<div class="panel"><div class="panel-head u-caps">Edit cue</div>' +
+      '<div class="panel-body cue-edit">' +
+      `<label class="u-caps">Name<input id="cue-label" value="${rule.label}"></label>` +
+      `<label class="u-caps">Event<select id="cue-event">${CUE_EVENTS.map(e =>
+        `<option ${e === rule.event ? 'selected' : ''}>${e}</option>`).join('')}</select></label>` +
+      `<label class="u-caps">Cooldown s<input id="cue-cd" type="number" step="0.5" value="${rule.cooldownMs / 1000}"></label>` +
+      `<label class="u-caps">Pulse s (0 = latch)<input id="cue-pulse" type="number" step="0.1" value="${rule.pulseMs / 1000}"></label>` +
+      '<label class="u-caps">Macro — steps, or list of variants' +
+      `<textarea id="cue-macro" rows="8">${macroJson}</textarea></label>` +
+      '</div><div class="panel-foot">' +
+      '<button class="big-btn u-caps" id="cue-cancel">Cancel</button>' +
+      '<button class="big-btn primary u-caps" id="cue-save">Save</button>' +
+      '</div></div>';
+    root.appendChild(overlay);
+    overlay.querySelector('#cue-cancel').addEventListener('pointerdown', () => overlay.remove());
+    overlay.querySelector('#cue-save').addEventListener('pointerdown', () => {
+      let parsed;
+      try {
+        parsed = JSON.parse(overlay.querySelector('#cue-macro').value);
+      } catch {
+        showToast('Macro is not valid JSON', { error: true });
+        return;
+      }
+      const rules = cfg().rules;
+      const r = rules[i];
+      r.label = overlay.querySelector('#cue-label').value || r.label;
+      r.event = overlay.querySelector('#cue-event').value;
+      r.cooldownMs = Math.max(0, Number(overlay.querySelector('#cue-cd').value) * 1000 || 0);
+      r.pulseMs = Math.max(0, Number(overlay.querySelector('#cue-pulse').value) * 1000 || 0);
+      if (Array.isArray(parsed) && Array.isArray(parsed[0])) {
+        r.variants = parsed;
+        r.macro = parsed[0];
+      } else if (Array.isArray(parsed)) {
+        r.macro = parsed;
+        r.variants = [];
+      }
+      state.persist();
+      buildRules();
+      overlay.remove();
+      showToast(`Cue "${r.label}" saved`);
     });
   }
 

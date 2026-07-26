@@ -353,7 +353,7 @@ class BeatNetBeats:
 
             self.bn.stream.read = teed_read
         self.bpm = 0.0
-        self.conf = 0.75                # model-based: steady confidence
+        self.conf = 0.4                 # dynamic: rises with beat stability
         self.bar = 0
         self.beat_in_bar = 0
         self.seen = 1
@@ -384,6 +384,10 @@ class BeatNetBeats:
                     self.intervals.pop(0)
                 mid = sorted(self.intervals)[len(self.intervals) // 2]
                 self.bpm = 60.0 / mid
+                # confidence = beat stability: tight gaps → high, jitter → low
+                if len(self.intervals) >= 4:
+                    mad = sum(abs(iv - mid) for iv in self.intervals) / len(self.intervals)
+                    self.conf = max(0.2, min(0.98, 1.0 - (mad / mid) * 3.0))
             self.prev_t = t
             if kind == 1:               # downbeat
                 self.bar += 1
@@ -441,9 +445,11 @@ def run_demo(osc):
                 elif new_cycle == 40:
                     osc.send('/rogger/agent/state', 'breakdown')
                     osc.send('/rogger/agent/event', 'breakdown')
+                    osc.send('/rogger/agent/event', 'vocalstart')
                 elif new_cycle == 0:
                     osc.send('/rogger/agent/state', 'sustain')
                     osc.send('/rogger/agent/event', 'steady')
+                    osc.send('/rogger/agent/event', 'vocalend')
                 osc.send('/rogger/agent/downbeat', bar)
                 osc.send('/rogger/agent/phrase', bar, (bar - 1) % PHRASE_LEN, PHRASE_LEN)
             osc.send('/rogger/agent/beat', beat, bpm)
@@ -556,6 +562,8 @@ def run_live(osc, args):
     last_bands = None
     cur_bar = 0
     cur_beat = 1
+    vocal_on = False
+    vocal_flip = 0.0
     buf = np.zeros(0, dtype='float32')
     with (stream if stream is not None else contextlib.nullcontext()):
         while True:
@@ -596,6 +604,15 @@ def run_live(osc, args):
                 osc.send('/rogger/agent/metrics',
                          *[float(x) for x in sections.metrics(feats.vocal.v)])
                 next_metrics = now + 1 / 5
+                # vocal presence events with hysteresis (0.45 on / 0.25 off)
+                if not vocal_on and feats.vocal.v > 0.45 and now - vocal_flip > 3.0:
+                    vocal_on = True
+                    vocal_flip = now
+                    osc.send('/rogger/agent/event', 'vocalstart')
+                elif vocal_on and feats.vocal.v < 0.25 and now - vocal_flip > 3.0:
+                    vocal_on = False
+                    vocal_flip = now
+                    osc.send('/rogger/agent/event', 'vocalend')
             if abs(beats.bpm - last_bpm_sent) > 0.5 and beats.bpm > 0:
                 last_bpm_sent = beats.bpm
                 osc.send('/rogger/agent/bpm', float(beats.bpm), float(beats.conf))

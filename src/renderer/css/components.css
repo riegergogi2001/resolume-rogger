@@ -1088,3 +1088,47 @@ body.edit-mode .color-btn {
   flex: 1; border: 1px solid var(--line); border-radius: 8px; background: var(--panel);
   padding: 8px 10px; font-size: 10px; color: var(--text-dim);
 }
+
+/* ---- cue grid (Agent page) ---- */
+.agent-rules {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px;
+}
+.agent-rule { padding: 6px 8px; gap: 8px; }
+.agent-rule .rule-label { font-size: 11px; }
+.agent-rule .rule-macro { font-size: 8px; }
+.agent-rule .rule-enable { width: 34px; height: 22px; flex: none; }
+.agent-rule .rule-enable::after { width: 14px; height: 14px; }
+.agent-rule .rule-enable.on::after { left: 15px; }
+.rule-edit, .agent-rule .rule-test {
+  min-width: 46px;
+  height: 32px;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  background: var(--panel);
+  font-size: 9px;
+  font-weight: 800;
+}
+.rule-edit:active, .agent-rule .rule-test:active { background: var(--panel-3); }
+
+/* ---- cue editor overlay fields ---- */
+.cue-edit { display: flex; flex-direction: column; gap: 10px; }
+.cue-edit label {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 10px;
+  font-weight: 800;
+  color: var(--text-dim);
+  letter-spacing: 0.08em;
+}
+.cue-edit input, .cue-edit select, .cue-edit textarea {
+  border: 1px solid var(--line-bright);
+  border-radius: 8px;
+  background: var(--panel);
+  color: var(--text);
+  font-size: 13px;
+  padding: 8px 10px;
+}
+.cue-edit textarea { font-family: ui-monospace, monospace; font-size: 11px; }
