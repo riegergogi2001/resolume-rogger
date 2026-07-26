@@ -39,6 +39,7 @@ FRAME = 2048          # analysis window
 HOP = 1024            # ~23 ms at 44.1k
 HOP_HZ = SR / HOP
 PHRASE_LEN = 16       # bars per phrase (EDM standard; drops land on boundaries)
+INPUT_HINT = 'Scarlett'   # preferred input when --device is omitted (all engines)
 
 # ---------------------------------------------------------------- OSC out
 
@@ -310,6 +311,27 @@ class BeatNetBeats:
             np.float = float
         if not hasattr(np, 'int'):
             np.int = int
+        # BeatNet opens the system-default input; steer it to the house
+        # interface instead by injecting input_device_index into its open().
+        import pyaudio
+        if not getattr(pyaudio.PyAudio, '_rogger_patched', False):
+            orig_open = pyaudio.PyAudio.open
+
+            def patched_open(pa, *a, **kw):
+                if kw.get('input') and 'input_device_index' not in kw:
+                    try:
+                        for i in range(pa.get_device_count()):
+                            info = pa.get_device_info_by_index(i)
+                            if (INPUT_HINT.lower() in info['name'].lower()
+                                    and info['maxInputChannels'] > 0):
+                                kw['input_device_index'] = i
+                                break
+                    except Exception:
+                        pass  # fall back to the default input
+                return orig_open(pa, *a, **kw)
+
+            pyaudio.PyAudio.open = patched_open
+            pyaudio.PyAudio._rogger_patched = True
         from BeatNet.BeatNet import BeatNet  # probes availability
         self.np = np
         # model 1 = GTZAN-trained; PF = particle-filter online inference
@@ -336,6 +358,7 @@ class BeatNetBeats:
         self.beat_in_bar = 0
         self.seen = 1
         self.prev_t = None
+        self.intervals = []             # recent inter-beat gaps (median → bpm)
         self.thread = threading.Thread(target=self._run, daemon=True)
         self.thread.start()
 
@@ -354,8 +377,13 @@ class BeatNetBeats:
         while self.seen < n:
             t, kind = float(path[self.seen][0]), int(path[self.seen][1])
             self.seen += 1
-            if self.prev_t is not None and t > self.prev_t:
-                self.bpm = 60.0 / (t - self.prev_t)
+            if self.prev_t is not None and 0.25 < t - self.prev_t < 2.0:
+                # median over recent gaps rides out skipped/doubled detections
+                self.intervals.append(t - self.prev_t)
+                if len(self.intervals) > 8:
+                    self.intervals.pop(0)
+                mid = sorted(self.intervals)[len(self.intervals) // 2]
+                self.bpm = 60.0 / mid
             self.prev_t = t
             if kind == 1:               # downbeat
                 self.bar += 1
@@ -465,6 +493,12 @@ def run_live(osc, args):
     device = None
     if args.device is not None:
         device = int(args.device) if args.device.isdigit() else args.device
+    else:
+        # no explicit device: prefer the house interface over the system default
+        for i, d in enumerate(sd.query_devices()):
+            if INPUT_HINT.lower() in d['name'].lower() and d['max_input_channels'] > 0:
+                device = i
+                break
     dev_info = sd.query_devices(device, 'input')
     SR = int(dev_info['default_samplerate'])
     HOP_HZ = SR / HOP
@@ -496,8 +530,8 @@ def run_live(osc, args):
         # single capture: the feature engine taps BeatNet's 22050 Hz stream
         SR = 22050
         HOP_HZ = SR / HOP
-        print(f'listening via BeatNet capture (system default input) @ {SR} Hz → '
-              f'{osc.addr[0]}:{osc.addr[1]} · engine=beatnet')
+        print(f'listening via BeatNet capture (input hint: {INPUT_HINT}, else system default) '
+              f'@ {SR} Hz → {osc.addr[0]}:{osc.addr[1]} · engine=beatnet')
     else:
         def callback(indata, frames, t, status):
             mono = indata.mean(axis=1) if indata.ndim > 1 else indata[:, 0]
