@@ -81,6 +81,26 @@ clears let go), per-button icon / label / color, OSC learn, command library.
    target = the controller device's IP, port **7001**.
 3. For the DJ-page sync and BPM seeding: enable the **Webserver** (port 9292).
 
+## Director brain (local model)
+
+The Director can hand its decisions to a **local model** served by LM Studio
+(or Ollama / llama-server — any OpenAI-style endpoint). Toggle the **BRAIN**
+chip on the Director page; when the server is reachable the model picks the
+intent *and* the color mood every few bars, and a vision model (if one is
+loaded, e.g. `qwen3-vl`) periodically reviews a screenshot of the output
+display. Everything is schema-validated, flows through the same confidence
+tiers / protected-layer guard, and the heuristic policy takes over the moment
+the model is off, slow or malformed.
+
+Setup on the performance machine:
+
+1. Install LM Studio, load a small instruct model (e.g. `qwen2.5-3b-instruct`
+   — avoid "thinking" models for low latency) and optionally a vision model.
+2. Start the local server (default `http://127.0.0.1:1234`).
+3. Director page → tap **BRAIN**. Config keys live under `director.brain`
+   (`url`, `model`, `visionModel`, `decideEveryBars`, `lookEveryMs`,
+   `display` — which screen the Resolume output lives on).
+
 ## Development (any OS)
 
 ```bash

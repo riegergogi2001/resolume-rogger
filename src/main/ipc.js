@@ -1,6 +1,7 @@
 'use strict';
 // Wires renderer IPC to the OSC engine and config store.
 const fs = require('node:fs');
+const brain = require('./brain.js');
 
 function registerIpc({ ipcMain, engine, store, configPath, seedPath, getWindow }) {
   let config = store.load(configPath);
@@ -83,6 +84,29 @@ function registerIpc({ ipcMain, engine, store, configPath, seedPath, getWindow }
   });
   ipcMain.on('learn:arm', () => engine.armLearn());
   ipcMain.on('learn:disarm', () => engine.disarmLearn());
+
+  // ---- Director brain: local model via an OpenAI-style server ----
+  const brainCfg = () => config.director?.brain ?? {};
+  ipcMain.handle('brain:models', () =>
+    brain.listModels(brainCfg().url ?? 'http://127.0.0.1:1234'));
+  ipcMain.handle('brain:chat', (_e, req) => brain.chat({
+    url: brainCfg().url ?? 'http://127.0.0.1:1234',
+    temperature: brainCfg().temperature ?? 0.7,
+    timeoutMs: brainCfg().timeoutMs ?? 8000,
+    ...req,
+  }));
+  // One downscaled JPEG frame of the output display for the look checks.
+  ipcMain.handle('brain:screenshot', async () => {
+    const { desktopCapturer, screen } = require('electron');
+    const displays = screen.getAllDisplays();
+    const idx = Math.min(brainCfg().display ?? displays.length - 1, displays.length - 1);
+    const sources = await desktopCapturer.getSources({
+      types: ['screen'], thumbnailSize: { width: 512, height: 288 },
+    });
+    const src = sources.find(s => Number(s.display_id) === displays[idx]?.id) ?? sources[0];
+    if (!src || src.thumbnail.isEmpty()) throw new Error('no screen source');
+    return 'data:image/jpeg;base64,' + src.thumbnail.toJPEG(72).toString('base64');
+  });
 
   engine.on('status', s => getWindow()?.webContents.send('osc:status', s));
   engine.on('message', m => getWindow()?.webContents.send('osc:message', m));
