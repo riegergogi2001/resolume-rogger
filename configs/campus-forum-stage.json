@@ -47,12 +47,12 @@
       "enabled": true,
       "label": "LS · PAN",
       "x": {
-        "address": "/composition/video/effects/transform/positionx",
+        "address": "/composition/video/effects/transform/effect/positionx",
         "center": 0.5,
         "scale": 0.03
       },
       "y": {
-        "address": "/composition/video/effects/transform/positiony",
+        "address": "/composition/video/effects/transform/effect/positiony",
         "center": 0.5,
         "scale": -0.03
       }
@@ -61,12 +61,12 @@
       "enabled": true,
       "label": "RS · ZOOM/ROT",
       "x": {
-        "address": "/composition/video/effects/transform/rotationz",
+        "address": "/composition/video/effects/transform/effect/rotationz",
         "center": 0.5,
         "scale": 0.05
       },
       "y": {
-        "address": "/composition/video/effects/transform/scale",
+        "address": "/composition/video/effects/transform/effect/scale",
         "center": 0.1,
         "scale": -0.05
       }
@@ -804,12 +804,12 @@
     },
     {
       "id": "fx2-11",
-      "label": "BOOM ALL",
+      "label": "BOOM INV",
       "icon": "☄",
-      "color": "#ff7a1a",
+      "color": "#eaeef5",
       "mode": "hold",
       "type": "int",
-      "address": "/composition/video/effects/boomer/effect/blur",
+      "address": "/composition/video/effects/boomer/effect/invert",
       "value": 1,
       "offValue": 0,
       "releaseValue": 0,
@@ -826,32 +826,7 @@
         "to": 1,
         "durationMs": 1500
       },
-      "macro": [
-        {
-          "address": "/composition/video/effects/boomer/effect/blur",
-          "values": [
-            1
-          ]
-        },
-        {
-          "address": "/composition/video/effects/boomer/effect/exposure",
-          "values": [
-            1
-          ]
-        },
-        {
-          "address": "/composition/video/effects/boomer/effect/edge",
-          "values": [
-            1
-          ]
-        },
-        {
-          "address": "/composition/video/effects/boomer/effect/blow",
-          "values": [
-            1
-          ]
-        }
-      ],
+      "macro": [],
       "gamepadButton": -1
     },
     {
@@ -1736,14 +1711,14 @@
     },
     {
       "id": "util3",
-      "label": "CO2",
-      "icon": "▲",
-      "color": "#00e5ff",
-      "mode": "hold",
+      "label": "DISTORT",
+      "icon": "◈",
+      "color": "#ff7a1a",
+      "mode": "toggle",
       "type": "int",
-      "address": "/composition/video/effects/co2/effect/fire",
-      "value": 1,
-      "offValue": 0,
+      "address": "/composition/video/effects/distortion/bypassed",
+      "value": 0,
+      "offValue": 1,
       "releaseValue": 0,
       "releaseAddress": "",
       "extraAddress": "",

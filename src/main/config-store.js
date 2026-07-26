@@ -275,6 +275,22 @@ function defaults() {
       confidence: { act: 0.8, cautious: 0.55, hold: 0.35 },
       supervisorBackoffMs: 30000, // manual touch pauses autopilot this long
       rebuildIntervalMs: 60000,   // composition re-inspection cadence
+      // Local-model brain (LM Studio / Ollama, OpenAI-style server). When
+      // enabled and reachable it makes the decisions; the heuristic policy
+      // stays as fallback. model/visionModel '' = auto-pick from /v1/models
+      // (visionModel 'off' disables the screenshot look checks).
+      brain: {
+        enabled: false,
+        url: 'http://127.0.0.1:1234',
+        model: '',
+        visionModel: '',
+        decideEveryBars: 8,       // ask the model every N bars
+        lookEveryMs: 45000,       // output screenshot critique cadence, 0=off
+        timeoutMs: 30000,         // thinking models are slow; freshness guard
+                                  // keeps late plans from firing stale
+        temperature: 0.7,
+        display: 1,               // which screen the output lives on
+      },
     },
     // AI VJ agent (audio sidecar → /rogger/agent/* events → cue macros).
     // ARM lives page-local only: the agent always boots disarmed.

@@ -58,6 +58,12 @@ function mockBridge() {
     sendTyped: (address, args = []) => window.__oscLog.push({ address, args }),
     applyNetwork: async network => { window.__oscLog.push({ applyNetwork: network }); },
     testConnection: async () => ({ ok: true, detail: 'Mock bridge — no network.' }),
+    brainModels: async () => ['mock-brain'],
+    brainChat: async () => ({
+      json: { intent: 'HoldCurrentVisual', confidence: 0.55, reason: 'mock brain idle' },
+      raw: '', model: 'mock-brain',
+    }),
+    brainScreenshot: async () => 'data:image/jpeg;base64,',
     armLearn: () => { window.__learnArmed = true; },
     disarmLearn: () => { window.__learnArmed = false; },
     getStatus: async () => 'ready',

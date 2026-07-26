@@ -24,6 +24,19 @@ export function renderDirectorPage(el) {
   const linkLamp = chip('dir-lamp', 'OFFLINE');
   const supChip = chip('dir-sup', 'AI');
   const healthChip = chip('dir-health', '—');
+  // BRAIN chip: toggles the local-model decision layer (LM Studio/Ollama)
+  const brainChip = document.createElement('button');
+  brainChip.className = 'dir-chip dir-brain u-caps';
+  brainChip.textContent = 'BRAIN OFF';
+  brainChip.addEventListener('pointerdown', () => {
+    const d = cfg();
+    d.brain = { ...(d.brain ?? {}), enabled: !d.brain?.enabled };
+    state.persist();
+    director.brain.refreshStatus();
+    showToast(d.brain.enabled
+      ? 'Brain on — local model decides when reachable'
+      : 'Brain off — heuristic policy decides');
+  });
   const modeBtn = document.createElement('button');
   modeBtn.className = 'dir-mode u-caps';
   function refreshMode() {
@@ -48,7 +61,7 @@ export function renderDirectorPage(el) {
       ? 'Visual Director armed — will act in AUTO mode'
       : 'Visual Director disarmed');
   });
-  head.append(linkLamp, supChip, healthChip, modeBtn, armBtn);
+  head.append(linkLamp, supChip, healthChip, brainChip, modeBtn, armBtn);
 
   function chip(cls, text) {
     const d = document.createElement('div');
@@ -134,6 +147,13 @@ export function renderDirectorPage(el) {
     const h = director.health();
     healthChip.textContent = h.ok ? 'HEALTHY' : h.issues[0];
     healthChip.classList.toggle('bad', !h.ok);
+    const br = director.brain;
+    const brainOn = !!cfg().brain?.enabled;
+    brainChip.textContent = !brainOn ? 'BRAIN OFF'
+      : br.status === 'ready' ? `🧠 ${br.model.split(/[/\\]/).pop().slice(0, 16)}`
+        : br.status.startsWith('error') ? 'BRAIN ERR' : 'BRAIN …';
+    brainChip.classList.toggle('online', brainOn && br.status === 'ready');
+    brainChip.classList.toggle('bad', brainOn && br.status.startsWith('error'));
 
     q('dir-bpm').textContent = m.bpm
       ? `${m.bpm.toFixed(1)} BPM · ${(m.confidence * 100).toFixed(0)}%` : '— BPM';
@@ -174,10 +194,14 @@ export function renderDirectorPage(el) {
       });
     }
     const sm = director.showModel;
-    modelText.textContent = sm
+    const look = director.brain.lastLook;
+    const lookTxt = look
+      ? ` · look ${look.ok ? '✓' : '✗'} ${(look.score * 100) | 0}%${look.notes ? ` — ${look.notes}` : ''}`
+      : '';
+    modelText.textContent = (sm
       ? `${sm.stats.layers} layers · ${sm.stats.protectedCount} protected · ` +
         `${sm.stats.clips} clips · roles: ${Object.keys(sm.clipsByRole ?? {}).filter(r => sm.hasRole(r)).join(', ') || '—'}`
-      : `no show model${director.showModelError ? ` — ${director.showModelError}` : ''}`;
+      : `no show model${director.showModelError ? ` — ${director.showModelError}` : ''}`) + lookTxt;
   }
 
   director.onNotify = msg => showToast(msg, { error: true });

@@ -10,6 +10,7 @@ import { VisualState } from './visual-state.js';
 import { decide } from './policy.js';
 import { buildShowModel } from './show-model.js';
 import { IntentExecutor } from './intent-executor.js';
+import { Brain } from './brain.js';
 
 const PREFIX = '/rogger/agent/';
 // intent type → visual-state heat category (Hold/none stay unlisted)
@@ -30,6 +31,12 @@ export class Director {
       send: (a, v) => rogger.send(a, v),
       getShowModel: () => this.showModel,
       getConfig: () => state.get(),
+    });
+    this.brain = new Brain({
+      music: () => this.music,
+      visual: () => this.visual,
+      show: () => this.showModel,
+      log: note => { this.pushLog({ note }); this.notify(); },
     });
     this.showModel = null;
     this.showModelHash = '';
@@ -56,8 +63,10 @@ export class Director {
       if (!msg.address.startsWith(PREFIX)) return;
       const kind = msg.address.slice(PREFIX.length);
       this.music.ingest(kind, (msg.args ?? []).map(a => a.value));
+      if (kind === 'downbeat') this.brain.onDownbeat();
       if (kind === 'event' || kind === 'downbeat') this.evaluate(kind === 'event');
     });
+    this.brain.start();
     // supervisor: any manual touch on the performance surface backs the AI off
     document.addEventListener('pointerdown', e => {
       if (e.target.closest?.('.fx-btn, .fader, .fader-h, .color-btn, .tempo-big, .lab-swatch, .morph-toggle, .sv-wrap, .hue-strip')) {
@@ -120,6 +129,8 @@ export class Director {
 
     let intent;
     let tier = 'act';
+    let source = 'policy';
+    let extras = null;
     if (!health.ok) {
       // unhealthy: don't get clever — hold a stable look (safe mode)
       this.safeMode = true;
@@ -130,8 +141,17 @@ export class Director {
       tier = 'safe';
     } else {
       this.safeMode = false;
-      intent = decide(this.music.forPolicy(lastEvent), this.visual,
-        this.showModel ?? { hasRole: () => false });
+      // A fresh, validated local-model plan outranks the heuristic policy;
+      // both flow through the same confidence tiers and safety envelope.
+      const plan = this.brain.takeFreshPlan();
+      if (plan) {
+        intent = plan.intent;
+        extras = plan.extras;
+        source = 'brain';
+      } else {
+        intent = decide(this.music.forPolicy(lastEvent), this.visual,
+          this.showModel ?? { hasRole: () => false });
+      }
       const t = cfg.confidence ?? { act: 0.9, cautious: 0.65, hold: 0.4 };
       if (intent.confidence >= t.act) {
         tier = 'act';
@@ -174,9 +194,15 @@ export class Director {
         this.visual.setTension(Math.max(this.visual.tension, IMPACT_TENSION[intent.impact] ?? 0));
       }
     }
+    // Brain color/morph mood rides along even on Hold — but only when the
+    // AI is actually allowed to act, and never in the demoted low tiers.
+    if (auto && extras && (tier === 'act' || tier === 'cautious')) {
+      const applied = this.brain.applyExtras(extras);
+      if (applied.length) result.detail = [result.detail, applied.join('+')].filter(Boolean).join(' · ');
+    }
 
     this.lastDecision = {
-      at: Date.now(), intent, tier, supervisor, executed: result.executed,
+      at: Date.now(), intent, tier, supervisor, source, executed: result.executed,
       detail: result.detail, targets: result.targets,
       music: { section: this.music.section, bpm: this.music.bpm, phrasePos: this.music.phrasePos },
     };
