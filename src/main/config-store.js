@@ -202,6 +202,33 @@ function defaults() {
       speedAddress: '/composition/video/effects/colormorph/effect/speed',
       bypassAddress: '/composition/video/effects/colormorph/bypassed',
     },
+    // AI VJ agent (audio sidecar → /rogger/agent/* events → cue macros).
+    // ARM lives page-local only: the agent always boots disarmed.
+    agent: {
+      feedBeatClock: false,
+      rules: [
+        {
+          id: 'drop', label: 'DROP', event: 'drop', enabled: true,
+          cooldownMs: 8000, pulseMs: 600,
+          macro: [{ address: '/composition/layers/12/clips/3/connect', values: [1] }],
+        },
+        {
+          id: 'build', label: 'BUILD START', event: 'buildstart', enabled: true,
+          cooldownMs: 12000, pulseMs: 4000,
+          macro: [{ address: '/composition/layers/12/clips/9/connect', values: [1] }],
+        },
+        {
+          id: 'breakdown', label: 'BREAKDOWN', event: 'breakdown', enabled: true,
+          cooldownMs: 12000, pulseMs: 0,
+          macro: [{ address: '/composition/video/effects/colormorph/bypassed', values: [1] }],
+        },
+        {
+          id: 'downbeat', label: 'DOWNBEAT', event: 'downbeat', enabled: false,
+          cooldownMs: 1500, pulseMs: 0,
+          macro: [],
+        },
+      ],
+    },
   };
 }
 
@@ -224,16 +251,25 @@ function mergeControls(defaultsArr, patchArr) {
   return defaultsArr.map((d, i) => (isPlainObject(patchArr[i]) ? deepMerge(d, patchArr[i]) : d));
 }
 
-// Saved target items merge by id onto the defaults, so configs saved before a
-// new target existed (e.g. the ColorMorph pair) don't erase it.
-function mergeColorTargets(base, patch) {
-  if (!isPlainObject(patch)) return base;
-  const items = base.items.map(d => {
-    const saved = Array.isArray(patch.items) ? patch.items.find(x => x?.id === d.id) : null;
+// Saved items merge by id onto the defaults, so configs saved before a new
+// entry existed (ColorMorph targets, agent rules) don't erase it.
+function mergeById(defaultsArr, patchArr) {
+  return defaultsArr.map(d => {
+    const saved = Array.isArray(patchArr) ? patchArr.find(x => x?.id === d.id) : null;
     return saved ? deepMerge(d, saved) : d;
   });
+}
+
+function mergeColorTargets(base, patch) {
+  if (!isPlainObject(patch)) return base;
+  const items = mergeById(base.items, patch.items);
   const active = items.some(x => x.id === patch.active) ? patch.active : base.active;
   return { active, items };
+}
+
+function mergeAgent(base, patch) {
+  if (!isPlainObject(patch)) return base;
+  return { ...deepMerge(base, patch), rules: mergeById(base.rules, patch.rules) };
 }
 
 function mergeConfig(base, patch) {
@@ -245,6 +281,7 @@ function mergeConfig(base, patch) {
     triggers: deepMerge(base.triggers, isPlainObject(patch.triggers) ? patch.triggers : {}),
     colorTargets: mergeColorTargets(base.colorTargets, patch.colorTargets),
     colorMorph: deepMerge(base.colorMorph, isPlainObject(patch.colorMorph) ? patch.colorMorph : {}),
+    agent: mergeAgent(base.agent, patch.agent),
     sticks: deepMerge(base.sticks, isPlainObject(patch.sticks) ? patch.sticks : {}),
     haptics: deepMerge(base.haptics, isPlainObject(patch.haptics) ? patch.haptics : {}),
     beat: deepMerge(base.beat, isPlainObject(patch.beat) ? patch.beat : {}),

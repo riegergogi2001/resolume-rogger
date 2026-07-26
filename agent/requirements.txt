@@ -1,0 +1,11 @@
+# Installed by setup.sh — run that instead of pip -r for the ML engine,
+# because madmom must come from git master with --no-build-isolation.
+numpy
+sounddevice>=0.4
+cython
+
+# ML engine (optional — DSP fallback used when missing):
+BeatNet
+librosa
+pyaudio          # needs: brew install portaudio
+# madmom: pip install --no-build-isolation git+https://github.com/CPJKU/madmom.git

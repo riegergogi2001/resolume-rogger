@@ -109,6 +109,9 @@ body {
   overflow-y: auto;
   touch-action: pan-y;
 }
+.fx-page--custom.active.agent-page {
+  grid-template-rows: auto auto auto 1fr auto auto;
+}
 
 #fader-rack {
   display: grid;
