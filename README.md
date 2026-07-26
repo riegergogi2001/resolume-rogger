@@ -28,6 +28,12 @@ any OSC-compatible software over Wi-Fi.
     Regenerate after remapping with `python3 tools/gen-akai-map.py`, which
     also refreshes the shareable standalone page `docs/apc40-mapping.html` —
     ship that file alongside the composition.
+  - **Agent** — cockpit for the AI VJ agent (`agent/rogger_agent.py`, a Mac
+    sidecar that listens to line-in/mic, tracks beats with the BeatNet ML
+    model — DSP fallback — and detects build-ups / drops / breakdowns).
+    Live band meters, BPM + confidence, section state, event log, and cue
+    rules (event → OSC macro with cooldown + pulse). Nothing fires until the
+    big **ARM** button is lit; TEST works while disarmed. See `agent/README.md`.
 - **8 main faders** — vertical MASTER + layer masters + logo, horizontal
   utility strips (multi-target fan-out, e.g. both pushers' fade-out from one
   fader). Double-tap resets; invert/sensitivity/min/max per fader; ♪ beat
