@@ -451,7 +451,12 @@ def run_demo(osc):
                     osc.send('/rogger/agent/event', 'steady')
                     osc.send('/rogger/agent/event', 'vocalend')
                 osc.send('/rogger/agent/downbeat', bar)
-                osc.send('/rogger/agent/phrase', bar, (bar - 1) % PHRASE_LEN, PHRASE_LEN)
+                pos = (bar - 1) % PHRASE_LEN
+                osc.send('/rogger/agent/phrase', bar, pos, PHRASE_LEN)
+                if pos == 0:
+                    osc.send('/rogger/agent/event', 'phrasestart')
+                if new_cycle == 22:      # two bars before the demo drop
+                    osc.send('/rogger/agent/event', 'dropimminent')
             osc.send('/rogger/agent/beat', beat, bpm)
             if phase == 'build' and cycle < 24:
                 pos = (bar - 1) % PHRASE_LEN
@@ -564,6 +569,7 @@ def run_live(osc, args):
     cur_beat = 1
     vocal_on = False
     vocal_flip = 0.0
+    imminent_sent = False
     buf = np.zeros(0, dtype='float32')
     with (stream if stream is not None else contextlib.nullcontext()):
         while True:
@@ -591,11 +597,19 @@ def run_live(osc, args):
                         conf = min(0.9, 0.3 + min(0.3, secs / 10 * 0.3) +
                                    (0.3 if beats_until <= 16 else 0.1))
                         osc.send('/rogger/agent/predict', 'drop', beats_until, conf)
+                        # one-shot climax cue: the last two bars into the drop
+                        if beats_until <= 8 and not imminent_sent:
+                            imminent_sent = True
+                            osc.send('/rogger/agent/event', 'dropimminent')
+                    if sections.state != 'build':
+                        imminent_sent = False
                 else:
                     cur_bar = int(ev[1])
                     osc.send('/rogger/agent/downbeat', cur_bar)
-                    osc.send('/rogger/agent/phrase', cur_bar,
-                             (cur_bar - 1) % PHRASE_LEN, PHRASE_LEN)
+                    pos = (cur_bar - 1) % PHRASE_LEN
+                    osc.send('/rogger/agent/phrase', cur_bar, pos, PHRASE_LEN)
+                    if pos == 0:
+                        osc.send('/rogger/agent/event', 'phrasestart')
             now = time.monotonic()
             if now >= next_bands and last_bands is not None:
                 osc.send('/rogger/agent/bands', *[float(x) for x in last_bands])
@@ -631,7 +645,9 @@ def main():
                     help='ROGGER OSC input host:port (default 127.0.0.1:7001)')
     ap.add_argument('--device', default=None,
                     help='input device name substring or index (see --list-devices)')
-    ap.add_argument('--engine', choices=('auto', 'beatnet', 'dsp'), default='auto')
+    ap.add_argument('--engine', choices=('auto', 'beatnet', 'dsp'), default='dsp',
+                    help='dsp (default; fastest, tightest tempo lock) | beatnet (ML '
+                         'downbeats, slower to settle) | auto (beatnet with dsp fallback)')
     ap.add_argument('--demo', action='store_true',
                     help='scripted build/drop loop, no audio device needed')
     ap.add_argument('--list-devices', action='store_true')

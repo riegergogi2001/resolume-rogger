@@ -150,8 +150,8 @@ export function renderAgentPage(el) {
   }
 
   // ---- compact cue editor (label / event / timing / macro JSON) ----
-  const CUE_EVENTS = ['drop', 'buildstart', 'breakdown', 'steady', 'fakebuild',
-    'vocalstart', 'vocalend', 'downbeat'];
+  const CUE_EVENTS = ['drop', 'dropimminent', 'buildstart', 'breakdown', 'steady',
+    'fakebuild', 'vocalstart', 'vocalend', 'downbeat', 'phrasestart'];
 
   function openCueEditor(i) {
     const root = document.getElementById('overlay-root');
@@ -226,7 +226,7 @@ export function renderAgentPage(el) {
     while (log.children.length > 24) log.lastChild.remove();
   }
 
-  // ---- feed beat clock toggle ----
+  // ---- feed beat clock toggle + fader riders ----
   const opts = document.createElement('div');
   opts.className = 'agent-opts';
   const feedBtn = document.createElement('button');
@@ -240,6 +240,51 @@ export function renderAgentPage(el) {
     state.persist();
   });
   opts.appendChild(feedBtn);
+  (cfg().riders ?? []).forEach((rider, i) => {
+    const b = document.createElement('button');
+    b.className = 'mini-btn u-caps';
+    b.textContent = `Ride ${rider.label}`;
+    b.classList.toggle('on', rider.enabled);
+    b.addEventListener('pointerdown', () => {
+      const r = cfg().riders[i];
+      r.enabled = !r.enabled;
+      b.classList.toggle('on', r.enabled);
+      state.persist();
+    });
+    opts.appendChild(b);
+  });
+
+  // ---- continuous fader riders: bands → layer opacity (armed only) ----
+  // fast attack / slow release, ~12 Hz sends, only on real change
+  const riderState = new Map();
+  let lastMetrics = { energy: 0, tension: 0, vocal: 0 };
+  let lastRideSend = 0;
+  function processRiders(b) {
+    if (!armed) return;
+    const src = {
+      sub: b[0] ?? 0, bass: b[1] ?? 0, mid: b[2] ?? 0, high: b[3] ?? 0,
+      energy: lastMetrics.energy, tension: lastMetrics.tension, vocal: lastMetrics.vocal,
+    };
+    for (const r of cfg().riders ?? []) {
+      if (!r.enabled || !r.address) continue;
+      const v = Math.min(1, Math.max(0, src[r.source] ?? 0));
+      const target = r.min + v * (r.max - r.min);
+      const st = riderState.get(r.id) ?? { v: target, sent: -1 };
+      st.v += (target - st.v) * (target > st.v ? 0.35 : 0.08);
+      riderState.set(r.id, st);
+    }
+    const now = performance.now();
+    if (now - lastRideSend < 80) return;
+    lastRideSend = now;
+    for (const r of cfg().riders ?? []) {
+      if (!r.enabled || !r.address) continue;
+      const st = riderState.get(r.id);
+      if (st && Math.abs(st.v - st.sent) > 0.01) {
+        st.sent = st.v;
+        rogger.sendTyped(r.address, [{ type: 'f', value: st.v }]);
+      }
+    }
+  }
 
   // ---- OSC ingestion ----
   let lastPing = 0;
@@ -285,6 +330,10 @@ export function renderAgentPage(el) {
       history.push(bands.reduce((a, b) => a + b, 0) / 4);
       if (history.length > 400) history.shift();
       draw();
+      processRiders(bands);
+    } else if (kind === 'metrics') {
+      const [energy, tension, , , vocal] = args.map(Number);
+      lastMetrics = { energy, tension, vocal };
     } else if (kind === 'state') {
       const s = String(args[0]);
       stateEl().textContent = s;

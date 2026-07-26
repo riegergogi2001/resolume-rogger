@@ -232,6 +232,16 @@ function defaults() {
           ],
         },
         {
+          id: 'dropstrobe', label: 'DROP STROBE', event: 'drop', enabled: true,
+          cooldownMs: 8000, pulseMs: 2500,
+          macro: [{ address: '/composition/layers/12/clips/9/connect', values: [1] }],
+        },
+        {
+          id: 'climax', label: 'CLIMAX STROBE', event: 'dropimminent', enabled: true,
+          cooldownMs: 12000, pulseMs: 3000,
+          macro: [{ address: '/composition/layers/12/clips/9/connect', values: [1] }],
+        },
+        {
           id: 'build', label: 'BUILD STROBE', event: 'buildstart', enabled: true,
           cooldownMs: 12000, pulseMs: 4000,
           macro: [{ address: '/composition/layers/12/clips/9/connect', values: [1] }],
@@ -266,10 +276,27 @@ function defaults() {
           ],
         },
         {
+          id: 'phrasecol', label: 'PHRASE COLUMN', event: 'phrasestart', enabled: true,
+          cooldownMs: 25000, pulseMs: 0,
+          macro: [{ address: '/composition/columns/1/connect', values: [1] }],
+          variants: Array.from({ length: 8 }, (_, i) =>
+            [{ address: `/composition/columns/${i + 1}/connect`, values: [1] }]),
+        },
+        {
           id: 'steady', label: 'STEADY RESET', event: 'steady', enabled: false,
           cooldownMs: 20000, pulseMs: 0,
           macro: [{ address: '/composition/groups/1/video/effects/acuarela/bypassed', values: [1] }],
         },
+      ],
+      // Continuous fader riders: band energy → layer opacity while armed
+      // (fast attack, slow release — a hand riding the fader).
+      riders: [
+        { id: 'ride2', label: 'L2 · BASS', enabled: true, source: 'bass',
+          address: '/composition/layers/2/master', min: 0.25, max: 1 },
+        { id: 'ride3', label: 'L3 · MID', enabled: true, source: 'mid',
+          address: '/composition/layers/3/master', min: 0.25, max: 1 },
+        { id: 'ride4', label: 'L4 · HIGH', enabled: true, source: 'high',
+          address: '/composition/layers/4/master', min: 0.25, max: 1 },
       ],
     },
   };
@@ -312,7 +339,11 @@ function mergeColorTargets(base, patch) {
 
 function mergeAgent(base, patch) {
   if (!isPlainObject(patch)) return base;
-  return { ...deepMerge(base, patch), rules: mergeById(base.rules, patch.rules) };
+  return {
+    ...deepMerge(base, patch),
+    rules: mergeById(base.rules, patch.rules),
+    riders: mergeById(base.riders, patch.riders),
+  };
 }
 
 function mergeConfig(base, patch) {
