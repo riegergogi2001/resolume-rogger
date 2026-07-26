@@ -187,6 +187,11 @@ class SectionTracker:
         dropping = b > bs * 1.35 and t > ts * 1.05
         quiet = t < ts * 0.45
 
+        # steady music from a cold start settles into sustain (no event) —
+        # without this, sustain-phase decisions never engage until a build.
+        if self.state == 'idle' and t > ts * 0.7 and now - self.state_since > 10.0:
+            self._set('sustain', events)
+
         if self.state in ('idle', 'sustain'):
             if building:
                 if self.cond_since is None:
