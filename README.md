@@ -34,6 +34,20 @@ any OSC-compatible software over Wi-Fi.
     Live band meters, BPM + confidence, section state, event log, and cue
     rules (event → OSC macro with cooldown + pulse). Nothing fires until the
     big **ARM** button is lit; TEST works while disarmed. See `agent/README.md`.
+  - **Director** — the autonomous AI Visual Director (`src/renderer/js/director/`).
+    Consumes the agent's music intelligence (beat/phrase position, build/drop/
+    fake-build/breakdown, energy/tension/bass/density/vocal metrics, drop
+    predictions), inspects the live composition through Resolume's webserver
+    to build a **semantic show model** (hero/strobe/flash/impact/camera-FX
+    roles; TC/PB, TIMER, LFV, AB, INPUT layers are protected and never
+    touched), and emits high-level intents (TriggerFlash, SwitchDeck,
+    HoldCurrentVisual…) with **confidence + reasoning**. A visual-economy
+    memory makes repeated strobes/flashes/impacts progressively more
+    expensive; confidence tiers (act / cautious / hold / notify), **safe
+    mode** on health issues (audio lost, BPM lost, Resolume API down, UI
+    overload), and **supervisor mode** (any manual touch pauses the AI for
+    30 s, then it eases back in) keep it stage-safe. Boots disarmed in
+    suggest mode; every decision is logged as JSONL for replay/learning.
 - **8 main faders** — vertical MASTER + layer masters + logo, horizontal
   utility strips (multi-target fan-out, e.g. both pushers' fade-out from one
   fader). Double-tap resets; invert/sensitivity/min/max per fader; ♪ beat

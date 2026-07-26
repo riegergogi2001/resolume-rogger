@@ -12,7 +12,10 @@ sections (build / drop / breakdown) and streams events to ROGGER's OSC input:
     /rogger/agent/downbeat  bar:int              every bar
     /rogger/agent/bands     sub bass mid high:f  ~15 Hz, 0..1
     /rogger/agent/state     state:str            idle|build|drop|sustain|breakdown
-    /rogger/agent/event     name:str             buildstart|drop|breakdown|steady
+    /rogger/agent/event     name:str             buildstart|drop|breakdown|steady|fakebuild
+    /rogger/agent/phrase    bar:int pos:int len:int   each downbeat (pos 0-based in phrase)
+    /rogger/agent/metrics   energy tension bass density vocal:f  ~5 Hz, 0..1
+    /rogger/agent/predict   event:str beatsUntil:int conf:float  drop forecast in builds
 
 Usage:
     python3 rogger_agent.py --list-devices
@@ -35,6 +38,7 @@ SR = 44100            # replaced by the input device's native rate at startup
 FRAME = 2048          # analysis window
 HOP = 1024            # ~23 ms at 44.1k
 HOP_HZ = SR / HOP
+PHRASE_LEN = 16       # bars per phrase (EDM standard; drops land on boundaries)
 
 # ---------------------------------------------------------------- OSC out
 
@@ -97,10 +101,12 @@ class Features:
         self.window = np.hanning(FRAME).astype('float32')
         freqs = np.fft.rfftfreq(FRAME, 1.0 / SR)
         self.bins = [(freqs >= lo) & (freqs < hi) for lo, hi in self.BANDS]
+        self.vocal_bin = (freqs >= 300) & (freqs < 3400)   # vocal-presence band
         self.prev_mag = None
         self.peak = [1e-6] * 4          # running per-band peak, slow decay
         self.onset = []                 # onset envelope, HOP_HZ rate
         self.max_onset = 1e-6
+        self.vocal = Ema(1.0, HOP_HZ)   # smoothed vocal-band energy ratio
 
     def process(self, frame):
         np = self.np
@@ -115,6 +121,10 @@ class Features:
             d = mag - self.prev_mag
             flux = float(np.sum(d[d > 0]))
         self.prev_mag = mag
+        total = float(np.sum(mag ** 2)) + 1e-9
+        ratio = float(np.sum(mag[self.vocal_bin] ** 2)) / total
+        # 300-3400 Hz share above the typical instrumental floor → 0..1 presence
+        self.vocal.push(min(1.0, max(0.0, (ratio - 0.25) * 3.0)))
         self.max_onset = max(flux, self.max_onset * 0.9995)
         norm_flux = flux / self.max_onset if self.max_onset > 0 else 0.0
         self.onset.append(norm_flux)
@@ -147,6 +157,15 @@ class SectionTracker:
             events.append(('state', state))
             if event:
                 events.append(('event', event))
+
+    def metrics(self, vocal):
+        """(energy, tension, bass, density, vocal) — all 0..1 heuristics."""
+        base = min(1.0, self.dens_fast.v / (self.dens_slow.v * 2 + 1e-9))
+        ramp = (min(1.0, (time.monotonic() - self.state_since) / 12.0)
+                if self.state == 'build' else 0.0)
+        tension = min(1.0, 0.6 * base + 0.4 * ramp)
+        return (min(1.0, self.total_fast.v), tension, min(1.0, self.bass_fast.v),
+                min(1.0, self.dens_fast.v), min(1.0, max(0.0, vocal)))
 
     def push(self, bands, flux):
         events = []
@@ -186,6 +205,9 @@ class SectionTracker:
         elif self.state == 'build':
             if dropping:
                 self._set('drop', events, 'drop')
+            elif (t < ts * 0.85 and d < ds and now - self.state_since > 4.0):
+                # the riser fizzled without a payoff — a fake build
+                self._set('sustain', events, 'fakebuild')
             elif now - self.state_since > 30.0:
                 self._set('sustain', events, 'steady')
         elif self.state == 'drop':
@@ -363,13 +385,15 @@ def run_demo(osc):
         cycle = bar % 48
         phase = ('sustain' if cycle < 16 else
                  'build' if cycle < 24 else
+                 'sustain' if cycle < 32 else
+                 'build' if cycle < 36 else
                  'sustain' if cycle < 40 else 'breakdown')
         if now >= next_beat:
             beat = beat % 4 + 1
             if beat == 1:
                 bar += 1
                 new_cycle = bar % 48
-                if new_cycle == 16:
+                if new_cycle == 16 or new_cycle == 32:
                     osc.send('/rogger/agent/state', 'build')
                     osc.send('/rogger/agent/event', 'buildstart')
                 elif new_cycle == 24:
@@ -377,6 +401,10 @@ def run_demo(osc):
                     osc.send('/rogger/agent/event', 'drop')
                 elif new_cycle == 25:
                     osc.send('/rogger/agent/state', 'sustain')
+                elif new_cycle == 36:
+                    # a riser that fizzles: build without payoff
+                    osc.send('/rogger/agent/state', 'sustain')
+                    osc.send('/rogger/agent/event', 'fakebuild')
                 elif new_cycle == 40:
                     osc.send('/rogger/agent/state', 'breakdown')
                     osc.send('/rogger/agent/event', 'breakdown')
@@ -384,18 +412,29 @@ def run_demo(osc):
                     osc.send('/rogger/agent/state', 'sustain')
                     osc.send('/rogger/agent/event', 'steady')
                 osc.send('/rogger/agent/downbeat', bar)
+                osc.send('/rogger/agent/phrase', bar, (bar - 1) % PHRASE_LEN, PHRASE_LEN)
             osc.send('/rogger/agent/beat', beat, bpm)
+            if phase == 'build' and cycle < 24:
+                pos = (bar - 1) % PHRASE_LEN
+                beats_until = (PHRASE_LEN - 1 - pos) * 4 + (5 - beat)
+                osc.send('/rogger/agent/predict', 'drop', beats_until,
+                         min(0.9, 0.4 + (24 - cycle) * -0.05 + 0.5))
             next_beat += beat_period
         if now >= next_bands:
             t = now * 2.0
             pump = 0.5 + 0.5 * math.sin(t * 2 * math.pi * bpm / 120.0)
             lvl = {'sustain': 0.8, 'build': 0.55, 'drop': 1.0, 'breakdown': 0.25}[phase]
-            rise = (cycle - 16) / 8.0 if phase == 'build' else 0.0
+            rise = ((cycle - 16) / 8.0 if phase == 'build' and cycle < 24 else
+                    (cycle - 32) / 4.0 if phase == 'build' else 0.0)
             osc.send('/rogger/agent/bands',
                      max(0.0, lvl * pump * (1 - rise)),
                      max(0.0, lvl * pump * (1 - rise * 0.8)),
                      min(1.0, lvl * 0.7 + rise * 0.3),
                      min(1.0, lvl * 0.6 + rise * 0.5))
+            osc.send('/rogger/agent/metrics',
+                     lvl, min(1.0, 0.3 + rise * 0.7), max(0.0, lvl * pump),
+                     min(1.0, 0.4 + rise * 0.5),
+                     0.7 if phase == 'breakdown' else 0.2)
             next_bands = now + 1 / 15
         if now >= next_ping:
             seq += 1
@@ -473,8 +512,11 @@ def run_live(osc, args):
     seq = 0
     next_ping = 0.0
     next_bands = 0.0
+    next_metrics = 0.0
     last_bpm_sent = 0.0
     last_bands = None
+    cur_bar = 0
+    cur_beat = 1
     buf = np.zeros(0, dtype='float32')
     with (stream if stream is not None else contextlib.nullcontext()):
         while True:
@@ -492,13 +534,29 @@ def run_live(osc, args):
                     print('  '.join(str(x) for x in ev))
             for ev in beats.poll(feats.onset):
                 if ev[0] == 'beat':
-                    osc.send('/rogger/agent/beat', int(ev[1]), float(ev[2]))
+                    cur_beat = int(ev[1])
+                    osc.send('/rogger/agent/beat', cur_beat, float(ev[2]))
+                    # drop forecast: builds resolve on 16-bar phrase boundaries
+                    if sections.state == 'build' and cur_bar > 0:
+                        pos = (cur_bar - 1) % PHRASE_LEN
+                        beats_until = (PHRASE_LEN - 1 - pos) * 4 + (5 - cur_beat)
+                        secs = time.monotonic() - sections.state_since
+                        conf = min(0.9, 0.3 + min(0.3, secs / 10 * 0.3) +
+                                   (0.3 if beats_until <= 16 else 0.1))
+                        osc.send('/rogger/agent/predict', 'drop', beats_until, conf)
                 else:
-                    osc.send('/rogger/agent/downbeat', int(ev[1]))
+                    cur_bar = int(ev[1])
+                    osc.send('/rogger/agent/downbeat', cur_bar)
+                    osc.send('/rogger/agent/phrase', cur_bar,
+                             (cur_bar - 1) % PHRASE_LEN, PHRASE_LEN)
             now = time.monotonic()
             if now >= next_bands and last_bands is not None:
                 osc.send('/rogger/agent/bands', *[float(x) for x in last_bands])
                 next_bands = now + 1 / 15
+            if now >= next_metrics:
+                osc.send('/rogger/agent/metrics',
+                         *[float(x) for x in sections.metrics(feats.vocal.v)])
+                next_metrics = now + 1 / 5
             if abs(beats.bpm - last_bpm_sent) > 0.5 and beats.bpm > 0:
                 last_bpm_sent = beats.bpm
                 osc.send('/rogger/agent/bpm', float(beats.bpm), float(beats.conf))
