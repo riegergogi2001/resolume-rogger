@@ -202,6 +202,18 @@ function defaults() {
       speedAddress: '/composition/video/effects/colormorph/effect/speed',
       bypassAddress: '/composition/video/effects/colormorph/bypassed',
     },
+    // AI Visual Director: decides WHAT (intents); the executor resolves HOW
+    // through the semantic show model. Boots in suggest mode, disarmed.
+    director: {
+      mode: 'suggest',          // 'suggest' shows intents only; 'auto' executes
+      // operator-extendable protected layer name patterns (case-insensitive)
+      protectedPatterns: ['^TC', 'TC/PB', 'TIMER', 'LFV', 'SYNC', '^AB\\b', 'AUDIO', 'INPUT', 'ROUTE'],
+      // confidence tiers: >=act full speed; >=cautious low/medium impact only;
+      // >=hold force HoldCurrentVisual; below hold notify the operator
+      confidence: { act: 0.9, cautious: 0.65, hold: 0.4 },
+      supervisorBackoffMs: 30000, // manual touch pauses autopilot this long
+      rebuildIntervalMs: 60000,   // composition re-inspection cadence
+    },
     // AI VJ agent (audio sidecar → /rogger/agent/* events → cue macros).
     // ARM lives page-local only: the agent always boots disarmed.
     agent: {
@@ -282,6 +294,7 @@ function mergeConfig(base, patch) {
     colorTargets: mergeColorTargets(base.colorTargets, patch.colorTargets),
     colorMorph: deepMerge(base.colorMorph, isPlainObject(patch.colorMorph) ? patch.colorMorph : {}),
     agent: mergeAgent(base.agent, patch.agent),
+    director: deepMerge(base.director, isPlainObject(patch.director) ? patch.director : {}),
     sticks: deepMerge(base.sticks, isPlainObject(patch.sticks) ? patch.sticks : {}),
     haptics: deepMerge(base.haptics, isPlainObject(patch.haptics) ? patch.haptics : {}),
     beat: deepMerge(base.beat, isPlainObject(patch.beat) ? patch.beat : {}),
