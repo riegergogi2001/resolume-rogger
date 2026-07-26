@@ -33,27 +33,36 @@ test('defaults() has full control sets and network defaults', () => {
   }
 });
 
-test('defaults split into 8 flash (hold) and 8 bump (tap) buttons with unique gamepad bindings', () => {
+test('defaults mirror the autoVJ template: cue-clip flash bank + comp-FX bump bank', () => {
   const cfg = store.defaults();
-  assert.ok(cfg.fxButtons.slice(0, 8).every(b => b.mode === 'hold'), 'flash bank is momentary');
-  assert.ok(cfg.fxButtons.slice(8).every(b => b.mode === 'tap'), 'bump bank is one-shot');
-  const pads = cfg.fxButtons.map(b => b.gamepadButton);
-  assert.ok(pads.every(p => Number.isInteger(p) && p >= 0 && p <= 15));
-  assert.equal(new Set(pads).size, 16, 'every controller button bound exactly once');
+  assert.ok(cfg.fxButtons.slice(0, 7).every(b => b.mode === 'hold'), 'flash bank is momentary');
+  assert.equal(cfg.fxButtons[7].mode, 'toggle', 'slice strobe latches');
+  assert.ok(cfg.fxButtons.slice(0, 8).every(b => b.address.startsWith('/composition/layers/12/clips/')),
+    'flash bank fires FX-rack cue clips');
+  assert.ok(cfg.fxButtons.slice(9).every(b => b.address.startsWith('/composition/video/effects/')),
+    'bump bank drives composition-level FX (slot 8 is the hidden spare)');
+  const bound = cfg.fxButtons.map(b => b.gamepadButton).filter(p => p >= 0);
+  assert.equal(new Set(bound).size, bound.length, 'no gamepad button bound twice');
 });
 
-test('default faders are master, layers 1-4, logo and two aux (no crossfader)', () => {
+test('default faders are master, layers 1-4, logo and the FX time strips', () => {
   const faders = store.defaults().faders;
   assert.deepEqual(faders.map(f => f.label),
-    ['MASTER', 'LAYER 1', 'LAYER 2', 'LAYER 3', 'LAYER 4', 'LOGO', 'AUX 1', 'AUX 2']);
-  assert.equal(faders[5].address, '/composition/layers/5/master');
+    ['MASTER', 'LAYER 1', 'LAYER 2', 'LAYER 3', 'LAYER 4', 'LOGO', 'PUSH TIME', 'STR SPD']);
+  assert.equal(faders[5].address, '/composition/layers/9/master');
   assert.ok(faders.every(f => !f.address.includes('crossfader')));
 });
 
-test('default bump bank is columns 1-8 (tempo lives in the topbar)', () => {
-  const fx = store.defaults().fxButtons;
-  assert.equal(fx[14].address, '/composition/columns/7/connect');
-  assert.equal(fx[15].address, '/composition/columns/8/connect');
+test('new comp FX are on the surface: BOOM INV bump + DISTORT util toggle', () => {
+  const cfg = store.defaults();
+  const boomInv = cfg.fxButtons2.find(b => b.label === 'BOOM INV');
+  assert.equal(boomInv.address, '/composition/video/effects/boomer/effect/invert');
+  const distort = cfg.utilButtons.find(b => b.label === 'DISTORT');
+  assert.equal(distort.address, '/composition/video/effects/distortion/bypassed');
+  assert.equal(distort.value, 0, 'press enables (bypassed=0)');
+  assert.equal(distort.offValue, 1, 'off re-bypasses');
+  assert.ok(cfg.sticks.ls.x.address.includes('/effect/positionx'), 'stick params use /effect/ segment');
+  assert.ok(cfg.sticks.rs.y.address.includes('/effect/scale'));
 });
 
 test('defaults() returns fresh objects each call', () => {

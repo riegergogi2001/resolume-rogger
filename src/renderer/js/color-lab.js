@@ -157,15 +157,18 @@ export function renderColorLab(el) {
     hueThumb.style.background = rgbHex(hr, hg, hb);
   }
 
+  let dragging = false;
   function dragged(surface, onPoint) {
     surface.addEventListener('pointerdown', e => {
       surface.setPointerCapture(e.pointerId);
+      dragging = true;
       onPoint(e);
       const move = ev => onPoint(ev);
       const up = () => {
         surface.removeEventListener('pointermove', move);
         surface.removeEventListener('pointerup', up);
         surface.removeEventListener('pointercancel', up);
+        dragging = false;
         sendColor(true);
       };
       surface.addEventListener('pointermove', move);
@@ -173,6 +176,25 @@ export function renderColorLab(el) {
       surface.addEventListener('pointercancel', up);
     });
   }
+
+  // Feedback: follow the active target's live color (another controller,
+  // scene recall, ColorMorph...) whenever a finger doesn't own the picker.
+  const inVals = {};
+  rogger.onMessage(msg => {
+    const a = msg.args?.[0];
+    if (!a || typeof a.value !== 'number') return;
+    const base = activeTarget()?.colorBases?.[0];
+    if (!base || !msg.address.startsWith(base + '/')) return;
+    const ch = msg.address.slice(base.length + 1);
+    if (!['red', 'green', 'blue'].includes(ch)) return;
+    inVals[ch] = a.value;
+    if (dragging) return;
+    if (['red', 'green', 'blue'].every(k => typeof inVals[k] === 'number')) {
+      [hue, sat, val] = rgbToHsv(inVals.red, inVals.green, inVals.blue);
+      drawPad();
+      refreshUi();
+    }
+  });
 
   dragged(padWrap, e => {
     const rect = pad.getBoundingClientRect();

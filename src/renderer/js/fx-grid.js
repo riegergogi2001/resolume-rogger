@@ -165,12 +165,22 @@ export function renderFxGrid(el, { isEditMode, onEdit }) {
     b.addEventListener('pointercancel', release);
 
     // Bidirectional feedback: reflect state reported by the target app.
+    // `.../connect` is a write-only trigger — Resolume reports state on
+    // `.../connected` (clips: 0 empty, 1 idle, 2 preview, 3+ live), so
+    // watch that address too. Inverted controls (bypassed-style, on-value
+    // 0) latch when the reported value matches their on-value.
     rogger.onMessage(msg => {
       const c = cfg();
-      if (msg.address !== c.address) return;
       const a = msg.args?.[0];
       if (!a || typeof a.value !== 'number') return;
-      const on = a.value !== 0;
+      let on;
+      if (msg.address === c.address) {
+        on = Number(c.value) === 0 ? a.value === 0 : a.value !== 0;
+      } else if (c.address.endsWith('/connect') && msg.address === c.address + 'ed') {
+        on = c.address.includes('/clips/') ? a.value >= 3 : a.value > 0;
+      } else {
+        return;
+      }
       if (c.mode === 'toggle') {
         if (on) latched.add(key); else latched.delete(key);
         b.classList.toggle('latched', on);
@@ -272,12 +282,15 @@ export function renderFxGrid(el, { isEditMode, onEdit }) {
       tempoRow.append(
         bigTempo('big-tap', 'Tap Tempo', '/composition/tempocontroller/tempotap', beat.tap),
         bigTempo('big-resync', 'Resync', '/composition/tempocontroller/resync'));
+      const bumpBank = document.createElement('div');
+      bumpBank.className = 'fx-bank';
       const faderZone = document.createElement('div');
       faderZone.className = 'page-fader-zone';
       renderFaderSet(faderZone, { isEditMode, onEdit }, faderKind);
-      pageEl.append(bankTitle('Flash'), flashBank, tempoRow, bankTitle('Groups'), faderZone);
+      pageEl.append(bankTitle('Ramp'), flashBank, bankTitle('Bump'), bumpBank,
+        tempoRow, bankTitle('Groups'), faderZone);
       pageEl.classList.add('fx-page--mix');
-      buttons.slice(0, 8).forEach((_, i) => makeButton(kind, i, flashBank, false));
+      buttons.forEach((_, i) => makeButton(kind, i, i < 8 ? flashBank : bumpBank, false));
     } else {
       const head = bankTitle(label);
       const sync = document.createElement('button');
