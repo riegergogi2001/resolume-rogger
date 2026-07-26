@@ -85,9 +85,9 @@ function defaults() {
         analogAddress: '/composition/master', from: 1, to: 0, releaseValue: 1,
       },
       rt: {
-        enabled: false, label: 'RT',
-        engageAddress: '', engageValue: 1, engageReleaseValue: 0,
-        analogAddress: '', from: 0, to: 1, releaseValue: 0,
+        enabled: true, label: 'RT · INVERT STOMP',
+        engageAddress: '/composition/layers/12/clips/5/connect', engageValue: 1, engageReleaseValue: 0,
+        analogAddress: '/composition/layers/12/master', from: 0, to: 1, releaseValue: 1,
       },
     },
     // Controller haptics: press ticks + trigger-depth strobe pulse.
@@ -101,55 +101,117 @@ function defaults() {
         y: { address: '/composition/video/effects/transform/effect/positiony', center: 0.5, scale: -0.03 },
       },
       rs: {
-        enabled: false, label: 'RS',
-        x: { address: '', center: 0.5, scale: 0.05 },
-        y: { address: '', center: 0.5, scale: -0.05 },
+        enabled: true, label: 'RS · ZOOM/ROT',
+        x: { address: '/composition/video/effects/transform/effect/rotationz', center: 0.5, scale: 0.05 },
+        y: { address: '/composition/video/effects/transform/effect/scale', center: 0.1, scale: -0.05 },
       },
     },
-    // fxButtons 0-7 = FLASH bank (momentary hold), 8-15 = BUMP bank (one-shot).
-    // gamepadButton defaults: face+shoulder buttons drive flash, D-pad/sticks/menu drive bump.
+    // Defaults mirror the autoVJ template composition: layer 12 = FX rack
+    // cue clips, comp-level BOOMER/PUSHER/Distortion, group 1 = content FX.
+    // fxButtons 0-7 = FLASH bank (cue clips), 8-15 = BUMP bank (comp FX).
     fxButtons: [
-      fxButton(0, { label: 'FLASH L1', icon: '⚡', color: ACCENTS.yellow, mode: 'hold', type: 'float', address: '/composition/layers/1/master', value: 1, releaseValue: 0, gamepadButton: 0 }),
-      fxButton(1, { label: 'FLASH L2', icon: '⚡', color: ACCENTS.yellow, mode: 'hold', type: 'float', address: '/composition/layers/2/master', value: 1, releaseValue: 0, gamepadButton: 1 }),
-      fxButton(2, { label: 'FLASH L3', icon: '⚡', color: ACCENTS.yellow, mode: 'hold', type: 'float', address: '/composition/layers/3/master', value: 1, releaseValue: 0, gamepadButton: 2 }),
-      fxButton(3, { label: 'FLASH L4', icon: '⚡', color: ACCENTS.yellow, mode: 'hold', type: 'float', address: '/composition/layers/4/master', value: 1, releaseValue: 0, gamepadButton: 3 }),
-      fxButton(4, { label: 'SOLO L1', icon: '◉', color: ACCENTS.purple, mode: 'hold', address: '/composition/layers/1/solo', value: 1, releaseValue: 0, gamepadButton: 4 }),
-      fxButton(5, { label: 'SOLO L2', icon: '◉', color: ACCENTS.purple, mode: 'hold', address: '/composition/layers/2/solo', value: 1, releaseValue: 0, gamepadButton: 5 }),
-      fxButton(6, { label: 'SOLO L3', icon: '◉', color: ACCENTS.purple, mode: 'hold', address: '/composition/layers/3/solo', value: 1, releaseValue: 0, gamepadButton: 6 }),
-      fxButton(7, { label: 'SOLO L4', icon: '◉', color: ACCENTS.purple, mode: 'hold', address: '/composition/layers/4/solo', value: 1, releaseValue: 0, gamepadButton: 7 }),
-      fxButton(8, { label: 'COL 1', icon: '▶', gamepadButton: 12, address: '/composition/columns/1/connect' }),
-      fxButton(9, { label: 'COL 2', icon: '▶', gamepadButton: 13, address: '/composition/columns/2/connect' }),
-      fxButton(10, { label: 'COL 3', icon: '▶', gamepadButton: 14, address: '/composition/columns/3/connect' }),
-      fxButton(11, { label: 'COL 4', icon: '▶', gamepadButton: 15, address: '/composition/columns/4/connect' }),
-      fxButton(12, { label: 'COL 5', icon: '▶', gamepadButton: 10, address: '/composition/columns/5/connect' }),
-      fxButton(13, { label: 'COL 6', icon: '▶', gamepadButton: 11, address: '/composition/columns/6/connect' }),
-      fxButton(14, { label: 'COL 7', icon: '▶', gamepadButton: 8, address: '/composition/columns/7/connect' }),
-      fxButton(15, { label: 'COL 8', icon: '▶', gamepadButton: 9, address: '/composition/columns/8/connect' }),
+      fxButton(0, { label: 'GENERA', icon: '⚡', color: ACCENTS.green, mode: 'hold', address: '/composition/layers/12/clips/2/connect' }),
+      fxButton(1, { label: 'FLASH M', icon: '⚡', color: ACCENTS.yellow, mode: 'hold', address: '/composition/layers/12/clips/3/connect', gamepadButton: 1 }),
+      fxButton(2, { label: 'FLASH M2', icon: '⚡', color: ACCENTS.yellow, mode: 'hold', address: '/composition/layers/12/clips/4/connect', gamepadButton: 2 }),
+      fxButton(3, { label: 'INVERT', icon: '⚡', color: ACCENTS.red, mode: 'hold', address: '/composition/layers/12/clips/5/connect', gamepadButton: 3 }),
+      fxButton(4, { label: 'PIXELATE', icon: '⚡', color: ACCENTS.cyan, mode: 'hold', address: '/composition/layers/12/clips/6/connect', gamepadButton: 5 }),
+      fxButton(5, { label: 'FE STR', icon: '⚡', color: ACCENTS.orange, mode: 'hold', address: '/composition/layers/12/clips/7/connect' }),
+      fxButton(6, { label: 'SUCK IT!', icon: '⚡', color: ACCENTS.magenta, mode: 'hold', address: '/composition/layers/12/clips/8/connect', gamepadButton: 4 }),
+      fxButton(7, { label: 'SLICE STR', icon: '⚡', color: ACCENTS.purple, mode: 'toggle', address: '/composition/layers/12/clips/9/connect', gamepadButton: 12 }),
+      // slot 8 hides behind the utility quad in the banks layout — keep it
+      // a harmless spare so nothing important becomes unreachable
+      fxButton(8, { label: 'SPARE', icon: '·', color: '#3a3f47', mode: 'hold', address: '/composition/layers/12/clear' }),
+      fxButton(9, { label: 'BOOM ALL', icon: '☄', color: ACCENTS.orange, mode: 'hold', address: '/composition/video/effects/boomer/effect/blur', repeat: { enabled: true, intervalMs: 200, sync: true },
+        macro: ['blur', 'exposure', 'edge', 'blow'].map(p => ({ address: `/composition/video/effects/boomer/effect/${p}`, values: [1] })) }),
+      fxButton(10, { label: 'BOOM BLUR', icon: '☄', color: ACCENTS.cyan, mode: 'hold', address: '/composition/video/effects/boomer/effect/blur', repeat: { enabled: true, intervalMs: 200, sync: true }, gamepadButton: 13 }),
+      fxButton(11, { label: 'BOOM EXPO', icon: '☄', color: ACCENTS.yellow, mode: 'hold', address: '/composition/video/effects/boomer/effect/exposure', repeat: { enabled: true, intervalMs: 200, sync: true }, gamepadButton: 14 }),
+      fxButton(12, { label: 'BOOM EDGE', icon: '☄', color: ACCENTS.green, mode: 'hold', address: '/composition/video/effects/boomer/effect/edge', repeat: { enabled: true, intervalMs: 200, sync: true }, gamepadButton: 15 }),
+      fxButton(13, { label: 'BOOM BLOW', icon: '☄', color: ACCENTS.orange, mode: 'hold', address: '/composition/video/effects/boomer/effect/blow', repeat: { enabled: true, intervalMs: 200, sync: true } }),
+      fxButton(14, { label: 'PUSH WHT', icon: '☄', color: ACCENTS.white, mode: 'hold', address: '/composition/video/effects/pusher/effect/push!', repeat: { enabled: true, intervalMs: 200, sync: true }, gamepadButton: 0 }),
+      fxButton(15, { label: 'PUSH BLK', icon: '☄', color: '#8e9299', mode: 'hold', address: '/composition/video/effects/pusher2/effect/push!', repeat: { enabled: true, intervalMs: 200, sync: true }, gamepadButton: 11 }),
     ],
-    // Second page: same schema, no controller bindings by default.
-    fxButtons2: Array.from({ length: 16 }, (_, i) =>
-      fxButton(i, { id: `fx2-${i + 1}`, label: `2·FX ${i + 1}`, gamepadButton: -1 })),
-    // Third page: dense 24-slot clip-select grid (e.g. DJ intro name straps).
-    fxButtons3: Array.from({ length: 24 }, (_, i) =>
-      fxButton(i, { id: `fx3-${i + 1}`, label: `3·FX ${i + 1}`, gamepadButton: -1 })),
-    // Page-1 utility quad: four small buttons sharing one bump slot.
-    utilButtons: Array.from({ length: 4 }, (_, i) =>
-      fxButton(i, { id: `util${i + 1}`, label: `U${i + 1}`, mode: 'toggle', gamepadButton: -1 })),
+    // Second page: group-1 content FX (opacity ramps) + clears + resets.
+    fxButtons2: [
+      fxButton(0, { id: 'fx2-1', label: 'EDGE FX', icon: '◐', mode: 'hold', type: 'float', address: '/composition/groups/1/video/effects/edgedetection/opacity', ramp: { enabled: true, from: 0, to: 1, durationMs: 2000 } }),
+      fxButton(1, { id: 'fx2-2', label: 'ACUARELA', icon: '◐', color: ACCENTS.green, mode: 'hold', type: 'float', address: '/composition/groups/1/video/effects/acuarela/opacity', ramp: { enabled: true, from: 0, to: 1, durationMs: 2000 } }),
+      fxButton(2, { id: 'fx2-3', label: 'BLOOM', icon: '◐', color: ACCENTS.yellow, mode: 'hold', type: 'float', address: '/composition/groups/1/video/effects/bloom/opacity', ramp: { enabled: true, from: 0, to: 1, durationMs: 2000 } }),
+      fxButton(3, { id: 'fx2-4', label: 'GOO', icon: '◐', color: ACCENTS.purple, mode: 'hold', type: 'float', address: '/composition/groups/1/video/effects/goo/opacity', ramp: { enabled: true, from: 0, to: 1, durationMs: 2000 } }),
+      fxButton(4, { id: 'fx2-5', label: 'INF ZOOM', icon: '◐', color: ACCENTS.orange, mode: 'hold', type: 'float', address: '/composition/groups/1/video/effects/infinitezoom/opacity', ramp: { enabled: true, from: 0, to: 1, durationMs: 2000 } }),
+      fxButton(5, { id: 'fx2-6', label: 'METASHAPE', icon: '◐', color: ACCENTS.blue, mode: 'hold', type: 'float', address: '/composition/groups/1/video/effects/metashape/opacity', ramp: { enabled: true, from: 0, to: 1, durationMs: 2000 } }),
+      fxButton(6, { id: 'fx2-7', label: 'GLITCH', icon: '◐', color: ACCENTS.magenta, mode: 'hold', type: 'float', address: '/composition/groups/1/video/effects/shiftglitch/opacity', ramp: { enabled: true, from: 0, to: 1, durationMs: 2000 } }),
+      fxButton(7, { id: 'fx2-8', label: 'HUE SPIN', icon: '◐', color: ACCENTS.yellow, mode: 'hold', type: 'float', address: '/composition/groups/1/video/effects/huerotate/effect/huerotate', releaseValue: 0.57, ramp: { enabled: true, from: 0, to: 1, durationMs: 2000 } }),
+      fxButton(8, { id: 'fx2-9', label: 'CLR FX', icon: '✕', color: ACCENTS.red, mode: 'hold', address: '/composition/layers/12/clear' }),
+      fxButton(9, { id: 'fx2-10', label: 'CLR LOGO', icon: '✕', color: ACCENTS.red, mode: 'hold', address: '/composition/layers/9/clear' }),
+      fxButton(10, { id: 'fx2-11', label: 'BOOM INV', icon: '☄', color: ACCENTS.white, mode: 'hold', address: '/composition/video/effects/boomer/effect/invert', repeat: { enabled: true, intervalMs: 250, sync: true } }),
+      fxButton(11, { id: 'fx2-12', label: 'PUSH X2', icon: '☄', color: ACCENTS.white, mode: 'hold', address: '/composition/video/effects/pusher/effect/push!', repeat: { enabled: true, intervalMs: 250, sync: true },
+        macro: [{ address: '/composition/video/effects/pusher/effect/push!', values: [1] }, { address: '/composition/video/effects/pusher2/effect/push!', values: [1] }] }),
+      fxButton(12, { id: 'fx2-13', label: 'LOGO ALT', icon: '▩', color: ACCENTS.blue, mode: 'hold', address: '/composition/layers/8/clips/17/connect' }),
+      fxButton(13, { id: 'fx2-14', label: 'HUE RST', icon: '↻', color: ACCENTS.yellow, type: 'float', address: '/composition/groups/1/video/effects/huerotate/effect/huerotate', value: 0.57 }),
+      fxButton(14, { id: 'fx2-15', label: 'ZOOM RST', icon: '◎', color: ACCENTS.orange, mode: 'hold', address: '/composition/groups/1/video/effects/infinitezoom/effect/reset' }),
+      fxButton(15, { id: 'fx2-16', label: 'ACUA RST', icon: '◎', color: ACCENTS.green, mode: 'hold', address: '/composition/groups/1/video/effects/acuarela/effect/reset' }),
+    ],
+    // Third page: dense 24-slot grid on group 5 (timecode/playback columns);
+    // "Sync from Resolume" rewrites labels from the live composition.
+    fxButtons3: Array.from({ length: 24 }, (_, i) => {
+      const colors = [ACCENTS.yellow, ACCENTS.green, ACCENTS.purple, ACCENTS.orange, ACCENTS.blue, ACCENTS.magenta, ACCENTS.white, ACCENTS.cyan];
+      if (i === 0) return fxButton(0, { id: 'fx3-1', label: 'OFF', icon: '✕', color: ACCENTS.red, mode: 'hold', address: '/composition/groups/5/columns/1/connect' });
+      if (i === 22) return fxButton(22, { id: 'fx3-23', label: 'LOGO ON', color: ACCENTS.white, mode: 'hold', address: '/composition/layers/9/clips/2/connect',
+        macro: [{ address: '/composition/layers/9/clips/2/connect', values: [1] }, { address: '/composition/layers/8/clear', values: [1] }] });
+      if (i === 23) return fxButton(23, { id: 'fx3-24', label: 'LOGO OFF', icon: '✕', color: ACCENTS.red, mode: 'hold', address: '/composition/layers/9/clear',
+        macro: [{ address: '/composition/layers/8/clear', values: [1] }, { address: '/composition/layers/9/clear', values: [1] }] });
+      return fxButton(i, { id: `fx3-${i + 1}`, label: `TC ${i + 1}`, icon: '♪', color: colors[i % colors.length], mode: 'hold', address: `/composition/groups/5/columns/${i + 1}/connect` });
+    }),
+    // Page-1 utility quad: toggles for the always-on look switches.
+    utilButtons: [
+      fxButton(0, { id: 'util1', label: 'KEEP GREYS', icon: '◐', color: ACCENTS.white, mode: 'toggle', address: '/composition/groups/1/video/effects/colorize/effect/greyskeep' }),
+      fxButton(1, { id: 'util2', label: 'HAZE', icon: '✦', color: ACCENTS.green, mode: 'toggle', address: '/composition/layers/8/video/effects/outlinehaze/bypassed', value: 0, offValue: 1, extraAddress: '/composition/layers/9/video/effects/outlinehaze/bypassed' }),
+      fxButton(2, { id: 'util3', label: 'DISTORT', icon: '◈', color: ACCENTS.orange, mode: 'toggle', address: '/composition/video/effects/distortion/bypassed', value: 0, offValue: 1 }),
+      fxButton(3, { id: 'util4', label: 'AUTO VJ', icon: '↻', color: ACCENTS.green, mode: 'toggle', address: '/composition/layers/1/autopilot/target', value: 3 }),
+    ],
     faders: [
       fader(0, { label: 'MASTER', color: ACCENTS.green, address: '/composition/master' }),
       fader(1, { label: 'LAYER 1', address: '/composition/layers/1/master' }),
       fader(2, { label: 'LAYER 2', address: '/composition/layers/2/master' }),
       fader(3, { label: 'LAYER 3', address: '/composition/layers/3/master' }),
       fader(4, { label: 'LAYER 4', address: '/composition/layers/4/master' }),
-      fader(5, { label: 'LOGO', color: ACCENTS.white, address: '/composition/layers/5/master' }),
-      fader(6, { label: 'AUX 1', color: ACCENTS.amber, address: '/composition/layers/6/master', orientation: 'h', beatSync: { enabled: true, bpmAt1: 300, auto: true } }),
-      fader(7, { label: 'AUX 2', color: ACCENTS.amber, address: '/composition/layers/7/master', orientation: 'h' }),
+      fader(5, { label: 'LOGO', color: ACCENTS.white, address: '/composition/layers/9/master' }),
+      fader(6, { label: 'PUSH TIME', color: ACCENTS.amber, address: '/composition/video/effects/pusher/effect/fadeouttime',
+        extraAddress: '/composition/video/effects/pusher2/effect/fadeouttime', defaultValue: 0.37, orientation: 'h' }),
+      fader(7, { label: 'STR SPD', color: ACCENTS.purple, address: '/composition/layers/12/clips/3/video/effects/flashmaster/effect/strobespeed',
+        extraAddresses: [
+          '/composition/layers/12/clips/4/video/effects/flashmaster/effect/strobespeed',
+          '/composition/layers/12/clips/7/video/effects/flashmaster/effect/strobespeed',
+          '/composition/layers/12/clips/9/video/effects/slicestrobe/effect/speed',
+        ], defaultValue: 0.31, orientation: 'h', beatSync: { enabled: true, bpmAt1: 300, auto: true } }),
     ],
     // Page-2 group faders: horizontal strips for layer-group masters.
-    groupFaders: Array.from({ length: 6 }, (_, i) =>
-      fader(i, { id: `gfader${i + 1}`, label: `GRP ${i + 1}`, orientation: 'h',
-        address: `/composition/groups/${i + 1}/master` })),
-    colorButtons: Array.from({ length: 10 }, (_, i) => colorButton(i)),
+    groupFaders: [
+      fader(0, { id: 'gfader1', label: 'BG GRP', color: ACCENTS.green, orientation: 'h', address: '/composition/groups/1/master' }),
+      fader(1, { id: 'gfader2', label: 'BANNER', color: ACCENTS.amber, orientation: 'h', address: '/composition/groups/2/master' }),
+      fader(2, { id: 'gfader3', label: 'LOGOS', color: ACCENTS.white, orientation: 'h', address: '/composition/groups/3/master' }),
+      fader(3, { id: 'gfader4', label: 'FX RACK', color: ACCENTS.purple, orientation: 'h', address: '/composition/groups/4/master' }),
+      fader(4, { id: 'gfader5', label: 'TC GRP', orientation: 'h', address: '/composition/groups/5/master' }),
+      fader(5, { id: 'gfader6', label: 'TIMES', color: '#8e9299', orientation: 'h', address: '/composition/groups/6/master' }),
+    ],
+    // Named palette routed through the active color target (rgb mode);
+    // args carries the legacy red-channel scalar for single-address targets.
+    colorButtons: [
+      ['RED', '#ff0000', [1, 0, 0]],
+      ['ORANGE', '#ff6600', [1, 0.4, 0]],
+      ['YELLOW', '#ffd900', [1, 0.85, 0]],
+      ['GREEN', '#00ff26', [0, 1, 0.15]],
+      ['CYAN', '#00e5ff', [0, 0.9, 1]],
+      ['BLUE', '#1a4dff', [0.1, 0.3, 1]],
+      ['PURPLE', '#8c26ff', [0.55, 0.15, 1]],
+      ['MAGENTA', '#ff1ad9', [1, 0.1, 0.85]],
+      ['WHITE', '#ffffff', [1, 1, 1]],
+    ].map(([label, color, rgb], i) => colorButton(i, {
+      label, color, rgb, args: [rgb[0]],
+      address: '/composition/groups/1/video/effects/colorize/effect/color/red',
+    })).concat([
+      colorButton(9, { label: 'OFF', color: '#3a3f47', isOff: true,
+        address: '/composition/groups/1/video/effects/colorize/bypassed' }),
+    ]),
     // Switchable color-picker destinations (the 3 squares at the row's end).
     colorTargets: {
       active: 'bg',

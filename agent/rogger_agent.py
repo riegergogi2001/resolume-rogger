@@ -40,6 +40,9 @@ HOP = 1024            # ~23 ms at 44.1k
 HOP_HZ = SR / HOP
 PHRASE_LEN = 16       # bars per phrase (EDM standard; drops land on boundaries)
 INPUT_HINT = 'Scarlett'   # preferred input when --device is omitted (all engines)
+BPM_MIN, BPM_MAX = 70.0, 180.0   # plausible dance range — octave-fold into it
+SILENCE_RMS_OFF = 1.2e-3  # smoothed RMS below → silence (~ -58 dBFS)
+SILENCE_RMS_ON = 3.0e-3   # smoothed RMS above → music again (hysteresis)
 
 # ---------------------------------------------------------------- OSC out
 
@@ -108,9 +111,11 @@ class Features:
         self.onset = []                 # onset envelope, HOP_HZ rate
         self.max_onset = 1e-6
         self.vocal = Ema(1.0, HOP_HZ)   # smoothed vocal-band energy ratio
+        self.rms = Ema(0.3, HOP_HZ)     # smoothed loudness (silence gate)
 
     def process(self, frame):
         np = self.np
+        self.rms.push(float(np.sqrt(np.mean(frame * frame))))
         mag = np.abs(np.fft.rfft(frame * self.window))
         bands = []
         for i, mask in enumerate(self.bins):
@@ -227,6 +232,73 @@ class SectionTracker:
         return events
 
 
+# ---------------------------------------------------------------- tempo lock
+
+class TempoTracker:
+    """Octave-folded BPM clustering with hysteresis.
+
+    Raw estimates (BeatNet inter-beat gaps or DSP autocorrelation peaks) are
+    folded into BPM_MIN..BPM_MAX by halving/doubling — toward the locked
+    tempo when both octaves fit — so 87↔174 flips collapse onto one value.
+    The lock itself is a median over on-lock observations and only jumps when
+    JUMP_AFTER consecutive observations agree on a different tempo.
+    """
+
+    LOCK_TOL = 0.04          # ±4% counts as "the same tempo"
+    JUMP_AFTER = 6           # consecutive off-lock observations to re-lock
+
+    def __init__(self):
+        self.bpm = 0.0       # locked tempo (0 = not locked yet)
+        self.history = []    # recent on-lock observations (median → lock)
+        self.rebels = []     # consecutive off-lock observations
+
+    def fold(self, bpm):
+        """Halve/double into range, preferring the locked tempo's octave."""
+        if bpm <= 0:
+            return 0.0
+        while bpm < BPM_MIN:
+            bpm *= 2.0
+        while bpm > BPM_MAX:
+            bpm /= 2.0
+        if self.bpm:
+            for cand in (bpm * 0.5, bpm * 2.0):
+                if BPM_MIN <= cand <= BPM_MAX and abs(cand - self.bpm) < abs(bpm - self.bpm):
+                    bpm = cand
+        return bpm
+
+    def observe(self, bpm):
+        """Feed one raw estimate; returns the (possibly updated) locked BPM."""
+        bpm = self.fold(bpm)
+        if bpm <= 0:
+            return self.bpm
+        if not self.bpm:
+            self.bpm = bpm
+        if abs(bpm - self.bpm) <= self.bpm * self.LOCK_TOL:
+            self.rebels.clear()
+            self.history.append(bpm)
+            if len(self.history) > 16:
+                self.history.pop(0)
+            self.bpm = sorted(self.history)[len(self.history) // 2]
+        else:
+            self.rebels.append(bpm)
+            if len(self.rebels) > self.JUMP_AFTER:
+                self.rebels.pop(0)
+            mid = sorted(self.rebels)[len(self.rebels) // 2]
+            if (len(self.rebels) >= self.JUMP_AFTER
+                    and all(abs(r - mid) <= mid * self.LOCK_TOL for r in self.rebels)):
+                self.bpm = mid          # the music really did change tempo
+                self.history = list(self.rebels)
+                self.rebels.clear()
+        return self.bpm
+
+    def consistency(self):
+        """0..1: how tightly recent observations sit on the locked tempo."""
+        if len(self.history) < 4 or not self.bpm:
+            return 0.0
+        mad = sum(abs(h - self.bpm) for h in self.history) / len(self.history)
+        return max(0.0, min(1.0, 1.0 - (mad / self.bpm) / self.LOCK_TOL))
+
+
 # ---------------------------------------------------------------- beats (DSP)
 
 class DspBeats:
@@ -236,11 +308,13 @@ class DspBeats:
         self.np = np
         self.bpm = 0.0
         self.conf = 0.0
+        self.tempo = TempoTracker()     # octave-folded BPM lock
         self.period = None              # seconds
         self.next_beat = None
         self.beat_in_bar = 0
         self.bar = 0
         self.last_analysis = 0.0
+        self.last_poll = time.monotonic()
 
     def analyse(self, onset):
         np = self.np
@@ -250,8 +324,8 @@ class DspBeats:
         env = np.asarray(onset[-need:], dtype='float32')
         env = env - env.mean()
         ac = np.correlate(env, env, 'full')[env.size - 1:]
-        lo = int(HOP_HZ * 60 / 180)     # 180 bpm
-        hi = int(HOP_HZ * 60 / 70)      # 70 bpm
+        lo = int(HOP_HZ * 60 / BPM_MAX)
+        hi = int(HOP_HZ * 60 / BPM_MIN)
         if hi >= ac.size:
             return
         seg = ac[lo:hi]
@@ -260,11 +334,18 @@ class DspBeats:
         # prefer the base period over its half (double-tempo mistakes)
         if lag * 2 < hi and ac[lag * 2] > ac[lag] * 0.8:
             lag *= 2
-        self.conf = float(max(0.0, min(1.0, seg[peak] / (ac[0] + 1e-9) * 3)))
-        self.bpm = 60.0 * HOP_HZ / lag
-        self.period = 60.0 / self.bpm
-        # phase: best comb offset over the recent envelope
+        peak_conf = float(max(0.0, min(1.0, seg[peak] / (ac[0] + 1e-9) * 3)))
+        prev_period = self.period
+        bpm = self.tempo.observe(60.0 * HOP_HZ / lag)
+        if bpm <= 0:
+            return
+        self.bpm = bpm
+        self.period = 60.0 / bpm
+        # confidence: autocorrelation peak strength × tempo-lock stability
+        self.conf = max(0.0, min(1.0, 0.5 * peak_conf + 0.5 * self.tempo.consistency()))
+        # phase: best comb offset over the recent envelope, at the locked lag
         now = time.monotonic()
+        lag = max(1, int(round(HOP_HZ * 60.0 / bpm)))
         span = int(lag * 8)
         tail = env[-span:] if env.size >= span else env
         best, best_off = -1e9, 0
@@ -273,12 +354,28 @@ class DspBeats:
             if s > best:
                 best, best_off = s, off
         ago = (tail.size - 1 - best_off) % lag
-        self.next_beat = now + self.period - (ago / HOP_HZ) % self.period
+        proposed = now + self.period - (ago / HOP_HZ) % self.period
+        if (self.next_beat is None or prev_period is None
+                or abs(self.period - prev_period) > prev_period * 0.1):
+            self.next_beat = proposed   # first lock / genuine tempo change
+        else:
+            # PLL: nudge the clock toward the measured phase — one noisy
+            # one-second window can no longer teleport the beat grid
+            err = ((proposed - self.next_beat + self.period / 2) % self.period
+                   - self.period / 2)
+            self.next_beat += 0.3 * err
 
-    def poll(self, onset):
+    def poll(self, onset, audible=True):
         """Return beat events due now: [('beat', n, bpm) | ('downbeat', bar)]."""
         now = time.monotonic()
+        dt, self.last_poll = now - self.last_poll, now
         out = []
+        if not audible:
+            # silence: park the clock and drain confidence instead of
+            # free-running phantom beats over nothing
+            self.conf = max(0.0, self.conf - 0.6 * dt)
+            self.next_beat = None
+            return out
         if now - self.last_analysis > 1.0:
             self.last_analysis = now
             self.analyse(onset)
@@ -353,12 +450,23 @@ class BeatNetBeats:
 
             self.bn.stream.read = teed_read
         self.bpm = 0.0
-        self.conf = 0.4                 # dynamic: rises with beat stability
+        self.conf = 0.2                 # dynamic: IBI stability + grid agreement
         self.bar = 0
         self.beat_in_bar = 0
         self.seen = 1
         self.prev_t = None
-        self.intervals = []             # recent inter-beat gaps (median → bpm)
+        self.tempo = TempoTracker()     # octave-folded BPM lock
+        # beats are EMITTED from a predicted grid, phase-nudged by BeatNet
+        # detections — a missed detection no longer skips a beat and a false
+        # one no longer inserts an extra (grid times live in stream seconds)
+        self.grid_t = None              # predicted next grid beat, stream time
+        self.grid_n = 0                 # absolute beat index on the grid
+        self.bar_off = 0                # grid_n % 4 that counts as beat 1
+        self.down_votes = []            # recent downbeat bar-phase votes
+        self.agree = []                 # last ~8 detections: on-grid or not
+        self.miss_run = 0               # consecutive off-grid detections
+        self.offset = None              # stream-time → monotonic mapping (EMA)
+        self.last_poll = time.monotonic()
         self.thread = threading.Thread(target=self._run, daemon=True)
         self.thread.start()
 
@@ -368,35 +476,90 @@ class BeatNetBeats:
         except Exception as e:          # keep the sidecar alive; DSP still runs
             print(f'[beatnet] stopped: {e}', file=sys.stderr)
 
-    def poll(self, _onset):
+    def _consume(self, t, kind, now):
+        """Fold one raw BeatNet detection into the tempo lock + phase grid."""
+        # stream-time → monotonic mapping (constant model latency + poll
+        # jitter; the EMA keeps predicted beats firing at a steady offset)
+        off = now - t
+        self.offset = off if self.offset is None else self.offset + 0.15 * (off - self.offset)
+        if self.prev_t is not None and 0.25 < t - self.prev_t < 2.0:
+            # octave folding also rescues skipped-beat gaps (2× the period)
+            self.bpm = self.tempo.observe(60.0 / (t - self.prev_t))
+        self.prev_t = t
+        if not self.tempo.bpm:
+            return
+        period = 60.0 / self.tempo.bpm
+        if self.grid_t is None:
+            self.grid_t = t + period
+            self.miss_run = 0
+            return
+        # phase error to the nearest grid line, wrapped to ±half a period
+        err = (t - self.grid_t + period / 2) % period - period / 2
+        on_grid = abs(err) < period * 0.2
+        self.agree.append(on_grid)
+        if len(self.agree) > 8:
+            self.agree.pop(0)
+        if on_grid:
+            self.miss_run = 0
+            self.grid_t += 0.25 * err   # PLL: small nudge, never a hard reset
+        else:
+            self.miss_run += 1
+            if self.miss_run >= 4:      # the grid really is wrong — resync
+                self.grid_t = t + period
+                self.miss_run = 0
+        if kind == 1:                   # downbeat: vote for the bar phase —
+            # two agreeing votes realign beat 1 instead of every detection
+            # yanking the bar counter around
+            k = self.grid_n + int(round((t - self.grid_t) / period))
+            self.down_votes.append(k % 4)
+            if len(self.down_votes) > 3:
+                self.down_votes.pop(0)
+            if (len(self.down_votes) >= 2
+                    and self.down_votes[-1] == self.down_votes[-2]
+                    and self.down_votes[-1] != self.bar_off):
+                self.bar_off = self.down_votes[-1]
+        # confidence: tempo-lock tightness + detections landing on the grid
+        hits = sum(self.agree) / len(self.agree) if self.agree else 0.0
+        target = max(0.05, min(0.98, 0.5 * self.tempo.consistency() + 0.5 * hits))
+        self.conf += 0.25 * (target - self.conf)
+
+    def poll(self, _onset, audible=True):
         out = []
+        now = time.monotonic()
+        dt, self.last_poll = now - self.last_poll, now
         path = getattr(self.bn.estimator, 'path', None)
         if path is None or not hasattr(path, 'shape'):
             return out
         n = path.shape[0]
+        if not audible:
+            # silence: discard detections made from noise, park the grid and
+            # drain confidence — the tempo lock survives short pauses
+            self.seen = n
+            self.grid_t = None
+            self.prev_t = None
+            self.agree.clear()
+            self.miss_run = 0
+            self.conf = max(0.0, self.conf - 0.6 * dt)
+            return out
         while self.seen < n:
             t, kind = float(path[self.seen][0]), int(path[self.seen][1])
             self.seen += 1
-            if self.prev_t is not None and 0.25 < t - self.prev_t < 2.0:
-                # median over recent gaps rides out skipped/doubled detections
-                self.intervals.append(t - self.prev_t)
-                if len(self.intervals) > 8:
-                    self.intervals.pop(0)
-                mid = sorted(self.intervals)[len(self.intervals) // 2]
-                self.bpm = 60.0 / mid
-                # confidence = beat stability: tight gaps → high, jitter → low
-                if len(self.intervals) >= 4:
-                    mad = sum(abs(iv - mid) for iv in self.intervals) / len(self.intervals)
-                    self.conf = max(0.2, min(0.98, 1.0 - (mad / mid) * 3.0))
-            self.prev_t = t
-            if kind == 1:               # downbeat
-                self.bar += 1
-                self.beat_in_bar = 1
-                out.append(('beat', 1, self.bpm))
-                out.append(('downbeat', self.bar))
-            else:
-                self.beat_in_bar = self.beat_in_bar % 4 + 1
+            self._consume(t, kind, now)
+        if self.grid_t is not None and self.offset is not None and self.tempo.bpm:
+            period = 60.0 / self.tempo.bpm
+            behind = now - (self.grid_t + self.offset)
+            if behind > 4 * period:     # long stall — jump, don't machine-gun
+                skip = int(behind / period)
+                self.grid_n += skip
+                self.grid_t += skip * period
+            while self.grid_t + self.offset <= now:
+                self.beat_in_bar = (self.grid_n - self.bar_off) % 4 + 1
                 out.append(('beat', self.beat_in_bar, self.bpm))
+                if self.beat_in_bar == 1:
+                    self.bar += 1
+                    out.append(('downbeat', self.bar))
+                self.grid_n += 1
+                self.grid_t += period
         return out
 
 
@@ -564,6 +727,9 @@ def run_live(osc, args):
     next_bands = 0.0
     next_metrics = 0.0
     last_bpm_sent = 0.0
+    last_conf_sent = -1.0
+    last_bpm_at = 0.0
+    audible = False                     # RMS gate: no beats/conf over silence
     last_bands = None
     cur_bar = 0
     cur_beat = 1
@@ -585,7 +751,11 @@ def run_live(osc, args):
                 for ev in sections.push(bands, flux):
                     osc.send(f'/rogger/agent/{ev[0]}', *ev[1:])
                     print('  '.join(str(x) for x in ev))
-            for ev in beats.poll(feats.onset):
+            if audible and feats.rms.v < SILENCE_RMS_OFF:
+                audible = False
+            elif not audible and feats.rms.v > SILENCE_RMS_ON:
+                audible = True
+            for ev in beats.poll(feats.onset, audible):
                 if ev[0] == 'beat':
                     cur_beat = int(ev[1])
                     osc.send('/rogger/agent/beat', cur_beat, float(ev[2]))
@@ -627,8 +797,12 @@ def run_live(osc, args):
                     vocal_on = False
                     vocal_flip = now
                     osc.send('/rogger/agent/event', 'vocalend')
-            if abs(beats.bpm - last_bpm_sent) > 0.5 and beats.bpm > 0:
-                last_bpm_sent = beats.bpm
+            # resend on bpm OR confidence movement (plus a slow heartbeat) so
+            # a steady tempo doesn't leave the app holding stale confidence
+            if beats.bpm > 0 and (abs(beats.bpm - last_bpm_sent) > 0.5
+                                  or abs(beats.conf - last_conf_sent) > 0.1
+                                  or now - last_bpm_at > 5.0):
+                last_bpm_sent, last_conf_sent, last_bpm_at = beats.bpm, beats.conf, now
                 osc.send('/rogger/agent/bpm', float(beats.bpm), float(beats.conf))
             if now >= next_ping:
                 seq += 1
