@@ -141,7 +141,7 @@ test('load() unions agent rules by id and keeps saved tweaks', () => {
   const cfg = store.load(file);
   assert.deepEqual(cfg.agent.rules.map(r => r.id),
     ['drop', 'dropstrobe', 'climax', 'build', 'fakebuild', 'breakdown',
-      'vocal', 'vocalend', 'bump', 'phrasecol', 'steady']);
+      'vocal', 'vocalend', 'bump', 'kickpush', 'phrasecol', 'steady']);
   assert.equal(cfg.agent.riders.length, 3, 'layer opacity riders present');
   assert.equal(cfg.agent.riders[0].address, '/composition/layers/2/master');
   assert.equal(cfg.agent.rules[0].cooldownMs, 4000, 'saved cooldown kept');
