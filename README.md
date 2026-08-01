@@ -1,10 +1,17 @@
 # ROGGER
 
+**Touchscreen OSC performance controller for Resolume — with an AI VJ brain.**
+
 A professional touchscreen OSC performance controller, optimized for the
 ASUS ROG Ally X (Windows 11, 7" 1920x1080 multitouch, landscape). ROGGER is
 not a Resolume mirror — it is a customizable live surface in the spirit of
 grandMA3 / Luminex / Stream Deck hardware that drives Resolume Arena/Avenue or
 any OSC-compatible software over Wi-Fi.
+
+Zero runtime dependencies (vanilla JS/CSS + Electron), a hand-rolled OSC 1.0
+codec, an ML beat-tracking sidecar, and an autonomous AI Visual Director that
+understands your composition and reacts to the music — with stage-safe
+guardrails everywhere.
 
 ## Surface
 
@@ -130,3 +137,27 @@ time. Config lives at `%APPDATA%/ROGGER/config.json` (packaged).
   via a mock bridge for the Playwright suite (75+ checks).
 
 Design and plan documents live in `docs/superpowers/`.
+
+## Contributing
+
+Contributions are very welcome — this project is actively developed and there
+is plenty of room to grow. Good places to jump in:
+
+- **New button behaviors / OSC targets** — the command library and button
+  editor are designed to be extended.
+- **Director intelligence** — new intents, better policies, smarter show-model
+  role detection, replay/learning from the JSONL decision logs.
+- **Beat detection** — improvements to the BeatNet/DSP sidecar
+  (`agent/rogger_agent.py`).
+- **Hardware surfaces** — mappings beyond the APC40 mkII, other handhelds and
+  touch devices.
+- **Docs, tests, bug reports** — always appreciated.
+
+Workflow: fork → branch → `npm test` (and `node test/serve.js` for UI checks)
+→ pull request. Open an issue first for bigger ideas so we can talk design.
+No build step, no framework — if you know plain JavaScript, you can hack on
+ROGGER.
+
+## License
+
+[MIT](LICENSE)
