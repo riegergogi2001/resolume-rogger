@@ -354,6 +354,14 @@ function defaults() {
           ],
         },
         {
+          // percussive onset cue (sidecar /rogger/agent/onset) — ships
+          // disabled: even with the cooldown, kick-synced pushes are a
+          // deliberate look the VJ opts into, not a default
+          id: 'kickpush', label: 'KICK PUSH', event: 'kick', enabled: false,
+          cooldownMs: 2000, pulseMs: 200,
+          macro: [{ address: '/composition/video/effects/pusher/effect/push!', values: [1] }],
+        },
+        {
           id: 'phrasecol', label: 'PHRASE COLUMN', event: 'phrasestart', enabled: true,
           cooldownMs: 25000, pulseMs: 0,
           macro: [{ address: '/composition/columns/1/connect', values: [1] }],

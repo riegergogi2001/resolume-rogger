@@ -4,6 +4,11 @@ Listens to the music, tracks beats/tempo and detects **build-ups, drops and
 breakdowns**, streaming them as OSC events to ROGGER. The **AGENT page** in
 ROGGER visualizes everything and fires your armed cue macros into Resolume.
 
+It also fires **percussive onsets** (`/rogger/agent/onset kick|snare|hat`)
+within one analysis hop (~25–45 ms) of the transient — per-band spectral flux
+against an adaptive median+MAD threshold, with a refractory period per class —
+so hit-synced cues land on the hit instead of waiting for the beat grid.
+
 ## Setup (once)
 
 ```bash
@@ -43,3 +48,12 @@ Ally). Then open ROGGER → **AGENT** page → **ARM** when you trust it.
 Cue rules live in ROGGER's config (`agent.rules`): DROP → FLASH MASTER,
 BUILD START → SLICE STROBE, BREAKDOWN → ColorMorph off by default — each with
 enable, cooldown and pulse (auto-release). TEST buttons work while disarmed.
+The `kick` / `snare` / `hat` onset events are cue-bindable too (a disabled
+KICK PUSH example ships in the defaults) — set a sensible cooldown, a kick
+comes twice a second.
+
+## Tests
+
+```bash
+python3 test_onset.py    # onset detector self-test (numpy part skips if missing)
+```

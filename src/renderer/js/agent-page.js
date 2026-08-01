@@ -151,7 +151,8 @@ export function renderAgentPage(el) {
 
   // ---- compact cue editor (label / event / timing / macro JSON) ----
   const CUE_EVENTS = ['drop', 'dropimminent', 'buildstart', 'breakdown', 'steady',
-    'fakebuild', 'vocalstart', 'vocalend', 'downbeat', 'phrasestart'];
+    'fakebuild', 'vocalstart', 'vocalend', 'downbeat', 'phrasestart',
+    'kick', 'snare', 'hat'];
 
   function openCueEditor(i) {
     const root = document.getElementById('overlay-root');
@@ -294,8 +295,10 @@ export function renderAgentPage(el) {
     lamp().classList.toggle('online', online);
   }, 500);
 
-  function handleEvent(name) {
-    logLine(`event: ${name}`, name === 'drop' ? 'log-drop' : '');
+  function handleEvent(name, quiet = false) {
+    // onsets arrive several times a second — they fire cues but stay out of
+    // the 24-line event log, which chronicles sections, not every kick
+    if (!quiet) logLine(`event: ${name}`, name === 'drop' ? 'log-drop' : '');
     (cfg().rules ?? []).forEach(rule => {
       if (rule.event !== name || !rule.enabled) return;
       const now = performance.now();
@@ -341,6 +344,8 @@ export function renderAgentPage(el) {
       logLine(`state: ${s}`);
     } else if (kind === 'event') {
       handleEvent(String(args[0]));
+    } else if (kind === 'onset') {
+      handleEvent(String(args[0]), true);
     }
   });
 

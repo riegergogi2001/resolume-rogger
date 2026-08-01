@@ -16,6 +16,7 @@ sections (build / drop / breakdown) and streams events to ROGGER's OSC input:
     /rogger/agent/phrase    bar:int pos:int len:int   each downbeat (pos 0-based in phrase)
     /rogger/agent/metrics   energy tension bass density vocal:f  ~5 Hz, 0..1
     /rogger/agent/predict   event:str beatsUntil:int conf:float  drop forecast in builds
+    /rogger/agent/onset     name:str strength:f  kick|snare|hat transient hits
 
 Usage:
     python3 rogger_agent.py --list-devices
@@ -106,6 +107,10 @@ class Features:
         freqs = np.fft.rfftfreq(FRAME, 1.0 / SR)
         self.bins = [(freqs >= lo) & (freqs < hi) for lo, hi in self.BANDS]
         self.vocal_bin = (freqs >= 300) & (freqs < 3400)   # vocal-presence band
+        # percussive classes for onset detection: kick = sub+bass, snare = mid,
+        # hat = high — coarse, but enough to route hits to different cues
+        self.perc_bins = [self.bins[0] | self.bins[1], self.bins[2], self.bins[3]]
+        self.band_flux = [0.0, 0.0, 0.0]
         self.prev_mag = None
         self.peak = [1e-6] * 4          # running per-band peak, slow decay
         self.onset = []                 # onset envelope, HOP_HZ rate
@@ -125,7 +130,11 @@ class Features:
         flux = 0.0
         if self.prev_mag is not None:
             d = mag - self.prev_mag
-            flux = float(np.sum(d[d > 0]))
+            pos = np.where(d > 0, d, 0.0)
+            flux = float(np.sum(pos))
+            self.band_flux = [float(np.sum(pos[m])) for m in self.perc_bins]
+        else:
+            self.band_flux = [0.0, 0.0, 0.0]
         self.prev_mag = mag
         total = float(np.sum(mag ** 2)) + 1e-9
         ratio = float(np.sum(mag[self.vocal_bin] ** 2)) / total
@@ -137,6 +146,52 @@ class Features:
         if len(self.onset) > int(HOP_HZ * 12):
             del self.onset[: len(self.onset) - int(HOP_HZ * 12)]
         return bands, norm_flux
+
+
+# ---------------------------------------------------------------- onsets
+
+class OnsetDetector:
+    """Per-band transient hits → discrete onset events (kick/snare/hat).
+
+    Positive spectral flux per percussive band compared against an adaptive
+    threshold (median + K·MAD over a trailing window), a per-class refractory
+    period so one hit fires once, and a floor relative to the running flux
+    peak so near-silent noise never counts. Pure Python — no numpy — so the
+    hot path stays allocation-light and the logic is trivially testable.
+    """
+
+    NAMES = ('kick', 'snare', 'hat')
+    K = (2.5, 3.0, 3.0)                 # threshold: median + K * MAD
+    REFRACTORY = (0.10, 0.12, 0.06)     # seconds a class stays quiet after a hit
+    FLOOR = 0.15                        # min flux as a share of the running peak
+
+    def __init__(self, rate_hz):
+        self.window = max(8, int(rate_hz * 1.5))    # trailing flux samples
+        self.warmup = max(4, int(rate_hz * 0.5))    # need a baseline first
+        self.hist = [[], [], []]
+        self.last = [-1e9, -1e9, -1e9]
+        self.peak = [1e-9, 1e-9, 1e-9]
+
+    def push(self, fluxes, now):
+        """Feed one hop's per-band flux; returns [(name, strength), ...]."""
+        events = []
+        for i, f in enumerate(fluxes):
+            h = self.hist[i]
+            h.append(f)
+            if len(h) > self.window:
+                h.pop(0)
+            self.peak[i] = max(f, self.peak[i] * 0.9995)
+            if len(h) < self.warmup:
+                continue
+            srt = sorted(h)
+            med = srt[len(srt) // 2]
+            mad = sorted(abs(x - med) for x in h)[len(h) // 2]
+            thr = med + self.K[i] * max(mad, med * 0.05, 1e-9)
+            if (f > thr and f > self.peak[i] * self.FLOOR
+                    and now - self.last[i] >= self.REFRACTORY[i]):
+                self.last[i] = now
+                events.append((self.NAMES[i], min(1.0, f / self.peak[i])))
+        return events
 
 
 # ---------------------------------------------------------------- sections
@@ -621,6 +676,11 @@ def run_demo(osc):
                 if new_cycle == 22:      # two bars before the demo drop
                     osc.send('/rogger/agent/event', 'dropimminent')
             osc.send('/rogger/agent/beat', beat, bpm)
+            if phase != 'breakdown':
+                osc.send('/rogger/agent/onset', 'kick',
+                         1.0 if phase == 'drop' else 0.75)
+                if beat in (2, 4):
+                    osc.send('/rogger/agent/onset', 'snare', 0.7)
             if phase == 'build' and cycle < 24:
                 pos = (bar - 1) % PHRASE_LEN
                 beats_until = (PHRASE_LEN - 1 - pos) * 4 + (5 - beat)
@@ -720,6 +780,7 @@ def run_live(osc, args):
 
     feats = Features(np)
     sections = SectionTracker()
+    onsets = OnsetDetector(HOP_HZ)
     ring = np.zeros(FRAME, dtype='float32')
 
     seq = 0
@@ -751,6 +812,10 @@ def run_live(osc, args):
                 for ev in sections.push(bands, flux):
                     osc.send(f'/rogger/agent/{ev[0]}', *ev[1:])
                     print('  '.join(str(x) for x in ev))
+                if audible:
+                    for name, strength in onsets.push(feats.band_flux,
+                                                      time.monotonic()):
+                        osc.send('/rogger/agent/onset', name, float(strength))
             if audible and feats.rms.v < SILENCE_RMS_OFF:
                 audible = False
             elif not audible and feats.rms.v > SILENCE_RMS_ON:
