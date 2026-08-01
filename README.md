@@ -36,8 +36,10 @@ guardrails everywhere.
     sidecar that listens to line-in/mic, tracks beats with the BeatNet ML
     model — DSP fallback — and detects build-ups / drops / breakdowns).
     Live band meters, BPM + confidence, section state, event log, and cue
-    rules (event → OSC macro with cooldown + pulse). Nothing fires until the
-    big **ARM** button is lit; TEST works while disarmed. See `agent/README.md`.
+    rules (event → OSC macro with cooldown + pulse) — including **percussive
+    onset triggers** (kick / snare / hat, fired within ~25–45 ms of the hit).
+    Nothing fires until the big **ARM** button is lit; TEST works while
+    disarmed. See `agent/README.md`.
   - **Director** — the autonomous AI Visual Director (`src/renderer/js/director/`).
     Consumes the agent's music intelligence (beat/phrase position, build/drop/
     fake-build/breakdown, energy/tension/bass/density/vocal metrics, drop
