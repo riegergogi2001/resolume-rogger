@@ -5,6 +5,11 @@
   "description": "Touchscreen OSC performance controller for Resolume and OSC-compatible software — optimized for ASUS ROG Ally X.",
   "main": "src/main/main.js",
   "private": true,
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/riegergogi2001/resolume-rogger.git"
+  },
   "scripts": {
     "start": "electron .",
     "test": "node --test \"test/*.test.js\"",
