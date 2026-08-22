@@ -4,6 +4,7 @@
 // LT/RT can act as analog triggers: pressed depth maps onto a float param.
 import { rogger } from './bridge.js';
 import * as state from './state.js';
+import { resolveBinding } from './gamepad-resolve.js';
 
 // Standard-mapping button indices.
 export const BUTTON_NAMES = ['A', 'B', 'X', 'Y', 'LB', 'RB', 'LT', 'RT',
@@ -26,10 +27,27 @@ const STICK_DEADZONE = 0.08;
 
 export function startGamepad(handles) {
   let prev = [];
+  // Press/release must stay paired per physical button even if a held
+  // modifier changes mid-press, so remember which handle each button's
+  // press actually resolved to and release *that* one, not a re-resolve.
+  const active = {};
   const trigState = { lt: { engaged: false, last: null }, rt: { engaged: false, last: null } };
   const stickLast = {};
   let activePad = null;
   let lastRumbleAt = 0;
+
+  // Modifier picked for a gamepad-learn press: prefer RT (7), then LT (6),
+  // then the lowest-index other button currently held; -1 if none held.
+  function pickModifier(bi, heldSet) {
+    if (bi !== 7 && heldSet.has(7)) return 7;
+    if (bi !== 6 && heldSet.has(6)) return 6;
+    let lowest = -1;
+    for (const i of heldSet) {
+      if (i === bi) continue;
+      if (lowest === -1 || i < lowest) lowest = i;
+    }
+    return lowest;
+  }
 
   // moderate magnitudes — feedback, not a massage chair
   function rumble(strong, weak, ms) {
@@ -122,26 +140,28 @@ export function startGamepad(handles) {
 
     const curr = pad.buttons.map(btn =>
       typeof btn === 'object' ? (btn.pressed || btn.value > 0.5) : btn > 0.5);
+    // Digital-held set for combo resolution — includes LT/RT (they count
+    // as held modifiers even though they're excluded from button actions
+    // below) and every other currently-down button.
+    const heldSet = new Set();
+    for (let i = 0; i < curr.length; i++) if (curr[i]) heldSet.add(i);
+
     for (let bi = 0; bi < curr.length; bi++) {
-      if (analogIdx.has(bi)) continue; // analog triggers never act as buttons
       const down = curr[bi];
       if (down === (prev[bi] ?? false)) continue;
-      if (down && learnCb) { learnCb(bi); continue; } // learn consumes the press
-      const cfgAll = state.get();
-      let gi = -1;
-      let base = 0;
-      for (const kind of ['fxButtons', 'fxButtons2', 'fxButtons3', 'utilButtons']) {
-        const arr = cfgAll[kind] ?? [];
-        const idx = arr.findIndex(c => c.gamepadButton === bi);
-        if (idx !== -1) { gi = base + idx; break; }
-        base += arr.length;
-      }
-      if (gi === -1 || !handles[gi]) continue;
+      if (analogIdx.has(bi)) continue; // analog triggers never act as buttons
+      if (down && learnCb) { learnCb(bi, pickModifier(bi, heldSet)); continue; } // learn consumes the press
       if (down) {
-        handles[gi].press();
-        if (haptics.enabled && haptics.press) rumble(0.15, 0.4, 50);
+        const res = resolveBinding(state.get(), bi, heldSet);
+        if (res && handles[res.handle]) {
+          handles[res.handle].press();
+          active[bi] = res.handle;
+          if (haptics.enabled && haptics.press) rumble(0.15, 0.4, 50);
+        }
       } else {
-        handles[gi].release();
+        const hi = active[bi];
+        delete active[bi];
+        if (hi !== undefined && handles[hi]) handles[hi].release();
       }
     }
     prev = curr;
