@@ -6,6 +6,7 @@ import * as state from './state.js';
 import { showToast } from './toast.js';
 import { LIBRARY, placeholders, expand } from './osc-library.js';
 import { BUTTON_NAMES, armGamepadLearn, disarmGamepadLearn } from './gamepad.js';
+import { bindingLabel, stealBinding } from './gamepad-resolve.js';
 
 const GLYPHS = ['◆', '●', '▲', '▼', '■', '◉', '✕', '⚡', '⏱', '↻', '⊘', '⏻',
   '★', '♪', '☰', '◐', '▶', '◀', '⏸', '⏹', '✦', '☄', '♦', '▩'];
@@ -283,6 +284,28 @@ export function openEditor(kind, index) {
     }
     padRow.append(padBtn('NONE', -1), ...BUTTON_NAMES.map((n, bi) => padBtn(n, bi)));
     padWrap.appendChild(padRow);
+
+    // Modifier: hold this pad button while pressing the one above to fire
+    // this binding instead of that button's plain one.
+    const modWrap = h('div', 'field');
+    modWrap.append(h('label', null, 'Modifier (hold with)'));
+    const modRow = h('div', 'glyph-row');
+    function modBtn(labelText, val) {
+      const mb = h('button', 'pad-pick', labelText);
+      mb.classList.toggle('on', (draft.gamepadModifier ?? -1) === val);
+      mb.addEventListener('pointerdown', () => {
+        draft.gamepadModifier = val;
+        modRow.querySelectorAll('.on').forEach(x => x.classList.remove('on'));
+        mb.classList.add('on');
+      });
+      return mb;
+    }
+    modRow.append(modBtn('NONE', -1), ...BUTTON_NAMES.map((n, bi) => modBtn(n, bi)));
+    modWrap.appendChild(modRow);
+    body.append(padWrap, modWrap);
+    body.append(h('div', 'hint',
+      'A modifier held alone still fires its own binding; only the second button changes.'));
+
     const padLearn = h('button', 'big-btn learn-btn u-caps', 'Gamepad learn');
     padLearn.addEventListener('pointerdown', () => {
       if (padLearn.classList.contains('listening')) {
@@ -293,15 +316,15 @@ export function openEditor(kind, index) {
       }
       padLearn.classList.add('listening');
       padLearn.textContent = 'PRESS A CONTROLLER BUTTON…';
-      armGamepadLearn(bi => {
+      armGamepadLearn((bi, modifier) => {
         draft.gamepadButton = bi;
+        draft.gamepadModifier = modifier ?? -1;
         disarmGamepadLearn();
         buildBody();
-        showToast(`Bound to ${BUTTON_NAMES[bi]}`);
+        showToast(`Bound to ${bindingLabel(BUTTON_NAMES, bi, draft.gamepadModifier)}`);
       });
     });
-    padWrap.appendChild(padLearn);
-    body.append(padWrap);
+    body.append(padLearn);
 
     body.append(checkRow('Repeat while held', draft.repeat?.enabled ?? false,
       v => { draft.repeat = { ...draft.repeat, enabled: v }; }));
@@ -359,14 +382,9 @@ export function openEditor(kind, index) {
   save.id = 'ed-save';
   save.addEventListener('pointerdown', () => {
     if ((kind.startsWith('fxButtons') || kind === 'utilButtons') && draft.gamepadButton >= 0) {
-      // one controller button drives one FX button — steal the binding across pages
-      for (const k of ['fxButtons', 'fxButtons2', 'fxButtons3', 'utilButtons']) {
-        state.get()[k]?.forEach((c, j) => {
-          if (!(k === kind && j === index) && c.gamepadButton === draft.gamepadButton) {
-            c.gamepadButton = -1;
-          }
-        });
-      }
+      // one (button, modifier) pair drives one FX button — steal that exact
+      // pair across pages; a plain A binding survives adding RT+A elsewhere
+      stealBinding(state.get(), kind, index, draft.gamepadButton, draft.gamepadModifier ?? -1);
     }
     state.replaceControl(kind, index, draft);
     showToast(`${KIND_TITLES[kind]} ${index + 1} saved`);
