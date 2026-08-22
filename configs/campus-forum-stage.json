@@ -47,12 +47,12 @@
       "enabled": true,
       "label": "LS · PAN",
       "x": {
-        "address": "/composition/video/effects/transform/effect/positionx",
+        "address": "/composition/video/effects/transform/positionx",
         "center": 0.5,
         "scale": 0.03
       },
       "y": {
-        "address": "/composition/video/effects/transform/effect/positiony",
+        "address": "/composition/video/effects/transform/positiony",
         "center": 0.5,
         "scale": -0.03
       }
@@ -61,12 +61,12 @@
       "enabled": true,
       "label": "RS · ZOOM/ROT",
       "x": {
-        "address": "/composition/video/effects/transform/effect/rotationz",
+        "address": "/composition/video/effects/transform/rotationz",
         "center": 0.5,
         "scale": 0.05
       },
       "y": {
-        "address": "/composition/video/effects/transform/effect/scale",
+        "address": "/composition/video/effects/transform/scale",
         "center": 0.1,
         "scale": -0.05
       }

@@ -61,8 +61,12 @@ test('new comp FX are on the surface: BOOM INV bump + DISTORT util toggle', () =
   assert.equal(distort.address, '/composition/video/effects/distortion/bypassed');
   assert.equal(distort.value, 0, 'press enables (bypassed=0)');
   assert.equal(distort.offValue, 1, 'off re-bypasses');
-  assert.ok(cfg.sticks.ls.x.address.includes('/effect/positionx'), 'stick params use /effect/ segment');
-  assert.ok(cfg.sticks.rs.y.address.includes('/effect/scale'));
+  // Resolume 7.26+ composition Transform has no /effect/ segment (verified
+  // live via Art-Net + REST readback); the legacy .../transform/effect/<p>
+  // form is still covered as a fan-out target in tools/dmx_map.py.
+  assert.equal(cfg.sticks.ls.x.address, '/composition/video/effects/transform/positionx');
+  assert.equal(cfg.sticks.rs.y.address, '/composition/video/effects/transform/scale');
+  assert.ok(!cfg.sticks.ls.x.address.includes('/effect/'), 'stick params must not use the legacy /effect/ segment');
 });
 
 test('defaults() returns fresh objects each call', () => {

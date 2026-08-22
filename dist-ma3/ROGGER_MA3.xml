@@ -518,21 +518,41 @@
 			<RawInputMessage key="360287970189639773" value="0" numSteps="256" 9bit="1"/>
 		</Shortcut>
 		<Shortcut name="Shortcut" uniqueId="1755800000116" paramNodeName="ParamRange" behaviour="22">
-			<ShortcutPath name="InputPath" path="/composition/video/effects/transform/effect/positionx" translationType="1" allowedTranslationTypes="1"/>
+			<ShortcutPath name="InputPath" path="/composition/video/effects/transform/positionx" translationType="1" allowedTranslationTypes="1"/>
 			<Subtarget type="5" optionIndex="-1"/>
 			<RawInputMessage key="360287970189639774" value="0" numSteps="256" 9bit="1"/>
 		</Shortcut>
 		<Shortcut name="Shortcut" uniqueId="1755800000117" paramNodeName="ParamRange" behaviour="22">
+			<ShortcutPath name="InputPath" path="/composition/video/effects/transform/effect/positionx" translationType="1" allowedTranslationTypes="1"/>
+			<Subtarget type="5" optionIndex="-1"/>
+			<RawInputMessage key="360287970189639774" value="0" numSteps="256" 9bit="1"/>
+		</Shortcut>
+		<Shortcut name="Shortcut" uniqueId="1755800000118" paramNodeName="ParamRange" behaviour="22">
+			<ShortcutPath name="InputPath" path="/composition/video/effects/transform/positiony" translationType="1" allowedTranslationTypes="1"/>
+			<Subtarget type="5" optionIndex="-1"/>
+			<RawInputMessage key="360287970189639775" value="0" numSteps="256" 9bit="1"/>
+		</Shortcut>
+		<Shortcut name="Shortcut" uniqueId="1755800000119" paramNodeName="ParamRange" behaviour="22">
 			<ShortcutPath name="InputPath" path="/composition/video/effects/transform/effect/positiony" translationType="1" allowedTranslationTypes="1"/>
 			<Subtarget type="5" optionIndex="-1"/>
 			<RawInputMessage key="360287970189639775" value="0" numSteps="256" 9bit="1"/>
 		</Shortcut>
-		<Shortcut name="Shortcut" uniqueId="1755800000118" paramNodeName="ParamRange" behaviour="22">
+		<Shortcut name="Shortcut" uniqueId="1755800000120" paramNodeName="ParamRange" behaviour="22">
+			<ShortcutPath name="InputPath" path="/composition/video/effects/transform/scale" translationType="1" allowedTranslationTypes="1"/>
+			<Subtarget type="5" optionIndex="-1"/>
+			<RawInputMessage key="360287970189639776" value="0" numSteps="256" 9bit="1"/>
+		</Shortcut>
+		<Shortcut name="Shortcut" uniqueId="1755800000121" paramNodeName="ParamRange" behaviour="22">
 			<ShortcutPath name="InputPath" path="/composition/video/effects/transform/effect/scale" translationType="1" allowedTranslationTypes="1"/>
 			<Subtarget type="5" optionIndex="-1"/>
 			<RawInputMessage key="360287970189639776" value="0" numSteps="256" 9bit="1"/>
 		</Shortcut>
-		<Shortcut name="Shortcut" uniqueId="1755800000119" paramNodeName="ParamRange" behaviour="22">
+		<Shortcut name="Shortcut" uniqueId="1755800000122" paramNodeName="ParamRange" behaviour="22">
+			<ShortcutPath name="InputPath" path="/composition/video/effects/transform/rotationz" translationType="1" allowedTranslationTypes="1"/>
+			<Subtarget type="5" optionIndex="-1"/>
+			<RawInputMessage key="360287970189639777" value="0" numSteps="256" 9bit="1"/>
+		</Shortcut>
+		<Shortcut name="Shortcut" uniqueId="1755800000123" paramNodeName="ParamRange" behaviour="22">
 			<ShortcutPath name="InputPath" path="/composition/video/effects/transform/effect/rotationz" translationType="1" allowedTranslationTypes="1"/>
 			<Subtarget type="5" optionIndex="-1"/>
 			<RawInputMessage key="360287970189639777" value="0" numSteps="256" 9bit="1"/>

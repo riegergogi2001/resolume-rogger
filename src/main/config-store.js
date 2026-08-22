@@ -105,13 +105,13 @@ function defaults() {
     sticks: {
       ls: {
         enabled: true, label: 'LS · PAN',
-        x: { address: '/composition/video/effects/transform/effect/positionx', center: 0.5, scale: 0.03 },
-        y: { address: '/composition/video/effects/transform/effect/positiony', center: 0.5, scale: -0.03 },
+        x: { address: '/composition/video/effects/transform/positionx', center: 0.5, scale: 0.03 },
+        y: { address: '/composition/video/effects/transform/positiony', center: 0.5, scale: -0.03 },
       },
       rs: {
         enabled: true, label: 'RS · ZOOM/ROT',
-        x: { address: '/composition/video/effects/transform/effect/rotationz', center: 0.5, scale: 0.05 },
-        y: { address: '/composition/video/effects/transform/effect/scale', center: 0.1, scale: -0.05 },
+        x: { address: '/composition/video/effects/transform/rotationz', center: 0.5, scale: 0.05 },
+        y: { address: '/composition/video/effects/transform/scale', center: 0.1, scale: -0.05 },
       },
     },
     // Defaults mirror the autoVJ template composition: layer 12 = FX rack

@@ -88,6 +88,9 @@ clears let go), per-button icon / label / color, OSC learn, command library.
 2. For learn / feedback / LIVE lamp / auto-BPM: enable **OSC Output**,
    target = the controller device's IP, port **7001**.
 3. For the DJ-page sync and BPM seeding: enable the **Webserver** (port 9292).
+4. Composition Transform (pan/zoom/rotate) targets `/composition/video/effects/transform/<param>`
+   on Resolume Arena 7.26+ (no `/effect/` segment — older builds used the
+   `.../transform/effect/<param>` form; ROGGER's grandMA3 DMX preset fans out to both).
 
 ## Development (any OS)
 
