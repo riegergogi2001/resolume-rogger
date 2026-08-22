@@ -100,17 +100,10 @@ body {
 .fx-bank.grid24 .fx-btn .fx-label { font-size: 13px; }
 .fx-bank.grid24 .fx-btn .fx-icon { font-size: 18px; }
 
-/* custom pages (Colors / Agent / Director) manage their own internal grid */
+/* custom pages (Colors) manage their own internal grid */
 .fx-page--custom.active.color-lab {
   grid-template-rows: auto auto 1fr auto auto;
 }
-.fx-page--custom.active.agent-page {
-  grid-template-rows: auto auto auto 1fr auto auto;
-}
-.fx-page--custom.active.director-page {
-  grid-template-rows: auto auto auto auto auto 1fr;
-}
-.director-page .dir-foot .agent-log { height: 100%; min-height: 120px; }
 
 #fader-rack {
   display: grid;

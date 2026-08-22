@@ -1,6 +1,6 @@
 # ROGGER
 
-**Touchscreen OSC performance controller for Resolume — with an AI VJ brain.**
+**Touchscreen OSC performance controller for Resolume.**
 
 A professional touchscreen OSC performance controller, optimized for the
 ASUS ROG Ally X (Windows 11, 7" 1920x1080 multitouch, landscape). ROGGER is
@@ -8,14 +8,12 @@ not a Resolume mirror — it is a customizable live surface in the spirit of
 grandMA3 / Luminex / Stream Deck hardware that drives Resolume Arena/Avenue or
 any OSC-compatible software over Wi-Fi.
 
-Zero runtime dependencies (vanilla JS/CSS + Electron), a hand-rolled OSC 1.0
-codec, an ML beat-tracking sidecar, and an autonomous AI Visual Director that
-understands your composition and reacts to the music — with stage-safe
-guardrails everywhere.
+Zero runtime dependencies (vanilla JS/CSS + Electron) and a hand-rolled OSC
+1.0 codec, with stage-safe guardrails everywhere.
 
 ## Surface
 
-- **Five pages** with tabs:
+- **Four pages** with tabs:
   - **Page 1** — FLASH bank (8 momentary punch buttons) and BUMP bank
     (a 2x2 utility quad — small toggles like keep-greys / haze / CO2 /
     auto-VJ — plus 7 one-shot punches).
@@ -32,28 +30,6 @@ guardrails everywhere.
   - The APC40 mkII mapping cheat sheet ships as a standalone shareable page,
     `docs/apc40-mapping.html` (regenerate after remapping with
     `python3 tools/gen-akai-map.py`) — send it along with the composition.
-  - **Agent** — cockpit for the AI VJ agent (`agent/rogger_agent.py`, a Mac
-    sidecar that listens to line-in/mic, tracks beats with the BeatNet ML
-    model — DSP fallback — and detects build-ups / drops / breakdowns).
-    Live band meters, BPM + confidence, section state, event log, and cue
-    rules (event → OSC macro with cooldown + pulse) — including **percussive
-    onset triggers** (kick / snare / hat, fired within ~25–45 ms of the hit).
-    Nothing fires until the big **ARM** button is lit; TEST works while
-    disarmed. See `agent/README.md`.
-  - **Director** — the autonomous AI Visual Director (`src/renderer/js/director/`).
-    Consumes the agent's music intelligence (beat/phrase position, build/drop/
-    fake-build/breakdown, energy/tension/bass/density/vocal metrics, drop
-    predictions), inspects the live composition through Resolume's webserver
-    to build a **semantic show model** (hero/strobe/flash/impact/camera-FX
-    roles; TC/PB, TIMER, LFV, AB, INPUT layers are protected and never
-    touched), and emits high-level intents (TriggerFlash, SwitchDeck,
-    HoldCurrentVisual…) with **confidence + reasoning**. A visual-economy
-    memory makes repeated strobes/flashes/impacts progressively more
-    expensive; confidence tiers (act / cautious / hold / notify), **safe
-    mode** on health issues (audio lost, BPM lost, Resolume API down, UI
-    overload), and **supervisor mode** (any manual touch pauses the AI for
-    30 s, then it eases back in) keep it stage-safe. Boots disarmed in
-    suggest mode; every decision is logged as JSONL for replay/learning.
 - **8 main faders** — vertical MASTER + layer masters + logo, horizontal
   utility strips (multi-target fan-out, e.g. both pushers' fade-out from one
   fader). Double-tap resets; invert/sensitivity/min/max per fader; ♪ beat
@@ -89,26 +65,6 @@ clears let go), per-button icon / label / color, OSC learn, command library.
 2. For learn / feedback / LIVE lamp / auto-BPM: enable **OSC Output**,
    target = the controller device's IP, port **7001**.
 3. For the DJ-page sync and BPM seeding: enable the **Webserver** (port 9292).
-
-## Director brain (local model)
-
-The Director can hand its decisions to a **local model** served by LM Studio
-(or Ollama / llama-server — any OpenAI-style endpoint). Toggle the **BRAIN**
-chip on the Director page; when the server is reachable the model picks the
-intent *and* the color mood every few bars, and a vision model (if one is
-loaded, e.g. `qwen3-vl`) periodically reviews a screenshot of the output
-display. Everything is schema-validated, flows through the same confidence
-tiers / protected-layer guard, and the heuristic policy takes over the moment
-the model is off, slow or malformed.
-
-Setup on the performance machine:
-
-1. Install LM Studio, load a small instruct model (e.g. `qwen2.5-3b-instruct`
-   — avoid "thinking" models for low latency) and optionally a vision model.
-2. Start the local server (default `http://127.0.0.1:1234`).
-3. Director page → tap **BRAIN**. Config keys live under `director.brain`
-   (`url`, `model`, `visionModel`, `decideEveryBars`, `lookEveryMs`,
-   `display` — which screen the Resolume output lives on).
 
 ## Development (any OS)
 
@@ -147,10 +103,6 @@ is plenty of room to grow. Good places to jump in:
 
 - **New button behaviors / OSC targets** — the command library and button
   editor are designed to be extended.
-- **Director intelligence** — new intents, better policies, smarter show-model
-  role detection, replay/learning from the JSONL decision logs.
-- **Beat detection** — improvements to the BeatNet/DSP sidecar
-  (`agent/rogger_agent.py`).
 - **Hardware surfaces** — mappings beyond the APC40 mkII, other handhelds and
   touch devices.
 - **Docs, tests, bug reports** — always appreciated.

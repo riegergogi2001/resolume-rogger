@@ -35,35 +35,10 @@ function mockBridge() {
     quit: () => { window.__quitCalled = true; },
     syncDjPage: async () => { window.__djSynced = true; return config ?? loadConfig(); },
     seedBpm: async () => 128,
-    // Synthetic composition (REST-shaped) so the Director's show model works
-    // in browser mode; the real bridge proxies Resolume's webserver.
-    inspectComposition: async () => ({
-      layers: [
-        { name: { value: 'VIDEO 1' }, clips: [{ name: { value: 'GeneraXYZ_07' } }] },
-        { name: { value: 'VIDEO 2' }, clips: [{ name: { value: 'CityBlocks_02' } }] },
-        { name: { value: 'BANNER MAIN' }, clips: [] },
-        { name: { value: 'LOGO DJ' }, clips: [] },
-        { name: { value: 'INPUT' }, clips: [] },
-        {
-          name: { value: 'FX 1' },
-          clips: ['Blank', 'GeneraXYZ_07', 'FLASH MASTER', 'FLASH MASTER', 'INVERT',
-            'PIXELATE', 'FE STR', 'SUCK IT!', 'SLICE STROBE'].map(n => ({ name: { value: n } })),
-        },
-        { name: { value: 'TC/PB DJ' }, clips: [] },
-        { name: { value: 'DJ TIMER' }, clips: [] },
-        { name: { value: 'LFV ROUTE' }, clips: [] },
-      ],
-    }),
     send: (address, values = []) => window.__oscLog.push({ address, values }),
     sendTyped: (address, args = []) => window.__oscLog.push({ address, args }),
     applyNetwork: async network => { window.__oscLog.push({ applyNetwork: network }); },
     testConnection: async () => ({ ok: true, detail: 'Mock bridge — no network.' }),
-    brainModels: async () => ['mock-brain'],
-    brainChat: async () => ({
-      json: { intent: 'HoldCurrentVisual', confidence: 0.55, reason: 'mock brain idle' },
-      raw: '', model: 'mock-brain',
-    }),
-    brainScreenshot: async () => 'data:image/jpeg;base64,',
     armLearn: () => { window.__learnArmed = true; },
     disarmLearn: () => { window.__learnArmed = false; },
     getStatus: async () => 'ready',

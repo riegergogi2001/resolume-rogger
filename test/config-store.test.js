@@ -133,23 +133,6 @@ test('load() unions colorTargets by id so configs saved before morph targets kee
   assert.equal(cfg.colorMorph.speedAddress, '/composition/video/effects/colormorph/effect/speed');
 });
 
-test('load() unions agent rules by id and keeps saved tweaks', () => {
-  const file = path.join(dir, 'config.json');
-  fs.writeFileSync(file, JSON.stringify({
-    agent: { feedBeatClock: true, rules: [{ id: 'drop', cooldownMs: 4000 }] },
-  }));
-  const cfg = store.load(file);
-  assert.deepEqual(cfg.agent.rules.map(r => r.id),
-    ['drop', 'dropstrobe', 'climax', 'build', 'fakebuild', 'breakdown',
-      'vocal', 'vocalend', 'bump', 'kickpush', 'phrasecol', 'steady']);
-  assert.equal(cfg.agent.riders.length, 3, 'layer opacity riders present');
-  assert.equal(cfg.agent.riders[0].address, '/composition/layers/2/master');
-  assert.equal(cfg.agent.rules[0].cooldownMs, 4000, 'saved cooldown kept');
-  assert.ok(cfg.agent.rules[0].macro[0].address.includes('/clips/3/connect'), 'default macro kept');
-  assert.ok(cfg.agent.rules[0].variants.length >= 2, 'drop cue keeps its variants');
-  assert.equal(cfg.agent.feedBeatClock, true);
-});
-
 test('save() creates parent directories', () => {
   const file = path.join(dir, 'nested', 'deep', 'config.json');
   store.save(file, store.defaults());
