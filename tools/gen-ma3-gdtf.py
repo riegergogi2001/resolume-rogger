@@ -261,7 +261,10 @@ def main():
     out_dir = os.path.dirname(OUT_PATH)
     os.makedirs(out_dir, exist_ok=True)
     with zipfile.ZipFile(OUT_PATH, 'w', zipfile.ZIP_DEFLATED) as z:
-        z.writestr('description.xml', xml_bytes)
+        # fixed timestamp so regenerating an unchanged map yields an identical file
+        info = zipfile.ZipInfo('description.xml', date_time=(2026, 8, 22, 0, 0, 0))
+        info.compress_type = zipfile.ZIP_DEFLATED
+        z.writestr(info, xml_bytes)
 
     print(f'wrote {OUT_PATH} ({len(rows)} channels, validated)')
 
