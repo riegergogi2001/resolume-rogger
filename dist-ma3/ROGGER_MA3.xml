@@ -1,0 +1,541 @@
+<?xml version="1.0" encoding="utf-8"?>
+<DMXShortcutPreset presetId="-1755800000" name="ROGGER_MA3">
+	<versionInfo name="Resolume Arena" majorVersion="7" minorVersion="25" microVersion="1" revision="1565"/>
+	<ShortcutManager name="DMXShortcutManagerShortcuts">
+		<Shortcut name="Shortcut" uniqueId="1755800000000" paramNodeName="ParamRange" behaviour="22">
+			<ShortcutPath name="InputPath" path="/composition/master" translationType="1" allowedTranslationTypes="1"/>
+			<Subtarget type="5" optionIndex="-1"/>
+			<RawInputMessage key="360287970189639680" value="0" numSteps="256" 9bit="1"/>
+		</Shortcut>
+		<Shortcut name="Shortcut" uniqueId="1755800000001" paramNodeName="ParamRange" behaviour="22">
+			<ShortcutPath name="InputPath" path="/composition/layers/1/master" translationType="1" allowedTranslationTypes="1"/>
+			<Subtarget type="5" optionIndex="-1"/>
+			<RawInputMessage key="360287970189639681" value="0" numSteps="256" 9bit="1"/>
+		</Shortcut>
+		<Shortcut name="Shortcut" uniqueId="1755800000002" paramNodeName="ParamRange" behaviour="22">
+			<ShortcutPath name="InputPath" path="/composition/layers/2/master" translationType="1" allowedTranslationTypes="1"/>
+			<Subtarget type="5" optionIndex="-1"/>
+			<RawInputMessage key="360287970189639682" value="0" numSteps="256" 9bit="1"/>
+		</Shortcut>
+		<Shortcut name="Shortcut" uniqueId="1755800000003" paramNodeName="ParamRange" behaviour="22">
+			<ShortcutPath name="InputPath" path="/composition/layers/3/master" translationType="1" allowedTranslationTypes="1"/>
+			<Subtarget type="5" optionIndex="-1"/>
+			<RawInputMessage key="360287970189639683" value="0" numSteps="256" 9bit="1"/>
+		</Shortcut>
+		<Shortcut name="Shortcut" uniqueId="1755800000004" paramNodeName="ParamRange" behaviour="22">
+			<ShortcutPath name="InputPath" path="/composition/layers/4/master" translationType="1" allowedTranslationTypes="1"/>
+			<Subtarget type="5" optionIndex="-1"/>
+			<RawInputMessage key="360287970189639684" value="0" numSteps="256" 9bit="1"/>
+		</Shortcut>
+		<Shortcut name="Shortcut" uniqueId="1755800000005" paramNodeName="ParamRange" behaviour="22">
+			<ShortcutPath name="InputPath" path="/composition/layers/9/master" translationType="1" allowedTranslationTypes="1"/>
+			<Subtarget type="5" optionIndex="-1"/>
+			<RawInputMessage key="360287970189639685" value="0" numSteps="256" 9bit="1"/>
+		</Shortcut>
+		<Shortcut name="Shortcut" uniqueId="1755800000006" paramNodeName="ParamRange" behaviour="22">
+			<ShortcutPath name="InputPath" path="/composition/groups/1/master" translationType="1" allowedTranslationTypes="1"/>
+			<Subtarget type="5" optionIndex="-1"/>
+			<RawInputMessage key="360287970189639686" value="0" numSteps="256" 9bit="1"/>
+		</Shortcut>
+		<Shortcut name="Shortcut" uniqueId="1755800000007" paramNodeName="ParamRange" behaviour="22">
+			<ShortcutPath name="InputPath" path="/composition/groups/2/master" translationType="1" allowedTranslationTypes="1"/>
+			<Subtarget type="5" optionIndex="-1"/>
+			<RawInputMessage key="360287970189639687" value="0" numSteps="256" 9bit="1"/>
+		</Shortcut>
+		<Shortcut name="Shortcut" uniqueId="1755800000008" paramNodeName="ParamRange" behaviour="22">
+			<ShortcutPath name="InputPath" path="/composition/groups/3/master" translationType="1" allowedTranslationTypes="1"/>
+			<Subtarget type="5" optionIndex="-1"/>
+			<RawInputMessage key="360287970189639688" value="0" numSteps="256" 9bit="1"/>
+		</Shortcut>
+		<Shortcut name="Shortcut" uniqueId="1755800000009" paramNodeName="ParamRange" behaviour="22">
+			<ShortcutPath name="InputPath" path="/composition/groups/4/master" translationType="1" allowedTranslationTypes="1"/>
+			<Subtarget type="5" optionIndex="-1"/>
+			<RawInputMessage key="360287970189639689" value="0" numSteps="256" 9bit="1"/>
+		</Shortcut>
+		<Shortcut name="Shortcut" uniqueId="1755800000010" paramNodeName="ParamRange" behaviour="22">
+			<ShortcutPath name="InputPath" path="/composition/groups/5/master" translationType="1" allowedTranslationTypes="1"/>
+			<Subtarget type="5" optionIndex="-1"/>
+			<RawInputMessage key="360287970189639690" value="0" numSteps="256" 9bit="1"/>
+		</Shortcut>
+		<Shortcut name="Shortcut" uniqueId="1755800000011" paramNodeName="ParamRange" behaviour="22">
+			<ShortcutPath name="InputPath" path="/composition/groups/6/master" translationType="1" allowedTranslationTypes="1"/>
+			<Subtarget type="5" optionIndex="-1"/>
+			<RawInputMessage key="360287970189639691" value="0" numSteps="256" 9bit="1"/>
+		</Shortcut>
+		<Shortcut name="Shortcut" uniqueId="1755800000012" paramNodeName="ParamRange" behaviour="22">
+			<ShortcutPath name="InputPath" path="/composition/video/effects/pusher/effect/fadeouttime" translationType="1" allowedTranslationTypes="1"/>
+			<Subtarget type="5" optionIndex="-1"/>
+			<RawInputMessage key="360287970189639692" value="0" numSteps="256" 9bit="1"/>
+		</Shortcut>
+		<Shortcut name="Shortcut" uniqueId="1755800000013" paramNodeName="ParamRange" behaviour="22">
+			<ShortcutPath name="InputPath" path="/composition/video/effects/pusher2/effect/fadeouttime" translationType="1" allowedTranslationTypes="1"/>
+			<Subtarget type="5" optionIndex="-1"/>
+			<RawInputMessage key="360287970189639692" value="0" numSteps="256" 9bit="1"/>
+		</Shortcut>
+		<Shortcut name="Shortcut" uniqueId="1755800000014" paramNodeName="ParamRange" behaviour="22">
+			<ShortcutPath name="InputPath" path="/composition/layers/12/clips/3/video/effects/flashmaster/effect/strobespeed" translationType="1" allowedTranslationTypes="1"/>
+			<Subtarget type="5" optionIndex="-1"/>
+			<RawInputMessage key="360287970189639693" value="0" numSteps="256" 9bit="1"/>
+		</Shortcut>
+		<Shortcut name="Shortcut" uniqueId="1755800000015" paramNodeName="ParamRange" behaviour="22">
+			<ShortcutPath name="InputPath" path="/composition/layers/12/clips/4/video/effects/flashmaster/effect/strobespeed" translationType="1" allowedTranslationTypes="1"/>
+			<Subtarget type="5" optionIndex="-1"/>
+			<RawInputMessage key="360287970189639693" value="0" numSteps="256" 9bit="1"/>
+		</Shortcut>
+		<Shortcut name="Shortcut" uniqueId="1755800000016" paramNodeName="ParamRange" behaviour="22">
+			<ShortcutPath name="InputPath" path="/composition/layers/12/clips/7/video/effects/flashmaster/effect/strobespeed" translationType="1" allowedTranslationTypes="1"/>
+			<Subtarget type="5" optionIndex="-1"/>
+			<RawInputMessage key="360287970189639693" value="0" numSteps="256" 9bit="1"/>
+		</Shortcut>
+		<Shortcut name="Shortcut" uniqueId="1755800000017" paramNodeName="ParamRange" behaviour="22">
+			<ShortcutPath name="InputPath" path="/composition/layers/12/clips/9/video/effects/slicestrobe/effect/speed" translationType="1" allowedTranslationTypes="1"/>
+			<Subtarget type="5" optionIndex="-1"/>
+			<RawInputMessage key="360287970189639693" value="0" numSteps="256" 9bit="1"/>
+		</Shortcut>
+		<Shortcut name="Shortcut" uniqueId="1755800000018" paramNodeName="ParamEvent" behaviour="1046">
+			<ShortcutPath name="InputPath" path="/composition/layers/12/clips/2/connect" translationType="1" allowedTranslationTypes="1"/>
+			<RawInputMessage key="360287970189639694" value="0" numSteps="256" 9bit="1"/>
+		</Shortcut>
+		<Shortcut name="Shortcut" uniqueId="1755800000019" paramNodeName="ParamEvent" behaviour="1046">
+			<ShortcutPath name="InputPath" path="/composition/layers/12/clips/3/connect" translationType="1" allowedTranslationTypes="1"/>
+			<RawInputMessage key="360287970189639695" value="0" numSteps="256" 9bit="1"/>
+		</Shortcut>
+		<Shortcut name="Shortcut" uniqueId="1755800000020" paramNodeName="ParamEvent" behaviour="1046">
+			<ShortcutPath name="InputPath" path="/composition/layers/12/clips/4/connect" translationType="1" allowedTranslationTypes="1"/>
+			<RawInputMessage key="360287970189639696" value="0" numSteps="256" 9bit="1"/>
+		</Shortcut>
+		<Shortcut name="Shortcut" uniqueId="1755800000021" paramNodeName="ParamEvent" behaviour="1046">
+			<ShortcutPath name="InputPath" path="/composition/layers/12/clips/5/connect" translationType="1" allowedTranslationTypes="1"/>
+			<RawInputMessage key="360287970189639697" value="0" numSteps="256" 9bit="1"/>
+		</Shortcut>
+		<Shortcut name="Shortcut" uniqueId="1755800000022" paramNodeName="ParamEvent" behaviour="1046">
+			<ShortcutPath name="InputPath" path="/composition/layers/12/clips/6/connect" translationType="1" allowedTranslationTypes="1"/>
+			<RawInputMessage key="360287970189639698" value="0" numSteps="256" 9bit="1"/>
+		</Shortcut>
+		<Shortcut name="Shortcut" uniqueId="1755800000023" paramNodeName="ParamEvent" behaviour="1046">
+			<ShortcutPath name="InputPath" path="/composition/layers/12/clips/7/connect" translationType="1" allowedTranslationTypes="1"/>
+			<RawInputMessage key="360287970189639699" value="0" numSteps="256" 9bit="1"/>
+		</Shortcut>
+		<Shortcut name="Shortcut" uniqueId="1755800000024" paramNodeName="ParamEvent" behaviour="1046">
+			<ShortcutPath name="InputPath" path="/composition/layers/12/clips/8/connect" translationType="1" allowedTranslationTypes="1"/>
+			<RawInputMessage key="360287970189639700" value="0" numSteps="256" 9bit="1"/>
+		</Shortcut>
+		<Shortcut name="Shortcut" uniqueId="1755800000025" paramNodeName="ParamEvent" behaviour="1046">
+			<ShortcutPath name="InputPath" path="/composition/layers/12/clips/9/connect" translationType="1" allowedTranslationTypes="1"/>
+			<RawInputMessage key="360287970189639701" value="0" numSteps="256" 9bit="1"/>
+		</Shortcut>
+		<Shortcut name="Shortcut" uniqueId="1755800000026" paramNodeName="ParamEvent" behaviour="1046">
+			<ShortcutPath name="InputPath" path="/composition/layers/12/clear" translationType="1" allowedTranslationTypes="1"/>
+			<RawInputMessage key="360287970189639702" value="0" numSteps="256" 9bit="1"/>
+		</Shortcut>
+		<Shortcut name="Shortcut" uniqueId="1755800000027" paramNodeName="ParamEvent" behaviour="1046">
+			<ShortcutPath name="InputPath" path="/composition/video/effects/boomer/effect/blur" translationType="1" allowedTranslationTypes="1"/>
+			<RawInputMessage key="360287970189639703" value="0" numSteps="256" 9bit="1"/>
+		</Shortcut>
+		<Shortcut name="Shortcut" uniqueId="1755800000028" paramNodeName="ParamEvent" behaviour="1046">
+			<ShortcutPath name="InputPath" path="/composition/video/effects/boomer/effect/exposure" translationType="1" allowedTranslationTypes="1"/>
+			<RawInputMessage key="360287970189639704" value="0" numSteps="256" 9bit="1"/>
+		</Shortcut>
+		<Shortcut name="Shortcut" uniqueId="1755800000029" paramNodeName="ParamEvent" behaviour="1046">
+			<ShortcutPath name="InputPath" path="/composition/video/effects/boomer/effect/edge" translationType="1" allowedTranslationTypes="1"/>
+			<RawInputMessage key="360287970189639705" value="0" numSteps="256" 9bit="1"/>
+		</Shortcut>
+		<Shortcut name="Shortcut" uniqueId="1755800000030" paramNodeName="ParamEvent" behaviour="1046">
+			<ShortcutPath name="InputPath" path="/composition/video/effects/boomer/effect/blow" translationType="1" allowedTranslationTypes="1"/>
+			<RawInputMessage key="360287970189639706" value="0" numSteps="256" 9bit="1"/>
+		</Shortcut>
+		<Shortcut name="Shortcut" uniqueId="1755800000031" paramNodeName="ParamEvent" behaviour="1046">
+			<ShortcutPath name="InputPath" path="/composition/video/effects/boomer/effect/invert" translationType="1" allowedTranslationTypes="1"/>
+			<RawInputMessage key="360287970189639707" value="0" numSteps="256" 9bit="1"/>
+		</Shortcut>
+		<Shortcut name="Shortcut" uniqueId="1755800000032" paramNodeName="ParamEvent" behaviour="1046">
+			<ShortcutPath name="InputPath" path="/composition/video/effects/pusher/effect/push!" translationType="1" allowedTranslationTypes="1"/>
+			<RawInputMessage key="360287970189639708" value="0" numSteps="256" 9bit="1"/>
+		</Shortcut>
+		<Shortcut name="Shortcut" uniqueId="1755800000033" paramNodeName="ParamEvent" behaviour="1046">
+			<ShortcutPath name="InputPath" path="/composition/video/effects/pusher2/effect/push!" translationType="1" allowedTranslationTypes="1"/>
+			<RawInputMessage key="360287970189639709" value="0" numSteps="256" 9bit="1"/>
+		</Shortcut>
+		<Shortcut name="Shortcut" uniqueId="1755800000034" paramNodeName="ParamEvent" behaviour="1046">
+			<ShortcutPath name="InputPath" path="/composition/video/effects/boomer/effect/blur" translationType="1" allowedTranslationTypes="1"/>
+			<RawInputMessage key="360287970189639710" value="0" numSteps="256" 9bit="1"/>
+		</Shortcut>
+		<Shortcut name="Shortcut" uniqueId="1755800000035" paramNodeName="ParamEvent" behaviour="1046">
+			<ShortcutPath name="InputPath" path="/composition/video/effects/boomer/effect/exposure" translationType="1" allowedTranslationTypes="1"/>
+			<RawInputMessage key="360287970189639710" value="0" numSteps="256" 9bit="1"/>
+		</Shortcut>
+		<Shortcut name="Shortcut" uniqueId="1755800000036" paramNodeName="ParamEvent" behaviour="1046">
+			<ShortcutPath name="InputPath" path="/composition/video/effects/boomer/effect/edge" translationType="1" allowedTranslationTypes="1"/>
+			<RawInputMessage key="360287970189639710" value="0" numSteps="256" 9bit="1"/>
+		</Shortcut>
+		<Shortcut name="Shortcut" uniqueId="1755800000037" paramNodeName="ParamEvent" behaviour="1046">
+			<ShortcutPath name="InputPath" path="/composition/video/effects/boomer/effect/blow" translationType="1" allowedTranslationTypes="1"/>
+			<RawInputMessage key="360287970189639710" value="0" numSteps="256" 9bit="1"/>
+		</Shortcut>
+		<Shortcut name="Shortcut" uniqueId="1755800000038" paramNodeName="ParamEvent" behaviour="1046">
+			<ShortcutPath name="InputPath" path="/composition/video/effects/pusher/effect/push!" translationType="1" allowedTranslationTypes="1"/>
+			<RawInputMessage key="360287970189639711" value="0" numSteps="256" 9bit="1"/>
+		</Shortcut>
+		<Shortcut name="Shortcut" uniqueId="1755800000039" paramNodeName="ParamEvent" behaviour="1046">
+			<ShortcutPath name="InputPath" path="/composition/video/effects/pusher2/effect/push!" translationType="1" allowedTranslationTypes="1"/>
+			<RawInputMessage key="360287970189639711" value="0" numSteps="256" 9bit="1"/>
+		</Shortcut>
+		<Shortcut name="Shortcut" uniqueId="1755800000040" paramNodeName="RangedParam[bool]" behaviour="22">
+			<ShortcutPath name="InputPath" path="/composition/groups/1/video/effects/colorize/effect/greyskeep" translationType="1" allowedTranslationTypes="1"/>
+			<RawInputMessage key="360287970189639712" value="0" numSteps="256" 9bit="1"/>
+		</Shortcut>
+		<Shortcut name="Shortcut" uniqueId="1755800000041" paramNodeName="RangedParam[bool]" behaviour="22">
+			<ShortcutPath name="InputPath" path="/composition/layers/8/video/effects/outlinehaze/bypassed" translationType="1" allowedTranslationTypes="1"/>
+			<RawInputMessage key="360287970189639713" value="0" numSteps="256" 9bit="1"/>
+		</Shortcut>
+		<Shortcut name="Shortcut" uniqueId="1755800000042" paramNodeName="RangedParam[bool]" behaviour="22">
+			<ShortcutPath name="InputPath" path="/composition/layers/9/video/effects/outlinehaze/bypassed" translationType="1" allowedTranslationTypes="1"/>
+			<RawInputMessage key="360287970189639713" value="0" numSteps="256" 9bit="1"/>
+		</Shortcut>
+		<Shortcut name="Shortcut" uniqueId="1755800000043" paramNodeName="RangedParam[bool]" behaviour="22">
+			<ShortcutPath name="InputPath" path="/composition/video/effects/distortion/bypassed" translationType="1" allowedTranslationTypes="1"/>
+			<RawInputMessage key="360287970189639714" value="0" numSteps="256" 9bit="1"/>
+		</Shortcut>
+		<Shortcut name="Shortcut" uniqueId="1755800000044" paramNodeName="ParamChoice" behaviour="22">
+			<ShortcutPath name="InputPath" path="/composition/layers/1/autopilot/target" translationType="1" allowedTranslationTypes="1"/>
+			<RawInputMessage key="360287970189639715" value="0" numSteps="256" 9bit="1"/>
+		</Shortcut>
+		<Shortcut name="Shortcut" uniqueId="1755800000045" paramNodeName="ParamRange" behaviour="22">
+			<ShortcutPath name="InputPath" path="/composition/groups/1/video/effects/colorize/effect/color/red" translationType="1" allowedTranslationTypes="1"/>
+			<Subtarget type="5" optionIndex="-1"/>
+			<RawInputMessage key="360287970189639716" value="0" numSteps="256" 9bit="1"/>
+		</Shortcut>
+		<Shortcut name="Shortcut" uniqueId="1755800000046" paramNodeName="ParamRange" behaviour="22">
+			<ShortcutPath name="InputPath" path="/composition/groups/1/video/effects/colorize/effect/color/green" translationType="1" allowedTranslationTypes="1"/>
+			<Subtarget type="5" optionIndex="-1"/>
+			<RawInputMessage key="360287970189639717" value="0" numSteps="256" 9bit="1"/>
+		</Shortcut>
+		<Shortcut name="Shortcut" uniqueId="1755800000047" paramNodeName="ParamRange" behaviour="22">
+			<ShortcutPath name="InputPath" path="/composition/groups/1/video/effects/colorize/effect/color/blue" translationType="1" allowedTranslationTypes="1"/>
+			<Subtarget type="5" optionIndex="-1"/>
+			<RawInputMessage key="360287970189639718" value="0" numSteps="256" 9bit="1"/>
+		</Shortcut>
+		<Shortcut name="Shortcut" uniqueId="1755800000048" paramNodeName="RangedParam[bool]" behaviour="22">
+			<ShortcutPath name="InputPath" path="/composition/groups/1/video/effects/colorize/bypassed" translationType="1" allowedTranslationTypes="1"/>
+			<RawInputMessage key="360287970189639719" value="0" numSteps="256" 9bit="1"/>
+		</Shortcut>
+		<Shortcut name="Shortcut" uniqueId="1755800000049" paramNodeName="ParamRange" behaviour="22">
+			<ShortcutPath name="InputPath" path="/composition/layers/8/video/effects/outlinehaze/effect/color/red" translationType="1" allowedTranslationTypes="1"/>
+			<Subtarget type="5" optionIndex="-1"/>
+			<RawInputMessage key="360287970189639720" value="0" numSteps="256" 9bit="1"/>
+		</Shortcut>
+		<Shortcut name="Shortcut" uniqueId="1755800000050" paramNodeName="ParamRange" behaviour="22">
+			<ShortcutPath name="InputPath" path="/composition/layers/9/video/effects/outlinehaze/effect/color/red" translationType="1" allowedTranslationTypes="1"/>
+			<Subtarget type="5" optionIndex="-1"/>
+			<RawInputMessage key="360287970189639720" value="0" numSteps="256" 9bit="1"/>
+		</Shortcut>
+		<Shortcut name="Shortcut" uniqueId="1755800000051" paramNodeName="ParamRange" behaviour="22">
+			<ShortcutPath name="InputPath" path="/composition/layers/8/video/effects/outlinehaze/effect/color/green" translationType="1" allowedTranslationTypes="1"/>
+			<Subtarget type="5" optionIndex="-1"/>
+			<RawInputMessage key="360287970189639721" value="0" numSteps="256" 9bit="1"/>
+		</Shortcut>
+		<Shortcut name="Shortcut" uniqueId="1755800000052" paramNodeName="ParamRange" behaviour="22">
+			<ShortcutPath name="InputPath" path="/composition/layers/9/video/effects/outlinehaze/effect/color/green" translationType="1" allowedTranslationTypes="1"/>
+			<Subtarget type="5" optionIndex="-1"/>
+			<RawInputMessage key="360287970189639721" value="0" numSteps="256" 9bit="1"/>
+		</Shortcut>
+		<Shortcut name="Shortcut" uniqueId="1755800000053" paramNodeName="ParamRange" behaviour="22">
+			<ShortcutPath name="InputPath" path="/composition/layers/8/video/effects/outlinehaze/effect/color/blue" translationType="1" allowedTranslationTypes="1"/>
+			<Subtarget type="5" optionIndex="-1"/>
+			<RawInputMessage key="360287970189639722" value="0" numSteps="256" 9bit="1"/>
+		</Shortcut>
+		<Shortcut name="Shortcut" uniqueId="1755800000054" paramNodeName="ParamRange" behaviour="22">
+			<ShortcutPath name="InputPath" path="/composition/layers/9/video/effects/outlinehaze/effect/color/blue" translationType="1" allowedTranslationTypes="1"/>
+			<Subtarget type="5" optionIndex="-1"/>
+			<RawInputMessage key="360287970189639722" value="0" numSteps="256" 9bit="1"/>
+		</Shortcut>
+		<Shortcut name="Shortcut" uniqueId="1755800000055" paramNodeName="ParamRange" behaviour="22">
+			<ShortcutPath name="InputPath" path="/composition/layers/12/clips/3/video/effects/flashmaster/effect/color1/red" translationType="1" allowedTranslationTypes="1"/>
+			<Subtarget type="5" optionIndex="-1"/>
+			<RawInputMessage key="360287970189639723" value="0" numSteps="256" 9bit="1"/>
+		</Shortcut>
+		<Shortcut name="Shortcut" uniqueId="1755800000056" paramNodeName="ParamRange" behaviour="22">
+			<ShortcutPath name="InputPath" path="/composition/layers/12/clips/4/video/effects/flashmaster/effect/color1/red" translationType="1" allowedTranslationTypes="1"/>
+			<Subtarget type="5" optionIndex="-1"/>
+			<RawInputMessage key="360287970189639723" value="0" numSteps="256" 9bit="1"/>
+		</Shortcut>
+		<Shortcut name="Shortcut" uniqueId="1755800000057" paramNodeName="ParamRange" behaviour="22">
+			<ShortcutPath name="InputPath" path="/composition/layers/12/clips/7/video/effects/flashmaster/effect/color1/red" translationType="1" allowedTranslationTypes="1"/>
+			<Subtarget type="5" optionIndex="-1"/>
+			<RawInputMessage key="360287970189639723" value="0" numSteps="256" 9bit="1"/>
+		</Shortcut>
+		<Shortcut name="Shortcut" uniqueId="1755800000058" paramNodeName="ParamRange" behaviour="22">
+			<ShortcutPath name="InputPath" path="/composition/layers/12/clips/3/video/effects/flashmaster/effect/color1/green" translationType="1" allowedTranslationTypes="1"/>
+			<Subtarget type="5" optionIndex="-1"/>
+			<RawInputMessage key="360287970189639724" value="0" numSteps="256" 9bit="1"/>
+		</Shortcut>
+		<Shortcut name="Shortcut" uniqueId="1755800000059" paramNodeName="ParamRange" behaviour="22">
+			<ShortcutPath name="InputPath" path="/composition/layers/12/clips/4/video/effects/flashmaster/effect/color1/green" translationType="1" allowedTranslationTypes="1"/>
+			<Subtarget type="5" optionIndex="-1"/>
+			<RawInputMessage key="360287970189639724" value="0" numSteps="256" 9bit="1"/>
+		</Shortcut>
+		<Shortcut name="Shortcut" uniqueId="1755800000060" paramNodeName="ParamRange" behaviour="22">
+			<ShortcutPath name="InputPath" path="/composition/layers/12/clips/7/video/effects/flashmaster/effect/color1/green" translationType="1" allowedTranslationTypes="1"/>
+			<Subtarget type="5" optionIndex="-1"/>
+			<RawInputMessage key="360287970189639724" value="0" numSteps="256" 9bit="1"/>
+		</Shortcut>
+		<Shortcut name="Shortcut" uniqueId="1755800000061" paramNodeName="ParamRange" behaviour="22">
+			<ShortcutPath name="InputPath" path="/composition/layers/12/clips/3/video/effects/flashmaster/effect/color1/blue" translationType="1" allowedTranslationTypes="1"/>
+			<Subtarget type="5" optionIndex="-1"/>
+			<RawInputMessage key="360287970189639725" value="0" numSteps="256" 9bit="1"/>
+		</Shortcut>
+		<Shortcut name="Shortcut" uniqueId="1755800000062" paramNodeName="ParamRange" behaviour="22">
+			<ShortcutPath name="InputPath" path="/composition/layers/12/clips/4/video/effects/flashmaster/effect/color1/blue" translationType="1" allowedTranslationTypes="1"/>
+			<Subtarget type="5" optionIndex="-1"/>
+			<RawInputMessage key="360287970189639725" value="0" numSteps="256" 9bit="1"/>
+		</Shortcut>
+		<Shortcut name="Shortcut" uniqueId="1755800000063" paramNodeName="ParamRange" behaviour="22">
+			<ShortcutPath name="InputPath" path="/composition/layers/12/clips/7/video/effects/flashmaster/effect/color1/blue" translationType="1" allowedTranslationTypes="1"/>
+			<Subtarget type="5" optionIndex="-1"/>
+			<RawInputMessage key="360287970189639725" value="0" numSteps="256" 9bit="1"/>
+		</Shortcut>
+		<Shortcut name="Shortcut" uniqueId="1755800000064" paramNodeName="ParamRange" behaviour="22">
+			<ShortcutPath name="InputPath" path="/composition/video/effects/colormorph/effect/color1/red" translationType="1" allowedTranslationTypes="1"/>
+			<Subtarget type="5" optionIndex="-1"/>
+			<RawInputMessage key="360287970189639726" value="0" numSteps="256" 9bit="1"/>
+		</Shortcut>
+		<Shortcut name="Shortcut" uniqueId="1755800000065" paramNodeName="ParamRange" behaviour="22">
+			<ShortcutPath name="InputPath" path="/composition/video/effects/colormorph/effect/color1/green" translationType="1" allowedTranslationTypes="1"/>
+			<Subtarget type="5" optionIndex="-1"/>
+			<RawInputMessage key="360287970189639727" value="0" numSteps="256" 9bit="1"/>
+		</Shortcut>
+		<Shortcut name="Shortcut" uniqueId="1755800000066" paramNodeName="ParamRange" behaviour="22">
+			<ShortcutPath name="InputPath" path="/composition/video/effects/colormorph/effect/color1/blue" translationType="1" allowedTranslationTypes="1"/>
+			<Subtarget type="5" optionIndex="-1"/>
+			<RawInputMessage key="360287970189639728" value="0" numSteps="256" 9bit="1"/>
+		</Shortcut>
+		<Shortcut name="Shortcut" uniqueId="1755800000067" paramNodeName="ParamRange" behaviour="22">
+			<ShortcutPath name="InputPath" path="/composition/video/effects/colormorph/effect/color3/red" translationType="1" allowedTranslationTypes="1"/>
+			<Subtarget type="5" optionIndex="-1"/>
+			<RawInputMessage key="360287970189639729" value="0" numSteps="256" 9bit="1"/>
+		</Shortcut>
+		<Shortcut name="Shortcut" uniqueId="1755800000068" paramNodeName="ParamRange" behaviour="22">
+			<ShortcutPath name="InputPath" path="/composition/video/effects/colormorph/effect/color3/green" translationType="1" allowedTranslationTypes="1"/>
+			<Subtarget type="5" optionIndex="-1"/>
+			<RawInputMessage key="360287970189639730" value="0" numSteps="256" 9bit="1"/>
+		</Shortcut>
+		<Shortcut name="Shortcut" uniqueId="1755800000069" paramNodeName="ParamRange" behaviour="22">
+			<ShortcutPath name="InputPath" path="/composition/video/effects/colormorph/effect/color3/blue" translationType="1" allowedTranslationTypes="1"/>
+			<Subtarget type="5" optionIndex="-1"/>
+			<RawInputMessage key="360287970189639731" value="0" numSteps="256" 9bit="1"/>
+		</Shortcut>
+		<Shortcut name="Shortcut" uniqueId="1755800000070" paramNodeName="ParamRange" behaviour="22">
+			<ShortcutPath name="InputPath" path="/composition/video/effects/colormorph/effect/speed" translationType="1" allowedTranslationTypes="1"/>
+			<Subtarget type="5" optionIndex="-1"/>
+			<RawInputMessage key="360287970189639732" value="0" numSteps="256" 9bit="1"/>
+		</Shortcut>
+		<Shortcut name="Shortcut" uniqueId="1755800000071" paramNodeName="RangedParam[bool]" behaviour="22">
+			<ShortcutPath name="InputPath" path="/composition/video/effects/colormorph/bypassed" translationType="1" allowedTranslationTypes="1"/>
+			<RawInputMessage key="360287970189639733" value="0" numSteps="256" 9bit="1"/>
+		</Shortcut>
+		<Shortcut name="Shortcut" uniqueId="1755800000072" paramNodeName="ParamRange" behaviour="22">
+			<ShortcutPath name="InputPath" path="/composition/groups/1/video/effects/edgedetection/opacity" translationType="1" allowedTranslationTypes="1"/>
+			<Subtarget type="5" optionIndex="-1"/>
+			<RawInputMessage key="360287970189639734" value="0" numSteps="256" 9bit="1"/>
+		</Shortcut>
+		<Shortcut name="Shortcut" uniqueId="1755800000073" paramNodeName="ParamRange" behaviour="22">
+			<ShortcutPath name="InputPath" path="/composition/groups/1/video/effects/acuarela/opacity" translationType="1" allowedTranslationTypes="1"/>
+			<Subtarget type="5" optionIndex="-1"/>
+			<RawInputMessage key="360287970189639735" value="0" numSteps="256" 9bit="1"/>
+		</Shortcut>
+		<Shortcut name="Shortcut" uniqueId="1755800000074" paramNodeName="ParamRange" behaviour="22">
+			<ShortcutPath name="InputPath" path="/composition/groups/1/video/effects/bloom/opacity" translationType="1" allowedTranslationTypes="1"/>
+			<Subtarget type="5" optionIndex="-1"/>
+			<RawInputMessage key="360287970189639736" value="0" numSteps="256" 9bit="1"/>
+		</Shortcut>
+		<Shortcut name="Shortcut" uniqueId="1755800000075" paramNodeName="ParamRange" behaviour="22">
+			<ShortcutPath name="InputPath" path="/composition/groups/1/video/effects/goo/opacity" translationType="1" allowedTranslationTypes="1"/>
+			<Subtarget type="5" optionIndex="-1"/>
+			<RawInputMessage key="360287970189639737" value="0" numSteps="256" 9bit="1"/>
+		</Shortcut>
+		<Shortcut name="Shortcut" uniqueId="1755800000076" paramNodeName="ParamRange" behaviour="22">
+			<ShortcutPath name="InputPath" path="/composition/groups/1/video/effects/infinitezoom/opacity" translationType="1" allowedTranslationTypes="1"/>
+			<Subtarget type="5" optionIndex="-1"/>
+			<RawInputMessage key="360287970189639738" value="0" numSteps="256" 9bit="1"/>
+		</Shortcut>
+		<Shortcut name="Shortcut" uniqueId="1755800000077" paramNodeName="ParamRange" behaviour="22">
+			<ShortcutPath name="InputPath" path="/composition/groups/1/video/effects/metashape/opacity" translationType="1" allowedTranslationTypes="1"/>
+			<Subtarget type="5" optionIndex="-1"/>
+			<RawInputMessage key="360287970189639739" value="0" numSteps="256" 9bit="1"/>
+		</Shortcut>
+		<Shortcut name="Shortcut" uniqueId="1755800000078" paramNodeName="ParamRange" behaviour="22">
+			<ShortcutPath name="InputPath" path="/composition/groups/1/video/effects/shiftglitch/opacity" translationType="1" allowedTranslationTypes="1"/>
+			<Subtarget type="5" optionIndex="-1"/>
+			<RawInputMessage key="360287970189639740" value="0" numSteps="256" 9bit="1"/>
+		</Shortcut>
+		<Shortcut name="Shortcut" uniqueId="1755800000079" paramNodeName="ParamRange" behaviour="22">
+			<ShortcutPath name="InputPath" path="/composition/groups/1/video/effects/huerotate/effect/huerotate" translationType="1" allowedTranslationTypes="1"/>
+			<Subtarget type="5" optionIndex="-1"/>
+			<RawInputMessage key="360287970189639741" value="0" numSteps="256" 9bit="1"/>
+		</Shortcut>
+		<Shortcut name="Shortcut" uniqueId="1755800000080" paramNodeName="ParamEvent" behaviour="1046">
+			<ShortcutPath name="InputPath" path="/composition/groups/1/video/effects/infinitezoom/effect/reset" translationType="1" allowedTranslationTypes="1"/>
+			<RawInputMessage key="360287970189639742" value="0" numSteps="256" 9bit="1"/>
+		</Shortcut>
+		<Shortcut name="Shortcut" uniqueId="1755800000081" paramNodeName="ParamEvent" behaviour="1046">
+			<ShortcutPath name="InputPath" path="/composition/groups/1/video/effects/acuarela/effect/reset" translationType="1" allowedTranslationTypes="1"/>
+			<RawInputMessage key="360287970189639743" value="0" numSteps="256" 9bit="1"/>
+		</Shortcut>
+		<Shortcut name="Shortcut" uniqueId="1755800000082" paramNodeName="ParamEvent" behaviour="1046">
+			<ShortcutPath name="InputPath" path="/composition/layers/9/clips/2/connect" translationType="1" allowedTranslationTypes="1"/>
+			<RawInputMessage key="360287970189639744" value="0" numSteps="256" 9bit="1"/>
+		</Shortcut>
+		<Shortcut name="Shortcut" uniqueId="1755800000083" paramNodeName="ParamEvent" behaviour="1046">
+			<ShortcutPath name="InputPath" path="/composition/layers/8/clear" translationType="1" allowedTranslationTypes="1"/>
+			<RawInputMessage key="360287970189639744" value="0" numSteps="256" 9bit="1"/>
+		</Shortcut>
+		<Shortcut name="Shortcut" uniqueId="1755800000084" paramNodeName="ParamEvent" behaviour="1046">
+			<ShortcutPath name="InputPath" path="/composition/layers/8/clear" translationType="1" allowedTranslationTypes="1"/>
+			<RawInputMessage key="360287970189639745" value="0" numSteps="256" 9bit="1"/>
+		</Shortcut>
+		<Shortcut name="Shortcut" uniqueId="1755800000085" paramNodeName="ParamEvent" behaviour="1046">
+			<ShortcutPath name="InputPath" path="/composition/layers/9/clear" translationType="1" allowedTranslationTypes="1"/>
+			<RawInputMessage key="360287970189639745" value="0" numSteps="256" 9bit="1"/>
+		</Shortcut>
+		<Shortcut name="Shortcut" uniqueId="1755800000086" paramNodeName="ParamEvent" behaviour="1046">
+			<ShortcutPath name="InputPath" path="/composition/layers/8/clips/17/connect" translationType="1" allowedTranslationTypes="1"/>
+			<RawInputMessage key="360287970189639746" value="0" numSteps="256" 9bit="1"/>
+		</Shortcut>
+		<Shortcut name="Shortcut" uniqueId="1755800000087" paramNodeName="ParamEvent" behaviour="1046">
+			<ShortcutPath name="InputPath" path="/composition/layers/9/clear" translationType="1" allowedTranslationTypes="1"/>
+			<RawInputMessage key="360287970189639747" value="0" numSteps="256" 9bit="1"/>
+		</Shortcut>
+		<Shortcut name="Shortcut" uniqueId="1755800000088" paramNodeName="ParamEvent" behaviour="1046">
+			<ShortcutPath name="InputPath" path="/composition/layers/17/clips/1/connect" translationType="1" allowedTranslationTypes="1"/>
+			<RawInputMessage key="360287970189639748" value="0" numSteps="256" 9bit="1"/>
+		</Shortcut>
+		<Shortcut name="Shortcut" uniqueId="1755800000089" paramNodeName="ParamEvent" behaviour="1046">
+			<ShortcutPath name="InputPath" path="/composition/layers/17/clips/2/connect" translationType="1" allowedTranslationTypes="1"/>
+			<RawInputMessage key="360287970189639749" value="0" numSteps="256" 9bit="1"/>
+		</Shortcut>
+		<Shortcut name="Shortcut" uniqueId="1755800000090" paramNodeName="ParamEvent" behaviour="1046">
+			<ShortcutPath name="InputPath" path="/composition/layers/17/clips/3/connect" translationType="1" allowedTranslationTypes="1"/>
+			<RawInputMessage key="360287970189639750" value="0" numSteps="256" 9bit="1"/>
+		</Shortcut>
+		<Shortcut name="Shortcut" uniqueId="1755800000091" paramNodeName="ParamEvent" behaviour="1046">
+			<ShortcutPath name="InputPath" path="/composition/layers/17/clips/4/connect" translationType="1" allowedTranslationTypes="1"/>
+			<RawInputMessage key="360287970189639751" value="0" numSteps="256" 9bit="1"/>
+		</Shortcut>
+		<Shortcut name="Shortcut" uniqueId="1755800000092" paramNodeName="ParamEvent" behaviour="1046">
+			<ShortcutPath name="InputPath" path="/composition/layers/17/clips/5/connect" translationType="1" allowedTranslationTypes="1"/>
+			<RawInputMessage key="360287970189639752" value="0" numSteps="256" 9bit="1"/>
+		</Shortcut>
+		<Shortcut name="Shortcut" uniqueId="1755800000093" paramNodeName="ParamEvent" behaviour="1046">
+			<ShortcutPath name="InputPath" path="/composition/layers/17/clips/6/connect" translationType="1" allowedTranslationTypes="1"/>
+			<RawInputMessage key="360287970189639753" value="0" numSteps="256" 9bit="1"/>
+		</Shortcut>
+		<Shortcut name="Shortcut" uniqueId="1755800000094" paramNodeName="ParamEvent" behaviour="1046">
+			<ShortcutPath name="InputPath" path="/composition/layers/17/clips/7/connect" translationType="1" allowedTranslationTypes="1"/>
+			<RawInputMessage key="360287970189639754" value="0" numSteps="256" 9bit="1"/>
+		</Shortcut>
+		<Shortcut name="Shortcut" uniqueId="1755800000095" paramNodeName="ParamEvent" behaviour="1046">
+			<ShortcutPath name="InputPath" path="/composition/layers/17/clips/8/connect" translationType="1" allowedTranslationTypes="1"/>
+			<RawInputMessage key="360287970189639755" value="0" numSteps="256" 9bit="1"/>
+		</Shortcut>
+		<Shortcut name="Shortcut" uniqueId="1755800000096" paramNodeName="ParamEvent" behaviour="1046">
+			<ShortcutPath name="InputPath" path="/composition/layers/17/clips/9/connect" translationType="1" allowedTranslationTypes="1"/>
+			<RawInputMessage key="360287970189639756" value="0" numSteps="256" 9bit="1"/>
+		</Shortcut>
+		<Shortcut name="Shortcut" uniqueId="1755800000097" paramNodeName="ParamEvent" behaviour="1046">
+			<ShortcutPath name="InputPath" path="/composition/layers/17/clips/10/connect" translationType="1" allowedTranslationTypes="1"/>
+			<RawInputMessage key="360287970189639757" value="0" numSteps="256" 9bit="1"/>
+		</Shortcut>
+		<Shortcut name="Shortcut" uniqueId="1755800000098" paramNodeName="ParamEvent" behaviour="1046">
+			<ShortcutPath name="InputPath" path="/composition/layers/17/clips/11/connect" translationType="1" allowedTranslationTypes="1"/>
+			<RawInputMessage key="360287970189639758" value="0" numSteps="256" 9bit="1"/>
+		</Shortcut>
+		<Shortcut name="Shortcut" uniqueId="1755800000099" paramNodeName="ParamEvent" behaviour="1046">
+			<ShortcutPath name="InputPath" path="/composition/layers/17/clips/12/connect" translationType="1" allowedTranslationTypes="1"/>
+			<RawInputMessage key="360287970189639759" value="0" numSteps="256" 9bit="1"/>
+		</Shortcut>
+		<Shortcut name="Shortcut" uniqueId="1755800000100" paramNodeName="ParamEvent" behaviour="1046">
+			<ShortcutPath name="InputPath" path="/composition/layers/17/clips/13/connect" translationType="1" allowedTranslationTypes="1"/>
+			<RawInputMessage key="360287970189639760" value="0" numSteps="256" 9bit="1"/>
+		</Shortcut>
+		<Shortcut name="Shortcut" uniqueId="1755800000101" paramNodeName="ParamEvent" behaviour="1046">
+			<ShortcutPath name="InputPath" path="/composition/layers/17/clips/14/connect" translationType="1" allowedTranslationTypes="1"/>
+			<RawInputMessage key="360287970189639761" value="0" numSteps="256" 9bit="1"/>
+		</Shortcut>
+		<Shortcut name="Shortcut" uniqueId="1755800000102" paramNodeName="ParamEvent" behaviour="1046">
+			<ShortcutPath name="InputPath" path="/composition/layers/17/clips/15/connect" translationType="1" allowedTranslationTypes="1"/>
+			<RawInputMessage key="360287970189639762" value="0" numSteps="256" 9bit="1"/>
+		</Shortcut>
+		<Shortcut name="Shortcut" uniqueId="1755800000103" paramNodeName="ParamEvent" behaviour="1046">
+			<ShortcutPath name="InputPath" path="/composition/layers/17/clips/16/connect" translationType="1" allowedTranslationTypes="1"/>
+			<RawInputMessage key="360287970189639763" value="0" numSteps="256" 9bit="1"/>
+		</Shortcut>
+		<Shortcut name="Shortcut" uniqueId="1755800000104" paramNodeName="ParamEvent" behaviour="1046">
+			<ShortcutPath name="InputPath" path="/composition/layers/17/clips/17/connect" translationType="1" allowedTranslationTypes="1"/>
+			<RawInputMessage key="360287970189639764" value="0" numSteps="256" 9bit="1"/>
+		</Shortcut>
+		<Shortcut name="Shortcut" uniqueId="1755800000105" paramNodeName="ParamEvent" behaviour="1046">
+			<ShortcutPath name="InputPath" path="/composition/layers/17/clips/18/connect" translationType="1" allowedTranslationTypes="1"/>
+			<RawInputMessage key="360287970189639765" value="0" numSteps="256" 9bit="1"/>
+		</Shortcut>
+		<Shortcut name="Shortcut" uniqueId="1755800000106" paramNodeName="ParamEvent" behaviour="1046">
+			<ShortcutPath name="InputPath" path="/composition/layers/17/clips/19/connect" translationType="1" allowedTranslationTypes="1"/>
+			<RawInputMessage key="360287970189639766" value="0" numSteps="256" 9bit="1"/>
+		</Shortcut>
+		<Shortcut name="Shortcut" uniqueId="1755800000107" paramNodeName="ParamEvent" behaviour="1046">
+			<ShortcutPath name="InputPath" path="/composition/layers/17/clips/20/connect" translationType="1" allowedTranslationTypes="1"/>
+			<RawInputMessage key="360287970189639767" value="0" numSteps="256" 9bit="1"/>
+		</Shortcut>
+		<Shortcut name="Shortcut" uniqueId="1755800000108" paramNodeName="ParamEvent" behaviour="1046">
+			<ShortcutPath name="InputPath" path="/composition/layers/17/clips/21/connect" translationType="1" allowedTranslationTypes="1"/>
+			<RawInputMessage key="360287970189639768" value="0" numSteps="256" 9bit="1"/>
+		</Shortcut>
+		<Shortcut name="Shortcut" uniqueId="1755800000109" paramNodeName="ParamEvent" behaviour="1046">
+			<ShortcutPath name="InputPath" path="/composition/layers/17/clips/22/connect" translationType="1" allowedTranslationTypes="1"/>
+			<RawInputMessage key="360287970189639769" value="0" numSteps="256" 9bit="1"/>
+		</Shortcut>
+		<Shortcut name="Shortcut" uniqueId="1755800000110" paramNodeName="ParamEvent" behaviour="1046">
+			<ShortcutPath name="InputPath" path="/composition/layers/9/clips/2/connect" translationType="1" allowedTranslationTypes="1"/>
+			<RawInputMessage key="360287970189639770" value="0" numSteps="256" 9bit="1"/>
+		</Shortcut>
+		<Shortcut name="Shortcut" uniqueId="1755800000111" paramNodeName="ParamEvent" behaviour="1046">
+			<ShortcutPath name="InputPath" path="/composition/layers/8/clear" translationType="1" allowedTranslationTypes="1"/>
+			<RawInputMessage key="360287970189639770" value="0" numSteps="256" 9bit="1"/>
+		</Shortcut>
+		<Shortcut name="Shortcut" uniqueId="1755800000112" paramNodeName="ParamEvent" behaviour="1046">
+			<ShortcutPath name="InputPath" path="/composition/layers/8/clear" translationType="1" allowedTranslationTypes="1"/>
+			<RawInputMessage key="360287970189639771" value="0" numSteps="256" 9bit="1"/>
+		</Shortcut>
+		<Shortcut name="Shortcut" uniqueId="1755800000113" paramNodeName="ParamEvent" behaviour="1046">
+			<ShortcutPath name="InputPath" path="/composition/layers/9/clear" translationType="1" allowedTranslationTypes="1"/>
+			<RawInputMessage key="360287970189639771" value="0" numSteps="256" 9bit="1"/>
+		</Shortcut>
+		<Shortcut name="Shortcut" uniqueId="1755800000114" paramNodeName="ParamEvent" behaviour="1046">
+			<ShortcutPath name="InputPath" path="/composition/tempocontroller/tempotap" translationType="1" allowedTranslationTypes="1"/>
+			<RawInputMessage key="360287970189639772" value="0" numSteps="256" 9bit="1"/>
+		</Shortcut>
+		<Shortcut name="Shortcut" uniqueId="1755800000115" paramNodeName="ParamEvent" behaviour="1046">
+			<ShortcutPath name="InputPath" path="/composition/tempocontroller/resync" translationType="1" allowedTranslationTypes="1"/>
+			<RawInputMessage key="360287970189639773" value="0" numSteps="256" 9bit="1"/>
+		</Shortcut>
+		<Shortcut name="Shortcut" uniqueId="1755800000116" paramNodeName="ParamRange" behaviour="22">
+			<ShortcutPath name="InputPath" path="/composition/video/effects/transform/effect/positionx" translationType="1" allowedTranslationTypes="1"/>
+			<Subtarget type="5" optionIndex="-1"/>
+			<RawInputMessage key="360287970189639774" value="0" numSteps="256" 9bit="1"/>
+		</Shortcut>
+		<Shortcut name="Shortcut" uniqueId="1755800000117" paramNodeName="ParamRange" behaviour="22">
+			<ShortcutPath name="InputPath" path="/composition/video/effects/transform/effect/positiony" translationType="1" allowedTranslationTypes="1"/>
+			<Subtarget type="5" optionIndex="-1"/>
+			<RawInputMessage key="360287970189639775" value="0" numSteps="256" 9bit="1"/>
+		</Shortcut>
+		<Shortcut name="Shortcut" uniqueId="1755800000118" paramNodeName="ParamRange" behaviour="22">
+			<ShortcutPath name="InputPath" path="/composition/video/effects/transform/effect/scale" translationType="1" allowedTranslationTypes="1"/>
+			<Subtarget type="5" optionIndex="-1"/>
+			<RawInputMessage key="360287970189639776" value="0" numSteps="256" 9bit="1"/>
+		</Shortcut>
+		<Shortcut name="Shortcut" uniqueId="1755800000119" paramNodeName="ParamRange" behaviour="22">
+			<ShortcutPath name="InputPath" path="/composition/video/effects/transform/effect/rotationz" translationType="1" allowedTranslationTypes="1"/>
+			<Subtarget type="5" optionIndex="-1"/>
+			<RawInputMessage key="360287970189639777" value="0" numSteps="256" 9bit="1"/>
+		</Shortcut>
+	</ShortcutManager>
+</DMXShortcutPreset>
