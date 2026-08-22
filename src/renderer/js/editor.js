@@ -4,7 +4,7 @@
 import { rogger } from './bridge.js';
 import * as state from './state.js';
 import { showToast } from './toast.js';
-import { LIBRARY, placeholders, expand } from './osc-library.js';
+import { placeholders, expand, search } from './osc-library.js';
 import { BUTTON_NAMES, armGamepadLearn, disarmGamepadLearn } from './gamepad.js';
 import { bindingLabel, stealBinding } from './gamepad-resolve.js';
 
@@ -12,7 +12,18 @@ const GLYPHS = ['◆', '●', '▲', '▼', '■', '◉', '✕', '⚡', '⏱', '
   '★', '♪', '☰', '◐', '▶', '◀', '⏸', '⏹', '✦', '☄', '♦', '▩'];
 const PALETTE = ['#00e0ff', '#ffb400', '#ff4757', '#2ee66b', '#b46bff',
   '#ff7a1a', '#eaeef5', '#3aa0ff', '#ff3df0', '#ffd93d'];
-const KIND_TITLES = { fxButtons: 'FX BUTTON', fxButtons2: 'FX BUTTON P2', fxButtons3: 'DJ INTRO', utilButtons: 'UTILITY', faders: 'FADER', groupFaders: 'GROUP FADER', colorButtons: 'COLOR PRESET' };
+const KIND_TITLES = { fxButtons: 'FX BUTTON', fxButtons2: 'FX BUTTON P2', fxButtons3: 'DJ INTRO', utilButtons: 'UTILITY', faders: 'FADER', groupFaders: 'GROUP FADER', colorButtons: 'COLOR PRESET', colorTargets: 'COLOR TARGET' };
+
+// int-family library kinds — anything else (event/int/bool/choice) becomes
+// a plain int-typed FX button; only 'float' switches the button to float.
+const INT_LIKE_KINDS = new Set(['event', 'int', 'bool', 'choice']);
+
+function hexToRgb01(hex) {
+  const h = String(hex || '#ffffff').replace('#', '');
+  const full = h.length === 3 ? h.split('').map(c => c + c).join('') : h.padStart(6, '0');
+  const n = parseInt(full, 16) || 0;
+  return [((n >> 16) & 255) / 255, ((n >> 8) & 255) / 255, (n & 255) / 255];
+}
 
 function h(tag, cls, text) {
   const e = document.createElement(tag);
@@ -39,6 +50,13 @@ function numInput(value, oninput, step = 'any') {
   i.value = value ?? 0;
   i.addEventListener('input', () => oninput(Number(i.value)));
   return i;
+}
+function textArea(value, oninput, placeholder) {
+  const t = document.createElement('textarea');
+  t.value = value ?? '';
+  if (placeholder) t.placeholder = placeholder;
+  t.addEventListener('input', () => oninput(t.value));
+  return t;
 }
 function seg(options, current, onpick) {
   const s = h('div', 'seg');
@@ -119,7 +137,9 @@ function macroSection(body, draft) {
 export function openEditor(kind, index) {
   const root = document.getElementById('overlay-root');
   if (root.querySelector('.overlay')) return;
-  const draft = structuredClone(state.get()[kind][index]);
+  const draft = kind === 'colorTargets'
+    ? structuredClone(state.get().colorTargets.items[index])
+    : structuredClone(state.get()[kind][index]);
 
   const overlay = h('div', 'overlay');
   overlay.id = 'editor-overlay';
@@ -164,47 +184,65 @@ export function openEditor(kind, index) {
     return b;
   }
 
-  function libraryView(onPick) {
+  function libraryView(onPick, opts = {}) {
     body.innerHTML = '';
     const back = h('button', 'big-btn u-caps', '← Back');
     back.addEventListener('pointerdown', () => buildBody());
     body.appendChild(back);
-    let currentGroup = null;
-    for (const entry of LIBRARY) {
-      if (entry.group !== currentGroup) {
-        currentGroup = entry.group;
-        body.appendChild(h('div', 'lib-group-title u-caps', currentGroup));
-      }
-      const e = h('button', 'lib-entry');
-      const box = h('div');
-      box.append(h('div', null, entry.label), h('div', 'lib-addr u-num', entry.address));
-      e.appendChild(box);
-      body.appendChild(e);
-      e.addEventListener('pointerdown', () => {
-        const keys = placeholders(entry.address);
-        if (!keys.length) { onPick(entry.address, entry); return; }
-        // inline placeholder substitution
-        e.replaceChildren();
-        const subs = {};
-        for (const k of keys) {
-          const lbl = h('span', 'lib-addr', k);
-          const inp = numInput(1, v => { subs[k] = v; }, '1');
-          inp.style.width = '80px';
-          subs[k] = 1;
-          e.append(lbl, inp);
+
+    const searchWrap = h('div', 'field');
+    const searchInput = textInput('', () => renderList());
+    searchInput.placeholder = 'Search the command library…';
+    searchWrap.append(h('label', null, 'Search'), searchInput);
+    body.appendChild(searchWrap);
+
+    const list = h('div', 'lib-list');
+    body.appendChild(list);
+
+    function renderList() {
+      list.innerHTML = '';
+      let entries = search(searchInput.value);
+      if (opts.floatOnly) entries = entries.filter(entry => entry.kind === 'float');
+      let currentGroup = null;
+      for (const entry of entries) {
+        if (entry.group !== currentGroup) {
+          currentGroup = entry.group;
+          list.appendChild(h('div', 'lib-group-title u-caps', currentGroup));
         }
-        const apply = h('button', 'big-btn primary', 'APPLY');
-        apply.style.maxWidth = '120px';
-        apply.addEventListener('pointerdown', ev => {
-          ev.stopPropagation();
-          onPick(expand(entry.address, subs), entry);
+        const e = h('button', 'lib-entry');
+        const box = h('div');
+        box.append(h('div', null, entry.label), h('div', 'lib-addr u-num', entry.address));
+        if (entry.hint) box.append(h('div', 'lib-hint', entry.hint));
+        e.appendChild(box);
+        list.appendChild(e);
+        e.addEventListener('pointerdown', () => {
+          const keys = placeholders(entry.address);
+          if (!keys.length) { onPick(entry.address, entry); return; }
+          // inline placeholder substitution
+          e.replaceChildren();
+          const subs = {};
+          for (const k of keys) {
+            const lbl = h('span', 'lib-addr', k);
+            const inp = numInput(1, v => { subs[k] = v; }, '1');
+            inp.style.width = '80px';
+            subs[k] = 1;
+            e.append(lbl, inp);
+          }
+          const apply = h('button', 'big-btn primary', 'APPLY');
+          apply.style.maxWidth = '120px';
+          apply.addEventListener('pointerdown', ev => {
+            ev.stopPropagation();
+            onPick(expand(entry.address, subs), entry);
+          });
+          e.appendChild(apply);
         });
-        e.appendChild(apply);
-      });
+      }
+      if (!entries.length) list.appendChild(h('div', 'hint', 'No matching commands.'));
     }
+    renderList();
   }
 
-  function addressBlock(applyLearn) {
+  function addressBlock(applyLearn, opts = {}) {
     const wrap = h('div', 'field');
     wrap.append(h('label', null, 'OSC address'));
     const input = textInput(draft.address, v => { draft.address = v; });
@@ -214,9 +252,9 @@ export function openEditor(kind, index) {
     const lib = h('button', 'big-btn u-caps', 'Library');
     lib.addEventListener('pointerdown', () => libraryView((address, entry) => {
       draft.address = address;
-      if (kind === 'fxButtons' && entry.float) draft.type = 'float';
+      opts.onPickEntry?.(entry);
       buildBody();
-    }));
+    }, { floatOnly: opts.floatOnly }));
     row.append(lib, learnButton(applyLearn));
     wrap.appendChild(row);
     return wrap;
@@ -241,7 +279,15 @@ export function openEditor(kind, index) {
         draft.type = a.type === 'f' ? 'float' : 'int';
         draft.value = a.value;
       }
+    }, {
+      onPickEntry: entry => {
+        if (entry.kind === 'float') draft.type = 'float';
+        else if (INT_LIKE_KINDS.has(entry.kind)) draft.type = 'int';
+      },
     }));
+    const extra = textInput(draft.extraAddress ?? '', v => { draft.extraAddress = v.trim(); });
+    extra.placeholder = '/optional/mirror/address';
+    body.append(field('Mirror to (optional second address)', extra));
     if (draft.type !== 'command') {
       const vals = h('div', 'row');
       vals.append(field(draft.mode === 'toggle' ? 'On value' : 'Value',
@@ -340,7 +386,17 @@ export function openEditor(kind, index) {
     body.append(field('Label', textInput(draft.label, v => { draft.label = v; })));
     body.append(field('Color', pickRow(PALETTE, 'swatch-pick', draft.color,
       (b, c) => b.style.setProperty('--sw', c), c => { draft.color = c; })));
-    body.append(addressBlock(msg => { draft.address = msg.address; }));
+    body.append(field('Orientation', seg(
+      [{ v: 'v', label: 'V' }, { v: 'h', label: 'H' }],
+      draft.orientation ?? 'v', v => { draft.orientation = v; })));
+    body.append(addressBlock(msg => { draft.address = msg.address; }, { floatOnly: true }));
+    const extra = textInput(draft.extraAddress ?? '', v => { draft.extraAddress = v.trim(); });
+    extra.placeholder = '/optional/mirror/address';
+    body.append(field('Mirror to (optional second address)', extra));
+    body.append(field('Further mirror addresses (one per line)',
+      textArea((draft.extraAddresses ?? []).join('\n'),
+        v => { draft.extraAddresses = v.split('\n').map(s => s.trim()).filter(Boolean); },
+        '/composition/.../another/target')));
     const range = h('div', 'row');
     range.append(
       field('Min', numInput(draft.min, v => { draft.min = v; })),
@@ -350,6 +406,14 @@ export function openEditor(kind, index) {
     body.append(checkRow('Invert direction', draft.invert, v => { draft.invert = v; }));
     body.append(field('Sensitivity (1 = absolute, <1 = fine relative)',
       numInput(draft.sensitivity, v => { draft.sensitivity = v; }, '0.05')));
+    body.append(checkRow('Beat sync enabled (♪ button)', draft.beatSync?.enabled ?? false,
+      v => { draft.beatSync = { ...draft.beatSync, enabled: v }; buildBody(); }));
+    if (draft.beatSync?.enabled) {
+      body.append(checkRow('Auto-follow every beat change', draft.beatSync?.auto ?? false,
+        v => { draft.beatSync = { ...draft.beatSync, auto: v }; }));
+      body.append(field('BPM at fader value 1',
+        numInput(draft.beatSync?.bpmAt1 ?? 300, v => { draft.beatSync = { ...draft.beatSync, bpmAt1: v }; }, '1')));
+    }
   }
 
   function colorForm() {
@@ -357,13 +421,80 @@ export function openEditor(kind, index) {
     body.append(field('Swatch color', pickRow(PALETTE, 'swatch-pick', draft.color,
       (b, c) => b.style.setProperty('--sw', c), c => { draft.color = c; })));
     body.append(field('Custom color (hex)', textInput(draft.color, v => { draft.color = v; })));
-    body.append(addressBlock(msg => {
-      draft.address = msg.address;
-      if (msg.args?.length) draft.args = msg.args.map(a => a.value);
-    }));
-    body.append(field('Arguments (comma separated)',
-      textInput((draft.args ?? []).join(', '), v => { draft.args = parseCsvValues(v); })));
-    macroSection(body, draft);
+
+    body.append(checkRow('Route through active color target (RGB)', Array.isArray(draft.rgb),
+      v => {
+        draft.rgb = v ? (draft.rgb ?? hexToRgb01(draft.color)) : null;
+        buildBody();
+      }));
+
+    if (Array.isArray(draft.rgb)) {
+      const useSwatch = h('button', 'big-btn u-caps', 'Use swatch color');
+      useSwatch.addEventListener('pointerdown', () => {
+        draft.rgb = hexToRgb01(draft.color);
+        buildBody();
+      });
+      body.append(useSwatch);
+      const rgbRow = h('div', 'row');
+      ['R', 'G', 'B'].forEach((ch, idx) => {
+        rgbRow.append(field(ch, numInput(draft.rgb[idx], v => { draft.rgb[idx] = v; }, '0.01')));
+      });
+      body.append(rgbRow);
+    }
+
+    body.append(checkRow('OFF button (fires the active target\'s off steps)', draft.isOff ?? false,
+      v => { draft.isOff = v; buildBody(); }));
+
+    if (!Array.isArray(draft.rgb) && !draft.isOff) {
+      body.append(addressBlock(msg => {
+        draft.address = msg.address;
+        if (msg.args?.length) draft.args = msg.args.map(a => a.value);
+      }));
+      body.append(field('Arguments (comma separated)',
+        textInput((draft.args ?? []).join(', '), v => { draft.args = parseCsvValues(v); })));
+      macroSection(body, draft);
+    }
+  }
+
+  function colorTargetForm() {
+    body.append(field('Label', textInput(draft.label, v => { draft.label = v; })));
+    body.append(field('Swatch color', pickRow(PALETTE, 'swatch-pick', draft.swatch,
+      (b, c) => b.style.setProperty('--sw', c), c => { draft.swatch = c; })));
+    body.append(field('Custom swatch (hex)', textInput(draft.swatch, v => { draft.swatch = v; })));
+    body.append(field('Color bases (one OSC base address per line)',
+      textArea((draft.colorBases ?? []).join('\n'),
+        v => { draft.colorBases = v.split('\n').map(s => s.trim()).filter(Boolean); },
+        '/composition/.../effect/color')));
+
+    function stepsSection(title, key) {
+      body.append(h('div', 'lib-group-title u-caps', title));
+      const box = h('div');
+      body.appendChild(box);
+      function renderSteps() {
+        box.replaceChildren();
+        (draft[key] ?? []).forEach((step, si) => {
+          const row = h('div', 'macro-row');
+          const addr = textInput(step.address, v => { step.address = v; });
+          addr.placeholder = '/address';
+          const vals = textInput((step.values ?? []).join(', '), v => { step.values = parseCsvValues(v); });
+          vals.placeholder = 'values, comma separated';
+          const del = h('button', 'macro-del', '✕');
+          del.addEventListener('pointerdown', () => { draft[key].splice(si, 1); renderSteps(); });
+          row.append(addr, vals, del);
+          box.appendChild(row);
+        });
+        const add = h('button', 'big-btn u-caps', `+ Add step`);
+        add.addEventListener('pointerdown', () => {
+          draft[key] = draft[key] ?? [];
+          draft[key].push({ address: '/', values: [1] });
+          renderSteps();
+        });
+        box.appendChild(add);
+      }
+      renderSteps();
+    }
+    stepsSection('On steps (fired by RGB presets)', 'onSteps');
+    stepsSection('Off steps (fired by the OFF preset)', 'offSteps');
   }
 
   function buildBody() {
@@ -371,6 +502,7 @@ export function openEditor(kind, index) {
     body.innerHTML = '';
     if (kind.startsWith('fxButtons') || kind === 'utilButtons') fxForm();
     else if (kind === 'faders' || kind === 'groupFaders') faderForm();
+    else if (kind === 'colorTargets') colorTargetForm();
     else colorForm();
   }
   buildBody();
@@ -386,7 +518,16 @@ export function openEditor(kind, index) {
       // pair across pages; a plain A binding survives adding RT+A elsewhere
       stealBinding(state.get(), kind, index, draft.gamepadButton, draft.gamepadModifier ?? -1);
     }
-    state.replaceControl(kind, index, draft);
+    if (kind === 'colorTargets') {
+      state.replaceColorTarget(index, draft);
+    } else {
+      state.replaceControl(kind, index, draft);
+      // orientation/address changes need the fader rack rebuilt, not just
+      // its per-element label/value refreshed — renderFaders/renderFaderSet
+      // are re-entrant (they clear their root first), so a full re-render
+      // is safe and simplest here.
+      if (kind === 'faders' || kind === 'groupFaders') state.requestRerender();
+    }
     showToast(`${KIND_TITLES[kind]} ${index + 1} saved`);
     close();
   });

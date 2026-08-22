@@ -2,7 +2,7 @@
 // Wires renderer IPC to the OSC engine and config store.
 const fs = require('node:fs');
 
-function registerIpc({ ipcMain, engine, store, configPath, seedPath, getWindow }) {
+function registerIpc({ ipcMain, engine, store, configPath, seedPath, getWindow, app, dialog }) {
   let config = store.load(configPath);
 
   ipcMain.handle('config:reset', async () => {
@@ -28,6 +28,44 @@ function registerIpc({ ipcMain, engine, store, configPath, seedPath, getWindow }
     await engine.open();
   });
   ipcMain.handle('osc:test', () => engine.testConnection());
+
+  ipcMain.handle('app:version', () => app?.getVersion?.() ?? null);
+
+  // Config backup/restore via native OS dialogs (desktop only — the browser
+  // mock bridge has its own test-only stand-ins, see bridge.js).
+  ipcMain.handle('config:export', async () => {
+    if (!dialog) return { ok: false };
+    const win = getWindow();
+    const stamp = new Date().toISOString().slice(0, 10).replace(/-/g, '');
+    const defaultPath = `rogger-config-${stamp}.json`;
+    const { canceled, filePath } = win
+      ? await dialog.showSaveDialog(win, { defaultPath })
+      : await dialog.showSaveDialog({ defaultPath });
+    if (canceled || !filePath) return { ok: false };
+    fs.writeFileSync(filePath, JSON.stringify(config, null, 2));
+    return { ok: true, path: filePath };
+  });
+
+  ipcMain.handle('config:import', async () => {
+    if (!dialog) return null;
+    const win = getWindow();
+    const opts = { properties: ['openFile'], filters: [{ name: 'ROGGER config', extensions: ['json'] }] };
+    const { canceled, filePaths } = win ? await dialog.showOpenDialog(win, opts) : await dialog.showOpenDialog(opts);
+    if (canceled || !filePaths?.length) return null;
+    let parsed;
+    try {
+      parsed = JSON.parse(fs.readFileSync(filePaths[0], 'utf8'));
+    } catch {
+      return null; // unreadable / not JSON — leave the running config untouched
+    }
+    // Tolerant merge: a partial or foreign file can only add valid fields on
+    // top of fresh defaults, never crash or leave the app half-configured.
+    config = store.merge(parsed);
+    store.save(configPath, config);
+    engine.configure(config.network);
+    if (config.network.autoConnect) await engine.open();
+    return config;
+  });
 
   // One-shot BPM seed for auto beat mode (changes then arrive as OSC feedback).
   ipcMain.handle('beat:seed', async () => {

@@ -41,6 +41,14 @@ export const PAGE_DEFS = [
 export { HANDLE_KINDS };
 export const fxHandles = [];
 
+// Module-level page control so other modules (Settings' Pages tab, the
+// inbound /rogger/page remote-API handler) can drive/read the active page
+// without holding a reference into whatever renderFxGrid() closure is live.
+let activeSetPage = null;
+let activeGetPage = () => 0;
+export function setPage(p) { activeSetPage?.(p); }
+export function getPage() { return activeGetPage(); }
+
 export function renderFxGrid(el, { isEditMode, onEdit }) {
   el.innerHTML = '';
   fxHandles.length = 0;
@@ -204,18 +212,28 @@ export function renderFxGrid(el, { isEditMode, onEdit }) {
   el.appendChild(tabs);
   const pageEls = [];
 
-  function setPage(p) {
+  let curPage = 0;
+  function showPage(p) {
+    curPage = p;
     pageEls.forEach((pg, i) => pg.classList.toggle('active', i === p));
     tabs.querySelectorAll('.page-tab').forEach((t, i) => t.classList.toggle('on', i === p));
   }
+  activeSetPage = showPage;
+  activeGetPage = () => curPage;
 
-  PAGE_DEFS.forEach(({ kind, label, layout, faderKind }, p) => {
+  // Settings → Pages hides everything but Page 1 (PAGE_DEFS[0]) by label;
+  // covers any future page (e.g. BPM) automatically since it just checks
+  // labels, not a hardcoded list.
+  const hiddenPages = new Set(state.get().ui?.hiddenPages ?? []);
+  const visibleDefs = PAGE_DEFS.filter((d, i) => i === 0 || !hiddenPages.has(d.label));
+
+  visibleDefs.forEach(({ kind, label, layout, faderKind }, p) => {
     const buttons = state.get()[kind] ?? [];
     const tab = document.createElement('button');
     tab.className = 'page-tab u-caps';
     tab.dataset.page = p;
     tab.textContent = label;
-    tab.addEventListener('pointerdown', () => setPage(p));
+    tab.addEventListener('pointerdown', () => showPage(p));
     tabs.appendChild(tab);
 
     const pageEl = document.createElement('div');
@@ -232,7 +250,7 @@ export function renderFxGrid(el, { isEditMode, onEdit }) {
 
     if (layout === 'colors') {
       pageEl.classList.add('fx-page--custom');
-      renderColorLab(pageEl);
+      renderColorLab(pageEl, { isEditMode, onEdit });
     } else if (layout === 'bpm') {
       pageEl.classList.add('fx-page--custom');
       renderBpmPage(pageEl);
@@ -313,5 +331,5 @@ export function renderFxGrid(el, { isEditMode, onEdit }) {
     }
   });
 
-  setPage(0);
+  showPage(0);
 }

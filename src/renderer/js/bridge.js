@@ -27,11 +27,49 @@ function mockBridge() {
   window.__emitLearn = msg => { if (learnCb) learnCb(msg); };
   window.__emitOscIn = msg => { for (const cb of messageCbs) cb(msg); };
 
+  // Minimal deep-merge for the mock config:import — mirrors config-store's
+  // shape-preserving merge closely enough for UI tests (array-of-objects
+  // merged by index, plain objects merged key-wise, everything else wins).
+  function mockMerge(base, patch) {
+    if (Array.isArray(base)) {
+      if (!Array.isArray(patch)) return base;
+      return base.map((b, i) => (patch[i] && typeof patch[i] === 'object') ? mockMerge(b, patch[i]) : b);
+    }
+    if (base && typeof base === 'object' && patch && typeof patch === 'object' && !Array.isArray(patch)) {
+      const out = { ...base };
+      for (const k of Object.keys(patch)) out[k] = mockMerge(base[k], patch[k]);
+      return out;
+    }
+    return patch === undefined ? base : patch;
+  }
+
   return {
     platform: 'mock',
     getConfig: loadConfig,
     saveConfig: async cfg => { config = cfg; window.__savedConfig = cfg; },
     resetConfig: async () => { config = null; window.__savedConfig = null; return loadConfig(); },
+    // Real bridge opens a native save dialog; the mock just records what
+    // *would* have been written so Playwright can assert on it.
+    exportConfig: async () => {
+      const cfg = config ?? await loadConfig();
+      window.__exportedConfig = JSON.stringify(cfg, null, 2);
+      return { ok: true, path: 'mock://export.json' };
+    },
+    // Real bridge opens a native open dialog; the mock has no file picker,
+    // so tests supply the JSON directly (as an argument, or via
+    // window.__importJson set beforehand) — either way it's merged onto the
+    // current config exactly like the desktop import path.
+    importConfig: async json => {
+      const raw = json ?? window.__importJson;
+      if (!raw) return null; // no dialog available in browser mode
+      let parsed;
+      try { parsed = JSON.parse(raw); } catch { return null; }
+      const cfg = config ?? await loadConfig();
+      config = mockMerge(cfg, parsed);
+      window.__savedConfig = config;
+      return config;
+    },
+    getVersion: async () => 'mock',
     quit: () => { window.__quitCalled = true; },
     syncDjPage: async () => { window.__djSynced = true; return config ?? loadConfig(); },
     seedBpm: async () => 128,
@@ -49,4 +87,7 @@ function mockBridge() {
   };
 }
 
-export const rogger = window.rogger ?? mockBridge();
+// Guarded so pure modules that transitively import this file (e.g.
+// remote-api.js, imported by test/remote-api.test.js under plain Node for
+// its parseRemote() unit tests) don't crash just for lacking a `window`.
+export const rogger = (typeof window !== 'undefined') ? (window.rogger ?? mockBridge()) : undefined;

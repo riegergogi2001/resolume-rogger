@@ -142,3 +142,39 @@ test('save() creates parent directories', () => {
   store.save(file, store.defaults());
   assert.ok(fs.existsSync(file));
 });
+
+// merge() backs config:import — it must never let a partial or foreign file
+// crash or half-configure the app.
+test('merge() of a partial patch fills the rest from defaults and preserves network', () => {
+  const cfg = store.merge({ network: { targetIp: '10.1.1.1' }, fxButtons: [{ label: 'IMPORTED' }] });
+  assert.equal(cfg.network.targetIp, '10.1.1.1');
+  assert.equal(cfg.network.targetPort, 7000, 'untouched network fields keep their default');
+  assert.equal(cfg.fxButtons.length, 16, 'array repaired to default length');
+  assert.equal(cfg.fxButtons[0].label, 'IMPORTED');
+  assert.ok(cfg.fxButtons[0].address.startsWith('/'), 'missing fields on the merged entry are filled in');
+});
+
+test('merge() of undefined/null/garbage returns plain defaults, never throws', () => {
+  for (const garbage of [undefined, null, 'not json', 42, true, []]) {
+    assert.doesNotThrow(() => store.merge(garbage));
+    const cfg = store.merge(garbage);
+    assert.equal(cfg.fxButtons.length, 16);
+    assert.equal(cfg.network.targetPort, 7000);
+  }
+});
+
+test('merge() of an object with unrelated/foreign keys ignores them safely', () => {
+  const cfg = store.merge({ someRandomThirdPartyExport: true, version: 999, network: null });
+  assert.equal(cfg.version, 1, 'version is not attacker/foreign-file controlled');
+  assert.equal(cfg.network.targetIp, '192.168.1.100', 'a null network section falls back to defaults');
+  assert.equal(cfg.fxButtons.length, 16);
+});
+
+test('merge() round-trips an export()-shaped full config unchanged', () => {
+  const exported = store.defaults();
+  exported.network.targetIp = '10.9.9.9';
+  exported.fxButtons[2].label = 'CUSTOM FLASH';
+  const cfg = store.merge(JSON.parse(JSON.stringify(exported)));
+  assert.equal(cfg.network.targetIp, '10.9.9.9');
+  assert.equal(cfg.fxButtons[2].label, 'CUSTOM FLASH');
+});

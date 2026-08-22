@@ -9,12 +9,20 @@ import { beatMs, onChange as onBeatChange } from './beat-clock.js';
 
 const fmt = v => (Math.abs(v) >= 10 ? v.toFixed(1) : v.toFixed(2));
 
+// Remote-API handles: { faders: [{set(value)}, ...], groupFaders: [...] }.
+// Rebuilt (in place — same object reference) every renderFaderSet() call so
+// the inbound /rogger/fader and /rogger/gfader handlers stay wired after a
+// re-render (orientation edit, config import, ...).
+export const faderHandles = { faders: [], groupFaders: [] };
+
 export function renderFaders(el, opts) {
   renderFaderSet(el, opts, 'faders');
 }
 
 export function renderFaderSet(el, { isEditMode, onEdit }, kind) {
   el.innerHTML = '';
+  const handles = faderHandles[kind] ?? (faderHandles[kind] = []);
+  handles.length = 0;
   const all = state.get()[kind] ?? [];
   const vIdx = [];
   const hIdx = [];
@@ -103,6 +111,16 @@ export function renderFaderSet(el, { isEditMode, onEdit }, kind) {
         paint();
       });
     }
+
+    // Remote-API entry point: set the value directly (bypasses pointer/drag
+    // state), same paint+send path as a touch drag.
+    handles[i] = {
+      set(value) {
+        norm = normOf(cfg(), value);
+        lastSent = null; // force the send even if numerically unchanged
+        schedule();
+      },
+    };
 
     function posNorm(e, rect) {
       return isH
