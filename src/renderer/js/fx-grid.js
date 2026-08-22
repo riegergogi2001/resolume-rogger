@@ -6,6 +6,7 @@ import { rogger } from './bridge.js';
 import * as state from './state.js';
 import { showToast } from './toast.js';
 import { BUTTON_NAMES } from './gamepad.js';
+import { HANDLE_KINDS, bindingLabel } from './gamepad-resolve.js';
 import * as beat from './beat-clock.js';
 import { renderFaderSet } from './faders.js';
 import { renderColorLab } from './color-lab.js';
@@ -37,7 +38,9 @@ export const PAGE_DEFS = [
   { kind: null, label: 'Director', layout: 'director' },
 ];
 // Handle order for the gamepad: all pages, then the utility quad.
-export const HANDLE_KINDS = ['fxButtons', 'fxButtons2', 'fxButtons3', 'utilButtons'];
+// (Single definition lives in gamepad-resolve.js; re-exported here so
+// existing importers of HANDLE_KINDS from fx-grid.js keep working.)
+export { HANDLE_KINDS };
 export const fxHandles = [];
 
 export function renderFxGrid(el, { isEditMode, onEdit }) {
@@ -76,7 +79,7 @@ export function renderFxGrid(el, { isEditMode, onEdit }) {
       b.querySelector('.fx-icon').textContent = c.icon;
       b.querySelector('.fx-label').textContent = c.label;
       b.querySelector('.fx-mode').textContent = c.mode === 'tap' ? '' : c.mode;
-      b.querySelector('.fx-pad').textContent = BUTTON_NAMES[c.gamepadButton] ?? '';
+      b.querySelector('.fx-pad').textContent = bindingLabel(BUTTON_NAMES, c.gamepadButton, c.gamepadModifier);
     }
     apply();
     state.subscribe(apply);

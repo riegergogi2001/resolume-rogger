@@ -27,6 +27,7 @@ function fxButton(i, over = {}) {
     ramp: { enabled: false, from: 0, to: 1, durationMs: 1500 }, // hold: sweep value while pressed
     macro: [],              // [{address, values:[...]}] — sent in order instead of single message
     gamepadButton: -1,      // standard-mapping gamepad button index, -1 = unbound
+    gamepadModifier: -1,    // pad button that must be held for this binding; -1 = none
     ...over,
   };
 }

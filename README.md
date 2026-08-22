@@ -75,6 +75,17 @@ guardrails everywhere.
   stomp with engage/release messages), springing back on release.
 - **Stick axes** pan / zoom / rotate the composition transform and re-center
   on release. Haptics: press ticks + depth-scaled strobe rumble.
+- **Combos** — any pad button can act as a modifier for another: hold it
+  down and press a second button to fire a different binding than that
+  second button's plain press (e.g. hold RT and tap A for a different FX
+  than A alone). Badges show combos as `RT+A`. Set a modifier in the editor's
+  "Modifier (hold with)" row below the controller button pick, or arm
+  **Gamepad Learn** and press the modifier + target button together — it
+  captures both and toasts the combo (e.g. `Bound to RT+A`). A modifier
+  button held alone still fires its own plain binding (and, for LT/RT, its
+  analog trigger action) — only the second button's action changes. Press
+  and release stay paired to the physical button even if the modifier is
+  released first.
 
 ## Button behaviors
 
