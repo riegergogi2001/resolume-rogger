@@ -7,8 +7,13 @@ import * as state from './state.js';
 
 const EPS = 0.03;
 
+// Remote-API handles: one per color preset button, { press() } — same
+// action as a touch tap. Rebuilt in place on every render.
+export const colorHandles = [];
+
 export function renderColorRow(el, { isEditMode, onEdit }) {
   el.innerHTML = '';
+  colorHandles.length = 0;
   const lastVals = new Map();
   const buttons = [];
 
@@ -78,9 +83,7 @@ export function renderColorRow(el, { isEditMode, onEdit }) {
     apply();
     state.subscribe(apply);
 
-    b.addEventListener('pointerdown', e => {
-      if (isEditMode()) { onEdit('colorButtons', i); return; }
-      b.setPointerCapture(e.pointerId);
+    function doPress() {
       b.classList.add('pressed');
       const c = cfg();
       const t = activeTarget();
@@ -100,6 +103,14 @@ export function renderColorRow(el, { isEditMode, onEdit }) {
       } else {
         rogger.send(c.address, c.args ?? []);
       }
+      setTimeout(() => b.classList.remove('pressed'), 160);
+    }
+    colorHandles[i] = { press: doPress };
+
+    b.addEventListener('pointerdown', e => {
+      if (isEditMode()) { onEdit('colorButtons', i); return; }
+      b.setPointerCapture(e.pointerId);
+      doPress();
     });
     const off = () => b.classList.remove('pressed');
     b.addEventListener('pointerup', off);
@@ -126,13 +137,14 @@ export function renderColorRow(el, { isEditMode, onEdit }) {
     const sw = document.createElement('div');
     sw.className = 'color-target-switch';
     el.appendChild(sw);
-    targetsCfg().items.forEach(item => {
+    targetsCfg().items.forEach((item, ti) => {
       const tb = document.createElement('button');
       tb.className = 'target-pick u-caps';
       tb.dataset.target = item.id;
       tb.textContent = item.label;
       tb.style.setProperty('--sw', item.swatch);
       tb.addEventListener('pointerdown', () => {
+        if (isEditMode()) { onEdit('colorTargets', ti); return; }
         state.setColorTarget(item.id);
         lastVals.clear();
         evaluateSelection();

@@ -68,7 +68,51 @@ Zero runtime dependencies (vanilla JS/CSS + Electron) and a hand-rolled OSC
 Tap, toggle (latching), hold (piano-style 1/0, optional separate release
 address), flash animation, repeat while held (fixed interval or beat-synced),
 ramp-while-held (value sweep), multi-message macros (zeroed on release so
-clears let go), per-button icon / label / color, OSC learn, command library.
+clears let go), per-button icon / label / color, OSC learn, command library
+(searchable, with a hint per entry — fader editors only offer float-typed
+entries), a mirror-to second address on every FX button, and fader mirror
+address(es) + beat-sync (value follows the tapped/auto BPM). Color presets
+can either fire their own address/macro, or route RGB through whichever
+color target is active — plus an OFF preset that fires that target's off
+steps. In Edit mode, tapping a target-switch square opens a **COLOR TARGET**
+editor (label, swatch, color-base addresses, on/off step macros).
+
+## Settings
+
+The gear icon opens a tabbed Settings panel (scrolls inside the panel body
+at both 1920×1080 and 1280×800):
+
+- **Network** — OSC target IP/port, listen port, auto connect/reconnect,
+  Test connection.
+- **Controller** — LT/RT analog trigger mapping (address, from/to, release,
+  optional engage message), LS/RS stick mapping (address, center, scale),
+  and haptics (press ticks, strobe rumble).
+- **Pages** — show/hide every page except Page 1; hidden pages drop their
+  tab immediately. Covers any page added later automatically.
+- **Backup** — **Export config…** / **Import config…** (native file
+  dialogs; import tolerantly merges onto the built-in defaults, so a
+  partial or foreign file can't corrupt or crash the app) and **Reload
+  default mapping**.
+- **About** — app version, OSC target/listen ports, and the inbound remote
+  API cheat sheet (below).
+
+## Remote API
+
+ROGGER also listens for its own tiny inbound OSC vocabulary on the
+configured **listen port**, so other gear — a Companion install, a
+grandMA3 OSC-out cue, another ROGGER — can press its buttons and move its
+faders. Nothing is echoed back.
+
+| Address | Args | Effect |
+|---|---|---|
+| `/rogger/fx/{page}/{index}` | `i` (1/0) or none | page 1-3, index 1-based. `1` = press, `0` = release, no arg = press + release 120 ms later. |
+| `/rogger/util/{index}` | `i` (1/0) or none | same as above, for the Page 1 utility quad. |
+| `/rogger/fader/{index}` | `f` (0..1) | sets a main fader (1-based index); out-of-range values are ignored. |
+| `/rogger/gfader/{index}` | `f` (0..1) | sets a Page 2 group fader (1-based index). |
+| `/rogger/color/{index}` | — | fires a color preset (1-based index). |
+| `/rogger/page` | `i` | switches the active page (1-based). |
+| `/rogger/tap` | — | tap tempo. |
+| `/rogger/resync` | — | resync beat. |
 
 ## Resolume setup
 

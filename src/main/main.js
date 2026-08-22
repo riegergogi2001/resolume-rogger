@@ -1,5 +1,5 @@
 'use strict';
-const { app, BrowserWindow, ipcMain, powerSaveBlocker } = require('electron');
+const { app, BrowserWindow, ipcMain, powerSaveBlocker, dialog } = require('electron');
 const fs = require('node:fs');
 const path = require('node:path');
 const { OscEngine } = require('./osc-engine.js');
@@ -60,7 +60,7 @@ app.whenReady().then(() => {
   if (app.isPackaged && !fs.existsSync(configPath) && fs.existsSync(seedPath)) {
     store.save(configPath, store.load(seedPath));
   }
-  const api = registerIpc({ ipcMain, engine, store, configPath, seedPath, getWindow: () => win });
+  const api = registerIpc({ ipcMain, engine, store, configPath, seedPath, getWindow: () => win, app, dialog });
   const cfg = api.getConfig();
   engine.configure(cfg.network);
   if (cfg.network.autoConnect) engine.open();

@@ -304,6 +304,7 @@ function mergeColorTargets(base, patch) {
 }
 
 function mergeConfig(base, patch) {
+  if (!isPlainObject(patch)) patch = {};
   return {
     ...base,
     version: base.version,
@@ -323,6 +324,14 @@ function mergeConfig(base, patch) {
     groupFaders: mergeControls(base.groupFaders, patch.groupFaders),
     colorButtons: mergeControls(base.colorButtons, patch.colorButtons),
   };
+}
+
+// Tolerant merge of an arbitrary (possibly partial or foreign) config object
+// onto fresh defaults — used by config:import so a hand-edited or old-version
+// file can't corrupt or crash the app. Never throws: non-object / garbage
+// input just yields the defaults untouched.
+function merge(parsed) {
+  return mergeConfig(defaults(), parsed);
 }
 
 function load(filePath) {
@@ -350,4 +359,4 @@ function save(filePath, config) {
   fs.renameSync(tmp, filePath);
 }
 
-module.exports = { defaults, load, save, ACCENTS };
+module.exports = { defaults, load, save, merge, ACCENTS };

@@ -33,7 +33,7 @@ function rgbToHsv(r, g, b) {
 const hex2 = n => Math.round(n * 255).toString(16).padStart(2, '0');
 const rgbHex = (r, g, b) => `#${hex2(r)}${hex2(g)}${hex2(b)}`;
 
-export function renderColorLab(el) {
+export function renderColorLab(el, { isEditMode, onEdit } = {}) {
   el.classList.add('color-lab');
 
   const targetsCfg = () => state.get().colorTargets;
@@ -72,13 +72,16 @@ export function renderColorLab(el) {
   chips.className = 'lab-chips';
   function buildChips() {
     chips.innerHTML = '';
-    (targetsCfg()?.items ?? []).forEach(item => {
+    (targetsCfg()?.items ?? []).forEach((item, ti) => {
       const c = document.createElement('button');
       c.className = 'target-pick u-caps';
       c.dataset.target = item.id;
       c.textContent = item.label;
       c.style.setProperty('--sw', item.swatch);
-      c.addEventListener('pointerdown', () => state.setColorTarget(item.id));
+      c.addEventListener('pointerdown', () => {
+        if (isEditMode?.()) { onEdit?.('colorTargets', ti); return; }
+        state.setColorTarget(item.id);
+      });
       chips.appendChild(c);
     });
     const off = document.createElement('button');
