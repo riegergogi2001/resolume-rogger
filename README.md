@@ -13,7 +13,7 @@ Zero runtime dependencies (vanilla JS/CSS + Electron) and a hand-rolled OSC
 
 ## Surface
 
-- **Four pages** with tabs:
+- **Five pages** with tabs:
   - **Page 1** — FLASH bank (8 momentary punch buttons) and BUMP bank
     (a 2x2 utility quad — small toggles like keep-greys / haze / CO2 /
     auto-VJ — plus 7 one-shot punches).
@@ -27,6 +27,17 @@ Zero runtime dependencies (vanilla JS/CSS + Electron) and a hand-rolled OSC
     wells, SPEED slider, MORPH on/off with OSC feedback. Drives the same
     switchable targets as the main color row (BG / LOGO / FLASH / MORPH 1 /
     MORPH 2).
+  - **BPM page (mic analyser)** — a realtime tempo analyser built natively
+    on Web Audio (no Python, no ML): pick an input device, Start/Stop
+    capture, a vertical level meter, LOCK (freezes the reported bpm) with
+    ÷2/×2 scaling, "Send Tempo to Resolume" (throttled `tempocontroller/tempo`
+    once confidence is high enough), and "Resync on Next Beat" (fires
+    `tempocontroller/resync` right on the predicted beat). The big readout
+    shows bpm + confidence + a beat-pulse dot, backed by a canvas scrolling
+    the onset envelope with predicted-beat ticks. The DSP — FFT, spectral
+    flux, autocorrelation tempo estimate with octave-error guarding — lives
+    in `src/renderer/js/bpm/bpm-core.js` and is unit-tested with synthetic
+    audio in `test/bpm-core.test.js`.
   - The APC40 mkII mapping cheat sheet ships as a standalone shareable page,
     `docs/apc40-mapping.html` (regenerate after remapping with
     `python3 tools/gen-akai-map.py`) — send it along with the composition.
@@ -39,9 +50,10 @@ Zero runtime dependencies (vanilla JS/CSS + Electron) and a hand-rolled OSC
   strobe color / ColorMorph Color 1 / Color 3); OFF fires the target's release
   steps. Feedback lights the matching preset.
 - **Topbar** — OSC target, analog-mapping readout, beat clock (BPM + beat ms,
-  /2 and x2, AUTO toggle to follow Resolume's BPM, beat-pulse tinted by the
-  last picked color), battery, clock, tap/resync, status lamp
-  (OFFLINE / READY / LIVE — honest UDP semantics), EDIT, settings.
+  /2 and x2, a three-way **Tap / Auto / Mic** beat-source toggle — manual
+  taps, following Resolume's reported BPM, or the BPM page's mic analyser —
+  beat-pulse tinted by the last picked color), battery, clock, tap/resync,
+  status lamp (OFFLINE / READY / LIVE — honest UDP semantics), EDIT, settings.
 
 ## Controller (built-in Ally X gamepad)
 

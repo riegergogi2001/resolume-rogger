@@ -800,3 +800,153 @@ body.edit-mode .color-btn {
   color: var(--ok);
   box-shadow: inset 0 0 0 1px var(--ok), 0 0 14px rgba(46, 230, 107, 0.25);
 }
+
+/* ---- BPM page (mic/line-in analyser) ---- */
+.bpm-status {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  color: var(--text-dim);
+}
+
+.bpm-main {
+  display: grid;
+  grid-template-columns: 300px 1fr;
+  gap: 14px;
+  min-height: 0;
+}
+
+.bpm-controls {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  min-height: 0;
+}
+
+.bpm-select {
+  height: 64px;
+  padding: 0 14px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--panel);
+  color: var(--text);
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.bpm-btn {
+  min-height: 64px;
+  padding: 0 14px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--panel);
+  font-size: 14px;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  transition: background var(--press-ease), border-color var(--press-ease);
+}
+.bpm-btn:active { background: var(--panel-3); }
+.bpm-btn.latched {
+  border-color: var(--ok);
+  color: var(--ok);
+  box-shadow: inset 0 0 0 1px var(--ok), 0 0 14px rgba(46, 230, 107, 0.25);
+}
+.bpm-run.latched {
+  border-color: var(--err);
+  color: var(--err);
+  box-shadow: inset 0 0 0 1px var(--err), 0 0 14px rgba(255, 71, 87, 0.25);
+}
+
+.bpm-btn-row {
+  display: flex;
+  gap: 10px;
+}
+.bpm-btn-row .bpm-btn { flex: 1; }
+
+.bpm-meter-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.bpm-meter-wrap {
+  position: relative;
+  width: 40px;
+  height: 120px;
+  border: 1px solid var(--line-bright);
+  border-radius: 8px;
+  background: var(--panel);
+  overflow: hidden;
+}
+.bpm-meter-fill {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 0%;
+  background: linear-gradient(0deg, var(--ok), var(--warn) 70%, var(--err));
+  transition: height 80ms linear;
+}
+.bpm-meter-label {
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  color: var(--text-dim);
+}
+
+.bpm-centre {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  min-height: 0;
+}
+.bpm-dot {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  border: 2px solid var(--line-bright);
+  background: var(--panel-2);
+}
+.bpm-dot.flash {
+  animation: beat-pulse 300ms ease-out;
+}
+.bpm-value {
+  font-size: clamp(56px, 9vw, 128px);
+  font-weight: 800;
+  letter-spacing: 0.01em;
+  line-height: 1;
+  color: var(--text);
+}
+.bpm-conf-bar {
+  width: min(320px, 80%);
+  height: 12px;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  background: var(--panel);
+  overflow: hidden;
+}
+.bpm-conf-fill {
+  height: 100%;
+  width: 0%;
+  background: linear-gradient(90deg, color-mix(in srgb, var(--accent) 35%, transparent), var(--accent));
+  transition: width 120ms linear;
+}
+.bpm-raw {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text-dim);
+}
+
+.bpm-canvas-wrap {
+  min-height: 0;
+  border: 1px solid var(--line-bright);
+  border-radius: var(--radius);
+  background: var(--panel);
+  overflow: hidden;
+}
+.bpm-canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+}

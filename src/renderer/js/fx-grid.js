@@ -10,6 +10,7 @@ import { HANDLE_KINDS, bindingLabel } from './gamepad-resolve.js';
 import * as beat from './beat-clock.js';
 import { renderFaderSet } from './faders.js';
 import { renderColorLab } from './color-lab.js';
+import { renderBpmPage } from './bpm/bpm-page.js';
 
 function typedArgs(type, value) {
   if (type === 'command') return [];
@@ -32,6 +33,7 @@ export const PAGE_DEFS = [
   { kind: 'fxButtons2', label: 'Page 2', layout: 'mix', faderKind: 'groupFaders' },
   { kind: 'fxButtons3', label: 'DJ Intro', layout: 'grid' },
   { kind: null, label: 'Colors', layout: 'colors' },
+  { kind: null, label: 'BPM', layout: 'bpm' },
 ];
 // Handle order for the gamepad: all pages, then the utility quad.
 // (Single definition lives in gamepad-resolve.js; re-exported here so
@@ -231,6 +233,9 @@ export function renderFxGrid(el, { isEditMode, onEdit }) {
     if (layout === 'colors') {
       pageEl.classList.add('fx-page--custom');
       renderColorLab(pageEl);
+    } else if (layout === 'bpm') {
+      pageEl.classList.add('fx-page--custom');
+      renderBpmPage(pageEl);
     } else if (layout === 'banks') {
       const flashBank = document.createElement('div');
       flashBank.className = 'fx-bank';
