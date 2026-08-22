@@ -264,127 +264,6 @@ function defaults() {
       speedAddress: '/composition/video/effects/colormorph/effect/speed',
       bypassAddress: '/composition/video/effects/colormorph/bypassed',
     },
-    // AI Visual Director: decides WHAT (intents); the executor resolves HOW
-    // through the semantic show model. Boots in suggest mode, disarmed.
-    director: {
-      mode: 'suggest',          // 'suggest' shows intents only; 'auto' executes
-      // operator-extendable protected layer name patterns (case-insensitive)
-      protectedPatterns: ['^TC', 'TC/PB', 'TIMER', 'LFV', 'SYNC', '^AB\\b', 'AUDIO', 'INPUT', 'ROUTE'],
-      // confidence tiers: >=act full speed; >=cautious low/medium impact only;
-      // >=hold force HoldCurrentVisual; below hold notify the operator
-      confidence: { act: 0.8, cautious: 0.55, hold: 0.35 },
-      supervisorBackoffMs: 30000, // manual touch pauses autopilot this long
-      rebuildIntervalMs: 60000,   // composition re-inspection cadence
-      // Local-model brain (LM Studio / Ollama, OpenAI-style server). When
-      // enabled and reachable it makes the decisions; the heuristic policy
-      // stays as fallback. model/visionModel '' = auto-pick from /v1/models
-      // (visionModel 'off' disables the screenshot look checks).
-      brain: {
-        enabled: false,
-        url: 'http://127.0.0.1:1234',
-        model: '',
-        visionModel: '',
-        decideEveryBars: 8,       // ask the model every N bars
-        lookEveryMs: 45000,       // output screenshot critique cadence, 0=off
-        timeoutMs: 30000,         // thinking models are slow; freshness guard
-                                  // keeps late plans from firing stale
-        temperature: 0.7,
-        display: 1,               // which screen the output lives on
-      },
-    },
-    // AI VJ agent (audio sidecar → /rogger/agent/* events → cue macros).
-    // ARM lives page-local only: the agent always boots disarmed.
-    agent: {
-      feedBeatClock: false,
-      // Cues fire on sidecar events; `variants` rotate per fire so repeats
-      // vary the look like a live VJ instead of hammering one clip.
-      rules: [
-        {
-          id: 'drop', label: 'DROP HIT', event: 'drop', enabled: true,
-          cooldownMs: 8000, pulseMs: 600,
-          macro: [{ address: '/composition/layers/12/clips/3/connect', values: [1] }],
-          variants: [
-            [{ address: '/composition/layers/12/clips/3/connect', values: [1] }], // FLASH MASTER
-            [{ address: '/composition/layers/12/clips/8/connect', values: [1] }], // SUCK IT!
-            [{ address: '/composition/layers/12/clips/4/connect', values: [1] }], // FLASH MASTER 2
-          ],
-        },
-        {
-          id: 'dropstrobe', label: 'DROP STROBE', event: 'drop', enabled: true,
-          cooldownMs: 8000, pulseMs: 2500,
-          macro: [{ address: '/composition/layers/12/clips/9/connect', values: [1] }],
-        },
-        {
-          id: 'climax', label: 'CLIMAX STROBE', event: 'dropimminent', enabled: true,
-          cooldownMs: 12000, pulseMs: 3000,
-          macro: [{ address: '/composition/layers/12/clips/9/connect', values: [1] }],
-        },
-        {
-          id: 'build', label: 'BUILD STROBE', event: 'buildstart', enabled: true,
-          cooldownMs: 12000, pulseMs: 4000,
-          macro: [{ address: '/composition/layers/12/clips/9/connect', values: [1] }],
-        },
-        {
-          id: 'fakebuild', label: 'FAKE TEASE', event: 'fakebuild', enabled: true,
-          cooldownMs: 15000, pulseMs: 800,
-          macro: [{ address: '/composition/layers/12/clips/7/connect', values: [1] }], // FE STR
-        },
-        {
-          id: 'breakdown', label: 'BREAK CALM', event: 'breakdown', enabled: true,
-          cooldownMs: 12000, pulseMs: 0,
-          macro: [{ address: '/composition/video/effects/colormorph/bypassed', values: [1] }],
-        },
-        {
-          id: 'vocal', label: 'VOCAL AQUARELLA', event: 'vocalstart', enabled: true,
-          cooldownMs: 10000, pulseMs: 0,
-          macro: [{ address: '/composition/groups/1/video/effects/acuarela/bypassed', values: [0] }],
-        },
-        {
-          id: 'vocalend', label: 'VOCAL OUT', event: 'vocalend', enabled: true,
-          cooldownMs: 1000, pulseMs: 0,
-          macro: [{ address: '/composition/groups/1/video/effects/acuarela/bypassed', values: [1] }],
-        },
-        {
-          id: 'bump', label: 'BAR BUMP', event: 'downbeat', enabled: true,
-          cooldownMs: 7000, pulseMs: 300,
-          macro: [{ address: '/composition/video/effects/pusher/effect/push!', values: [1] }],
-          variants: [
-            [{ address: '/composition/video/effects/pusher/effect/push!', values: [1] }],
-            [{ address: '/composition/video/effects/pusher2/effect/push!', values: [1] }],
-          ],
-        },
-        {
-          // percussive onset cue (sidecar /rogger/agent/onset) — ships
-          // disabled: even with the cooldown, kick-synced pushes are a
-          // deliberate look the VJ opts into, not a default
-          id: 'kickpush', label: 'KICK PUSH', event: 'kick', enabled: false,
-          cooldownMs: 2000, pulseMs: 200,
-          macro: [{ address: '/composition/video/effects/pusher/effect/push!', values: [1] }],
-        },
-        {
-          id: 'phrasecol', label: 'PHRASE COLUMN', event: 'phrasestart', enabled: true,
-          cooldownMs: 25000, pulseMs: 0,
-          macro: [{ address: '/composition/columns/1/connect', values: [1] }],
-          variants: Array.from({ length: 8 }, (_, i) =>
-            [{ address: `/composition/columns/${i + 1}/connect`, values: [1] }]),
-        },
-        {
-          id: 'steady', label: 'STEADY RESET', event: 'steady', enabled: false,
-          cooldownMs: 20000, pulseMs: 0,
-          macro: [{ address: '/composition/groups/1/video/effects/acuarela/bypassed', values: [1] }],
-        },
-      ],
-      // Continuous fader riders: band energy → layer opacity while armed
-      // (fast attack, slow release — a hand riding the fader).
-      riders: [
-        { id: 'ride2', label: 'L2 · BASS', enabled: true, source: 'bass',
-          address: '/composition/layers/2/master', min: 0.25, max: 1 },
-        { id: 'ride3', label: 'L3 · MID', enabled: true, source: 'mid',
-          address: '/composition/layers/3/master', min: 0.25, max: 1 },
-        { id: 'ride4', label: 'L4 · HIGH', enabled: true, source: 'high',
-          address: '/composition/layers/4/master', min: 0.25, max: 1 },
-      ],
-    },
   };
 }
 
@@ -408,7 +287,7 @@ function mergeControls(defaultsArr, patchArr) {
 }
 
 // Saved items merge by id onto the defaults, so configs saved before a new
-// entry existed (ColorMorph targets, agent rules) don't erase it.
+// entry existed (e.g. ColorMorph targets) don't erase it.
 function mergeById(defaultsArr, patchArr) {
   return defaultsArr.map(d => {
     const saved = Array.isArray(patchArr) ? patchArr.find(x => x?.id === d.id) : null;
@@ -423,15 +302,6 @@ function mergeColorTargets(base, patch) {
   return { active, items };
 }
 
-function mergeAgent(base, patch) {
-  if (!isPlainObject(patch)) return base;
-  return {
-    ...deepMerge(base, patch),
-    rules: mergeById(base.rules, patch.rules),
-    riders: mergeById(base.riders, patch.riders),
-  };
-}
-
 function mergeConfig(base, patch) {
   return {
     ...base,
@@ -441,8 +311,6 @@ function mergeConfig(base, patch) {
     triggers: deepMerge(base.triggers, isPlainObject(patch.triggers) ? patch.triggers : {}),
     colorTargets: mergeColorTargets(base.colorTargets, patch.colorTargets),
     colorMorph: deepMerge(base.colorMorph, isPlainObject(patch.colorMorph) ? patch.colorMorph : {}),
-    agent: mergeAgent(base.agent, patch.agent),
-    director: deepMerge(base.director, isPlainObject(patch.director) ? patch.director : {}),
     sticks: deepMerge(base.sticks, isPlainObject(patch.sticks) ? patch.sticks : {}),
     haptics: deepMerge(base.haptics, isPlainObject(patch.haptics) ? patch.haptics : {}),
     beat: deepMerge(base.beat, isPlainObject(patch.beat) ? patch.beat : {}),
