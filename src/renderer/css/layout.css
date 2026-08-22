@@ -100,9 +100,12 @@ body {
 .fx-bank.grid24 .fx-btn .fx-label { font-size: 13px; }
 .fx-bank.grid24 .fx-btn .fx-icon { font-size: 18px; }
 
-/* custom pages (Colors) manage their own internal grid */
+/* custom pages (Colors, BPM) manage their own internal grid */
 .fx-page--custom.active.color-lab {
   grid-template-rows: auto auto 1fr auto auto;
+}
+.fx-page--custom.active.bpm-page {
+  grid-template-rows: auto auto 1fr auto;
 }
 
 #fader-rack {

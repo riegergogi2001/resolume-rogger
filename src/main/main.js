@@ -1,5 +1,5 @@
 'use strict';
-const { app, BrowserWindow, ipcMain, powerSaveBlocker } = require('electron');
+const { app, BrowserWindow, ipcMain, powerSaveBlocker, session } = require('electron');
 const fs = require('node:fs');
 const path = require('node:path');
 const { OscEngine } = require('./osc-engine.js');
@@ -54,6 +54,12 @@ function createWindow() {
 app.whenReady().then(() => {
   // a show controller must never let the screen sleep mid-set
   powerSaveBlocker.start('prevent-display-sleep');
+  // the BPM page needs mic/line-in access (Web Audio getUserMedia); this is
+  // a single-purpose kiosk app so grant 'media' outright instead of prompting
+  session.defaultSession.setPermissionRequestHandler((wc, permission, cb) => {
+    cb(permission === 'media');
+  });
+  session.defaultSession.setPermissionCheckHandler((wc, permission) => permission === 'media');
   // First launch: seed the user config from the bundled show config, so the
   // packaged exe carries its addresses without any manual file copying.
   const seedPath = path.join(app.getAppPath(), 'configs', 'campus-forum-stage.json');
