@@ -107,6 +107,9 @@ def build_html(rows, config_path):
     padding: 16px 18px; margin-bottom: 12px;
   }}
   .card h3 {{ font-size: 13px; color: var(--accent); margin-bottom: 8px; }}
+  .card.verified {{ border-color: var(--ok); background: var(--panel); }}
+  .card.verified h3 {{ color: var(--ok); }}
+  .card.verified h3::before {{ content: "\\2713  "; }}
   .card ol, .card ul {{ margin-left: 20px; line-height: 1.7; font-size: 13px; }}
   .card p {{ font-size: 13px; line-height: 1.6; color: var(--text); }}
   .card p + p {{ margin-top: 8px; }}
@@ -195,6 +198,30 @@ def build_html(rows, config_path):
   launching Arena. Or do it all by hand: copy the file into that folder,
   then in Resolume go to Shortcuts &rarr; DMX and choose
   &ldquo;ROGGER_MA3&rdquo; from the preset list.</p>
+  <p>A saved composition (.avc) also stores its <em>own</em> DMX preset
+  choice (<code>&lt;Param name="DmxShortcutPreset" .../&gt;</code>) and that
+  value overrides <code>Shortcuts/activePresets.xml</code> whenever the
+  composition loads. So after installing the preset, open the show once,
+  go to <b>Shortcuts &rarr; Edit DMX</b>, pick &ldquo;ROGGER_MA3&rdquo; from
+  the preset dropdown at the top of the Shortcuts panel (bottom-right), then
+  <b>Composition &rarr; Save</b> &mdash; otherwise the next time this
+  composition loads it can silently revert to whatever preset it last had
+  selected. <code>tools/install-resolume-preset.sh --composition
+  &lt;file.avc&gt;</code> does the same edit for you directly in the .avc
+  file (also with Resolume closed), if you'd rather skip the manual step.</p>
+  <p>Resolume only applies a DMX channel when its value actually
+  <em>changes</em> from the previously received frame (standard DMX-shortcut
+  behaviour) &mdash; a freshly patched fixture that's outputting all zeros
+  does nothing until a channel's value changes, even if zero already matches
+  that channel's intended off-state. Nudge a fader/wing after patching if a
+  channel looks unresponsive.</p>
+</div>
+
+<div class="card verified">
+  <h3>Verified</h3>
+  <p>Tested 2026-08-22 on Resolume Arena 7.26 (macOS) with grandMA3 onPC
+  2.4.2 &mdash; range/event/bool/choice/color/clear channels confirmed via
+  Art-Net; transform addresses fixed for 7.26.</p>
 </div>
 
 <h2>How channels behave</h2>

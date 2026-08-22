@@ -150,6 +150,22 @@ export const LIBRARY = [
   { group: 'Layer FX', label: 'Group FX color blue', address: '/composition/groups/{G}/video/effects/{FX}/effect/color/blue', kind: 'float', float: true },
   { group: 'Layer FX', label: 'Group audio FX bypassed', address: '/composition/groups/{G}/audio/effects/{FX}/bypassed', kind: 'bool', values: [0, 1] },
 
+  // Layer Transform effect params, 7.26+ form (no /effect/ segment). Only
+  // verified live at composition level (see the Composition FX block
+  // below); the layer-scoped Transform effect follows the same tree shape
+  // so is expected to behave identically, but has not been independently
+  // confirmed on hardware.
+  { group: 'Layer FX', label: 'Layer transform position X', address: '/composition/layers/{L}/video/effects/transform/positionx', kind: 'float', float: true, hint: '7.26+: no /effect/ segment; older builds used .../transform/effect/positionx' },
+  { group: 'Layer FX', label: 'Layer transform position Y', address: '/composition/layers/{L}/video/effects/transform/positiony', kind: 'float', float: true, hint: '7.26+: no /effect/ segment; older builds used .../transform/effect/positiony' },
+  { group: 'Layer FX', label: 'Layer transform scale', address: '/composition/layers/{L}/video/effects/transform/scale', kind: 'float', float: true, hint: '7.26+: no /effect/ segment; older builds used .../transform/effect/scale' },
+  { group: 'Layer FX', label: 'Layer transform scale width', address: '/composition/layers/{L}/video/effects/transform/scalew', kind: 'float', float: true, hint: '7.26+: no /effect/ segment; older builds used .../transform/effect/scalew' },
+  { group: 'Layer FX', label: 'Layer transform scale height', address: '/composition/layers/{L}/video/effects/transform/scaleh', kind: 'float', float: true, hint: '7.26+: no /effect/ segment; older builds used .../transform/effect/scaleh' },
+  { group: 'Layer FX', label: 'Layer transform rotation X', address: '/composition/layers/{L}/video/effects/transform/rotationx', kind: 'float', float: true, hint: '7.26+: no /effect/ segment; older builds used .../transform/effect/rotationx' },
+  { group: 'Layer FX', label: 'Layer transform rotation Y', address: '/composition/layers/{L}/video/effects/transform/rotationy', kind: 'float', float: true, hint: '7.26+: no /effect/ segment; older builds used .../transform/effect/rotationy' },
+  { group: 'Layer FX', label: 'Layer transform rotation Z', address: '/composition/layers/{L}/video/effects/transform/rotationz', kind: 'float', float: true, hint: '7.26+: no /effect/ segment; older builds used .../transform/effect/rotationz' },
+  { group: 'Layer FX', label: 'Layer transform anchor X', address: '/composition/layers/{L}/video/effects/transform/anchorx', kind: 'float', float: true, hint: '7.26+: no /effect/ segment; older builds used .../transform/effect/anchorx' },
+  { group: 'Layer FX', label: 'Layer transform anchor Y', address: '/composition/layers/{L}/video/effects/transform/anchory', kind: 'float', float: true, hint: '7.26+: no /effect/ segment; older builds used .../transform/effect/anchory' },
+
   // ---------------------------------------------------------------- Clip
   { group: 'Clip', label: 'Clip connect', address: '/composition/layers/{L}/clips/{C}/connect', kind: 'event', values: [1], hint: 'triggers this clip; send 0 to disconnect' },
   { group: 'Clip', label: 'Clip select', address: '/composition/layers/{L}/clips/{C}/select', kind: 'event', values: [1] },
@@ -203,6 +219,23 @@ export const LIBRARY = [
   { group: 'Composition FX', label: 'Boomer blur', address: '/composition/video/effects/boomer/effect/blur', kind: 'float', float: true, hint: 'Boomer beat-FX blur amount' },
   { group: 'Composition FX', label: 'ColorMorph speed', address: '/composition/video/effects/colormorph/effect/speed', kind: 'float', float: true },
   { group: 'Composition FX', label: 'Effect parameter reset', address: '/composition/video/effects/{FX}/effect/reset', kind: 'event', values: [1], hint: 'resets one effect parameter to default; the same effect/reset pattern also exists on layer, group and clip effect chains' },
+
+  // Composition Transform effect params, 7.26+ form. Verified live via
+  // Art-Net + REST readback on this Mac (Resolume Arena 7.26, macOS):
+  // OSC /composition/video/effects/transform/positionx 1.0 -> REST
+  // "Position X" = 16384 (max), 0.5 = center; the generic {FX}/effect/{P}
+  // entry above still matches the legacy pre-7.26 .../transform/effect/<p>
+  // form (ROGGER's DMX preset fans out to both, new path first).
+  { group: 'Composition FX', label: 'Transform position X', address: '/composition/video/effects/transform/positionx', kind: 'float', float: true, hint: '7.26+: no /effect/ segment; older builds used .../transform/effect/positionx' },
+  { group: 'Composition FX', label: 'Transform position Y', address: '/composition/video/effects/transform/positiony', kind: 'float', float: true, hint: '7.26+: no /effect/ segment; older builds used .../transform/effect/positiony' },
+  { group: 'Composition FX', label: 'Transform scale', address: '/composition/video/effects/transform/scale', kind: 'float', float: true, hint: '7.26+: no /effect/ segment; older builds used .../transform/effect/scale; range is 0..1000%, so OSC 0.1 = 100%' },
+  { group: 'Composition FX', label: 'Transform scale width', address: '/composition/video/effects/transform/scalew', kind: 'float', float: true, hint: '7.26+: no /effect/ segment; older builds used .../transform/effect/scalew' },
+  { group: 'Composition FX', label: 'Transform scale height', address: '/composition/video/effects/transform/scaleh', kind: 'float', float: true, hint: '7.26+: no /effect/ segment; older builds used .../transform/effect/scaleh' },
+  { group: 'Composition FX', label: 'Transform rotation X', address: '/composition/video/effects/transform/rotationx', kind: 'float', float: true, hint: '7.26+: no /effect/ segment; older builds used .../transform/effect/rotationx' },
+  { group: 'Composition FX', label: 'Transform rotation Y', address: '/composition/video/effects/transform/rotationy', kind: 'float', float: true, hint: '7.26+: no /effect/ segment; older builds used .../transform/effect/rotationy' },
+  { group: 'Composition FX', label: 'Transform rotation Z', address: '/composition/video/effects/transform/rotationz', kind: 'float', float: true, hint: '7.26+: no /effect/ segment; older builds used .../transform/effect/rotationz' },
+  { group: 'Composition FX', label: 'Transform anchor X', address: '/composition/video/effects/transform/anchorx', kind: 'float', float: true, hint: '7.26+: no /effect/ segment; older builds used .../transform/effect/anchorx' },
+  { group: 'Composition FX', label: 'Transform anchor Y', address: '/composition/video/effects/transform/anchory', kind: 'float', float: true, hint: '7.26+: no /effect/ segment; older builds used .../transform/effect/anchory' },
 
   // ---------------------------------------------------------------- Audio
   { group: 'Audio', label: 'Composition audio volume', address: '/composition/audio/volume', kind: 'float', float: true },

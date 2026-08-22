@@ -92,6 +92,23 @@ def _targets_of(btn):
     return out
 
 
+def _transform_fanout(new_path_address):
+    """Composition Transform channels fan out to two addresses: the 7.26+
+    path (.../transform/<param>, no /effect/ segment -- verified live via
+    Art-Net + REST readback) first, then the legacy pre-7.26 path
+    (.../transform/effect/<param>) so the preset keeps working on older
+    Resolume builds. `new_path_address` is the config's stored address,
+    which is already the new (no /effect/) form."""
+    marker = '/effects/transform/'
+    idx = new_path_address.find(marker)
+    if idx == -1:
+        return [new_path_address]
+    head = new_path_address[:idx + len(marker)]
+    param = new_path_address[idx + len(marker):]
+    legacy = f'{head}effect/{param}'
+    return [new_path_address, legacy]
+
+
 def _fader_targets(fd):
     out = [fd['address']]
     extra = fd.get('extraAddress')
@@ -410,25 +427,30 @@ def build_map(config_path=None):
     })
 
     # ---- ch 95-98: Transform (sticks) ------------------------------------------------------
+    # Fan out to both the 7.26+ path (no /effect/ segment -- verified live via
+    # Art-Net + REST readback on this Mac, see docs/superpowers/specs/
+    # 2026-08-22-v2-complete-remote-design.md) and the legacy pre-7.26 path
+    # (with /effect/), new path first, so the preset still works against
+    # older Resolume builds that only answer on the /effect/ form.
     ls, rs = sticks['ls'], sticks['rs']
     rows.append({
         'ch': 95, 'block': 'Transform', 'name': 'POS X', 'kind': 'range',
-        'targets': [ls['x']['address']], 'default': _dmx_default(ls['x']['center']),
+        'targets': _transform_fanout(ls['x']['address']), 'default': _dmx_default(ls['x']['center']),
         'geometry': 'Main', 'component': None, 'note': 'Composition transform position X (LS stick).',
     })
     rows.append({
         'ch': 96, 'block': 'Transform', 'name': 'POS Y', 'kind': 'range',
-        'targets': [ls['y']['address']], 'default': _dmx_default(ls['y']['center']),
+        'targets': _transform_fanout(ls['y']['address']), 'default': _dmx_default(ls['y']['center']),
         'geometry': 'Main', 'component': None, 'note': 'Composition transform position Y (LS stick).',
     })
     rows.append({
         'ch': 97, 'block': 'Transform', 'name': 'SCALE', 'kind': 'range',
-        'targets': [rs['y']['address']], 'default': _dmx_default(rs['y']['center']),
+        'targets': _transform_fanout(rs['y']['address']), 'default': _dmx_default(rs['y']['center']),
         'geometry': 'Main', 'component': None, 'note': 'Composition transform scale (RS stick Y).',
     })
     rows.append({
         'ch': 98, 'block': 'Transform', 'name': 'ROTATION', 'kind': 'range',
-        'targets': [rs['x']['address']], 'default': _dmx_default(rs['x']['center']),
+        'targets': _transform_fanout(rs['x']['address']), 'default': _dmx_default(rs['x']['center']),
         'geometry': 'Main', 'component': None, 'note': 'Composition transform rotation Z (RS stick X).',
     })
 
