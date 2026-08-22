@@ -6,3 +6,6 @@ config.dev.json
 test-artifacts/
 .DS_Store
 .playwright-mcp/
+
+# python tool caches
+__pycache__/
