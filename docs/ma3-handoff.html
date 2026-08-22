@@ -1,0 +1,261 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ROGGER &rarr; grandMA3 handoff</title>
+<style>
+  :root {
+    --bg: #0a0b0d; --panel: #131519; --panel-2: #1a1d22; --panel-3: #22262c;
+    --line: #23262c; --line-bright: #3a3f47; --text: #eaeef5; --text-dim: #8e9299;
+    --accent: #00e0ff; --ok: #2ee66b; --warn: #ffb400; --err: #ff4757; --radius: 10px;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    background: var(--bg); color: var(--text);
+    font-family: "Inter", "Segoe UI", system-ui, -apple-system, sans-serif;
+    padding: 24px; max-width: 1180px; margin: 0 auto;
+  }
+  .num { font-variant-numeric: tabular-nums; }
+  header { display: flex; align-items: baseline; gap: 16px; flex-wrap: wrap; margin-bottom: 6px; }
+  h1 { font-size: 22px; letter-spacing: 0.08em; }
+  h1 b { color: var(--accent); }
+  .meta { color: var(--text-dim); font-size: 12px; }
+  .hint { color: var(--text-dim); font-size: 13px; margin: 6px 0 20px; max-width: 74ch; line-height: 1.5; }
+  h2 {
+    font-size: 12px; font-weight: 800; letter-spacing: 0.16em; text-transform: uppercase;
+    color: var(--text-dim); margin: 30px 0 10px; display: flex; align-items: center; gap: 10px;
+  }
+  h2::after { content: ""; flex: 1; height: 1px; background: var(--line); }
+  .card {
+    border: 1px solid var(--line); border-radius: var(--radius); background: var(--panel);
+    padding: 16px 18px; margin-bottom: 12px;
+  }
+  .card h3 { font-size: 13px; color: var(--accent); margin-bottom: 8px; }
+  .card ol, .card ul { margin-left: 20px; line-height: 1.7; font-size: 13px; }
+  .card p { font-size: 13px; line-height: 1.6; color: var(--text); }
+  .card p + p { margin-top: 8px; }
+  code {
+    font-family: ui-monospace, "SF Mono", monospace; font-size: 12px;
+    background: var(--panel-3); border: 1px solid var(--line-bright);
+    border-radius: 4px; padding: 1px 5px; color: var(--accent);
+  }
+  .dim { color: var(--text-dim); }
+  .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  @media (max-width: 820px) { .grid2 { grid-template-columns: 1fr; } }
+  .tablewrap { overflow-x: auto; border: 1px solid var(--line); border-radius: var(--radius); }
+  table { width: 100%; border-collapse: collapse; font-size: 12px; }
+  th, td { text-align: left; padding: 7px 10px; border-bottom: 1px solid var(--line); vertical-align: top; }
+  th { color: var(--text-dim); font-size: 10px; text-transform: uppercase; letter-spacing: 0.1em;
+        position: sticky; top: 0; background: var(--panel); }
+  tr.group td {
+    background: var(--panel-2); color: var(--accent); font-weight: 800; font-size: 10px;
+    text-transform: uppercase; letter-spacing: 0.12em; padding: 8px 10px;
+  }
+  td.path code { display: inline-block; margin: 1px 0; }
+  footer { margin: 30px 0 8px; color: var(--text-dim); font-size: 11px; }
+</style>
+</head>
+<body>
+<header>
+  <h1>ROGGER &rarr; grand<b>MA3</b> handoff</h1>
+  <div class="meta">generated 2026-08-22 &middot; from campus-forum-stage.json</div>
+</header>
+<p class="hint">
+  This turns the tested ROGGER show into a single grandMA3 fixture: one GDTF,
+  one DMX mode, 98 channels on one universe, driving the exact same Resolume
+  OSC targets the ROGGER touchscreen drives. Patch it once and the LD can run
+  flash/bump/DJ/color/transform cues from the console instead of the tablet.
+</p>
+
+<h2>Patch it</h2>
+<div class="card">
+  <ol>
+    <li>Copy the .gdtf onto the console:
+      <br>macOS &mdash; <code>~/MALightingTechnology/gma3_library/fixturetypes/</code>
+      <br>Windows &mdash; <code>C:\ProgramData\MALightingTechnology\gma3_library\fixturetypes\</code>
+      <br>console &mdash; USB import into the fixture type library.</li>
+    <li>Patch &rarr; Insert new fixture &rarr; Import, pick fixture type
+      &ldquo;ROGGER Resolume Remote&rdquo;, mode &ldquo;ROGGER v2 98ch&rdquo;.</li>
+    <li>Address it, e.g. universe <b>U</b> address <b>1</b> &mdash; this
+      <b>must match</b> the universe/address the Resolume DMX preset was
+      generated for (see Network below).</li>
+  </ol>
+</div>
+
+<h2>Network</h2>
+<div class="grid2">
+  <div class="card">
+    <h3>grandMA3</h3>
+    <p>Menu &rarr; In &amp; Out &rarr; DMX Protocols &rarr; Art-Net &rarr; add an output.
+    Net 0 / Subnet 0 / Universe 0 matches this preset's defaults (match
+    whatever universe you actually patched the fixture on). Destination:
+    <b>unicast the Resolume machine's IP</b>, or broadcast on the same
+    subnet &mdash; both work.</p>
+  </div>
+  <div class="card">
+    <h3>Resolume</h3>
+    <p>Preferences &rarr; DMX &rarr; <b>New Input</b> (creates an Art-Net input,
+    Channel Offset 0 / Subnet 0 / Universe 0 by default) &rarr; set
+    <b>Network Adapter</b> to the real NIC on the MA3's subnet (or
+    &ldquo;Localhost&rdquo; only if the console and Resolume are the exact
+    same machine). Resolume only starts listening on UDP 6454 once an input
+    exists <i>and</i> a valid adapter is picked &mdash; sending to
+    <code>127.0.0.1</code> does nothing if a real NIC (e.g. Wi-Fi) is
+    selected instead. OSC and the webserver stay untouched &mdash; ROGGER
+    keeps driving Resolume over OSC exactly as before; this is a second,
+    parallel input.</p>
+  </div>
+</div>
+
+<h2>Resolume side</h2>
+<div class="card">
+  <p>Run <code>tools/install-resolume-preset.sh</code> (quit Resolume Arena
+  first &mdash; it refuses to run while Arena is open) to copy
+  <code>ROGGER_MA3.xml</code> into
+  <code>~/Documents/Resolume Arena/Shortcuts/DMX/</code>, select it as the
+  active preset, and (if no Art-Net input exists yet) add one to
+  <code>Preferences/dmx.xml</code>. It never touches which network adapter
+  is bound &mdash; pick that yourself in Preferences &rarr; DMX after
+  launching Arena. Or do it all by hand: copy the file into that folder,
+  then in Resolume go to Shortcuts &rarr; DMX and choose
+  &ldquo;ROGGER_MA3&rdquo; from the preset list.</p>
+</div>
+
+<h2>How channels behave</h2>
+<div class="card">
+  <ul>
+    <li><b>range</b> &mdash; works like a fader: 0&ndash;255 maps linearly onto the target's 0..1 range.</li>
+    <li><b>event</b> &mdash; momentary: DMX &ge;50% (&ge;128) = press (fires the target), &lt;50% = release.
+      The flash-bank clips are piano mode, so <b>hold</b> the button/fader up to keep the effect running.</li>
+    <li><b>bool</b> &mdash; toggle: DMX &ge;50% = true, &lt;50% = false.</li>
+    <li><b>choice</b> &mdash; a small set of discrete positions (AUTO VJ: off / target 1 / 2 / 3).</li>
+    <li><b>color</b> &mdash; five RGB sub-fixtures (BG, LOGO, FLASH, MORPH1, MORPH2), each just 3
+      range channels (R/G/B) &mdash; drive them with the MA3 color picker like any other fixture.</li>
+  </ul>
+</div>
+
+<h2>Channel map (98 channels)</h2>
+<div class="tablewrap">
+<table>
+<thead><tr><th>Ch</th><th>Name</th><th>Kind</th><th>Default</th><th>Geometry</th><th>Targets</th><th>Note</th></tr></thead>
+<tbody>
+<tr class="group"><td colspan="7">Dimmer</td></tr>
+<tr><td class="num">1</td><td>MASTER</td><td>range (fader)</td><td class="num">255 <span class="dim">(100%)</span></td><td>Main</td><td class="path"><code>/composition/master</code></td><td class="dim">Composition master fader — standard grandMA3 Dimmer attribute.</td></tr>
+<tr class="group"><td colspan="7">Levels</td></tr>
+<tr><td class="num">2</td><td>LAYER 1</td><td>range (fader)</td><td class="num">255 <span class="dim">(100%)</span></td><td>Main</td><td class="path"><code>/composition/layers/1/master</code></td><td class="dim">Layer 1 master level.</td></tr>
+<tr><td class="num">3</td><td>LAYER 2</td><td>range (fader)</td><td class="num">255 <span class="dim">(100%)</span></td><td>Main</td><td class="path"><code>/composition/layers/2/master</code></td><td class="dim">Layer 2 master level.</td></tr>
+<tr><td class="num">4</td><td>LAYER 3</td><td>range (fader)</td><td class="num">255 <span class="dim">(100%)</span></td><td>Main</td><td class="path"><code>/composition/layers/3/master</code></td><td class="dim">Layer 3 master level.</td></tr>
+<tr><td class="num">5</td><td>LAYER 4</td><td>range (fader)</td><td class="num">255 <span class="dim">(100%)</span></td><td>Main</td><td class="path"><code>/composition/layers/4/master</code></td><td class="dim">Layer 4 master level.</td></tr>
+<tr><td class="num">6</td><td>LOGO</td><td>range (fader)</td><td class="num">255 <span class="dim">(100%)</span></td><td>Main</td><td class="path"><code>/composition/layers/9/master</code></td><td class="dim">Logo layer master level.</td></tr>
+<tr><td class="num">7</td><td>BG GRP</td><td>range (fader)</td><td class="num">255 <span class="dim">(100%)</span></td><td>Main</td><td class="path"><code>/composition/groups/1/master</code></td><td class="dim">BG GRP group master level.</td></tr>
+<tr><td class="num">8</td><td>BANNER</td><td>range (fader)</td><td class="num">255 <span class="dim">(100%)</span></td><td>Main</td><td class="path"><code>/composition/groups/2/master</code></td><td class="dim">BANNER group master level.</td></tr>
+<tr><td class="num">9</td><td>LOGOS</td><td>range (fader)</td><td class="num">255 <span class="dim">(100%)</span></td><td>Main</td><td class="path"><code>/composition/groups/3/master</code></td><td class="dim">LOGOS group master level.</td></tr>
+<tr><td class="num">10</td><td>FX RACK</td><td>range (fader)</td><td class="num">255 <span class="dim">(100%)</span></td><td>Main</td><td class="path"><code>/composition/groups/4/master</code></td><td class="dim">FX RACK group master level.</td></tr>
+<tr><td class="num">11</td><td>TC GRP</td><td>range (fader)</td><td class="num">255 <span class="dim">(100%)</span></td><td>Main</td><td class="path"><code>/composition/groups/5/master</code></td><td class="dim">TC GRP group master level.</td></tr>
+<tr><td class="num">12</td><td>TIMES</td><td>range (fader)</td><td class="num">255 <span class="dim">(100%)</span></td><td>Main</td><td class="path"><code>/composition/groups/6/master</code></td><td class="dim">TIMES group master level.</td></tr>
+<tr><td class="num">13</td><td>PUSH TIME</td><td>range (fader)</td><td class="num">94 <span class="dim">(37%)</span></td><td>Main</td><td class="path"><code>/composition/video/effects/pusher/effect/fadeouttime</code><br><code>/composition/video/effects/pusher2/effect/fadeouttime</code></td><td class="dim">Pusher + Pusher2 fade-out time (shared).</td></tr>
+<tr><td class="num">14</td><td>STR SPD</td><td>range (fader)</td><td class="num">79 <span class="dim">(31%)</span></td><td>Main</td><td class="path"><code>/composition/layers/12/clips/3/video/effects/flashmaster/effect/strobespeed</code><br><code>/composition/layers/12/clips/4/video/effects/flashmaster/effect/strobespeed</code><br><code>/composition/layers/12/clips/7/video/effects/flashmaster/effect/strobespeed</code><br><code>/composition/layers/12/clips/9/video/effects/slicestrobe/effect/speed</code></td><td class="dim">Strobe speed shared across FLASH M2/FE STR/SLICE STR clip FX.</td></tr>
+<tr class="group"><td colspan="7">Flash</td></tr>
+<tr><td class="num">15</td><td>GENERA</td><td>event (momentary)</td><td class="num">0 <span class="dim">(0%)</span></td><td>Main</td><td class="path"><code>/composition/layers/12/clips/2/connect</code></td><td class="dim">Momentary clip trigger (piano-mode: hold the button, DMX&gt;=128=press, &lt;128=release).</td></tr>
+<tr><td class="num">16</td><td>FLASH M</td><td>event (momentary)</td><td class="num">0 <span class="dim">(0%)</span></td><td>Main</td><td class="path"><code>/composition/layers/12/clips/3/connect</code></td><td class="dim">Momentary clip trigger (piano-mode: hold the button, DMX&gt;=128=press, &lt;128=release).</td></tr>
+<tr><td class="num">17</td><td>FLASH M2</td><td>event (momentary)</td><td class="num">0 <span class="dim">(0%)</span></td><td>Main</td><td class="path"><code>/composition/layers/12/clips/4/connect</code></td><td class="dim">Momentary clip trigger (piano-mode: hold the button, DMX&gt;=128=press, &lt;128=release).</td></tr>
+<tr><td class="num">18</td><td>INVERT</td><td>event (momentary)</td><td class="num">0 <span class="dim">(0%)</span></td><td>Main</td><td class="path"><code>/composition/layers/12/clips/5/connect</code></td><td class="dim">Momentary clip trigger (piano-mode: hold the button, DMX&gt;=128=press, &lt;128=release).</td></tr>
+<tr><td class="num">19</td><td>PIXELATE</td><td>event (momentary)</td><td class="num">0 <span class="dim">(0%)</span></td><td>Main</td><td class="path"><code>/composition/layers/12/clips/6/connect</code></td><td class="dim">Momentary clip trigger (piano-mode: hold the button, DMX&gt;=128=press, &lt;128=release).</td></tr>
+<tr><td class="num">20</td><td>FE STR</td><td>event (momentary)</td><td class="num">0 <span class="dim">(0%)</span></td><td>Main</td><td class="path"><code>/composition/layers/12/clips/7/connect</code></td><td class="dim">Momentary clip trigger (piano-mode: hold the button, DMX&gt;=128=press, &lt;128=release).</td></tr>
+<tr><td class="num">21</td><td>SUCK IT!</td><td>event (momentary)</td><td class="num">0 <span class="dim">(0%)</span></td><td>Main</td><td class="path"><code>/composition/layers/12/clips/8/connect</code></td><td class="dim">Momentary clip trigger (piano-mode: hold the button, DMX&gt;=128=press, &lt;128=release).</td></tr>
+<tr><td class="num">22</td><td>SLICE STR</td><td>event (momentary)</td><td class="num">0 <span class="dim">(0%)</span></td><td>Main</td><td class="path"><code>/composition/layers/12/clips/9/connect</code></td><td class="dim">Momentary clip trigger (piano-mode: hold the button, DMX&gt;=128=press, &lt;128=release).</td></tr>
+<tr><td class="num">23</td><td>CLR FX</td><td>event (momentary)</td><td class="num">0 <span class="dim">(0%)</span></td><td>Main</td><td class="path"><code>/composition/layers/12/clear</code></td><td class="dim">Clears the FX rack layer (layer 12).</td></tr>
+<tr class="group"><td colspan="7">Bump</td></tr>
+<tr><td class="num">24</td><td>BOOM BLUR</td><td>event (momentary)</td><td class="num">0 <span class="dim">(0%)</span></td><td>Main</td><td class="path"><code>/composition/video/effects/boomer/effect/blur</code></td><td class="dim">Composition-level BOOMER blur bump (momentary).</td></tr>
+<tr><td class="num">25</td><td>BOOM EXPO</td><td>event (momentary)</td><td class="num">0 <span class="dim">(0%)</span></td><td>Main</td><td class="path"><code>/composition/video/effects/boomer/effect/exposure</code></td><td class="dim">Composition-level BOOMER exposure bump (momentary).</td></tr>
+<tr><td class="num">26</td><td>BOOM EDGE</td><td>event (momentary)</td><td class="num">0 <span class="dim">(0%)</span></td><td>Main</td><td class="path"><code>/composition/video/effects/boomer/effect/edge</code></td><td class="dim">Composition-level BOOMER edge bump (momentary).</td></tr>
+<tr><td class="num">27</td><td>BOOM BLOW</td><td>event (momentary)</td><td class="num">0 <span class="dim">(0%)</span></td><td>Main</td><td class="path"><code>/composition/video/effects/boomer/effect/blow</code></td><td class="dim">Composition-level BOOMER blow bump (momentary).</td></tr>
+<tr><td class="num">28</td><td>BOOM INV</td><td>event (momentary)</td><td class="num">0 <span class="dim">(0%)</span></td><td>Main</td><td class="path"><code>/composition/video/effects/boomer/effect/invert</code></td><td class="dim">Composition-level BOOMER invert bump (momentary).</td></tr>
+<tr><td class="num">29</td><td>PUSH WHT</td><td>event (momentary)</td><td class="num">0 <span class="dim">(0%)</span></td><td>Main</td><td class="path"><code>/composition/video/effects/pusher/effect/push!</code></td><td class="dim">White pusher bump.</td></tr>
+<tr><td class="num">30</td><td>PUSH BLK</td><td>event (momentary)</td><td class="num">0 <span class="dim">(0%)</span></td><td>Main</td><td class="path"><code>/composition/video/effects/pusher2/effect/push!</code></td><td class="dim">Black pusher bump.</td></tr>
+<tr><td class="num">31</td><td>BOOM ALL</td><td>event (momentary)</td><td class="num">0 <span class="dim">(0%)</span></td><td>Main</td><td class="path"><code>/composition/video/effects/boomer/effect/blur</code><br><code>/composition/video/effects/boomer/effect/exposure</code><br><code>/composition/video/effects/boomer/effect/edge</code><br><code>/composition/video/effects/boomer/effect/blow</code></td><td class="dim">Fires blur+exposure+edge+blow together.</td></tr>
+<tr><td class="num">32</td><td>PUSH X2</td><td>event (momentary)</td><td class="num">0 <span class="dim">(0%)</span></td><td>Main</td><td class="path"><code>/composition/video/effects/pusher/effect/push!</code><br><code>/composition/video/effects/pusher2/effect/push!</code></td><td class="dim">Fires both pushers together.</td></tr>
+<tr class="group"><td colspan="7">Util</td></tr>
+<tr><td class="num">33</td><td>KEEP GREYS</td><td>bool (toggle)</td><td class="num">0 <span class="dim">(0%)</span></td><td>Main</td><td class="path"><code>/composition/groups/1/video/effects/colorize/effect/greyskeep</code></td><td class="dim">Keep greys on the BG colorize effect.</td></tr>
+<tr><td class="num">34</td><td>HAZE BYPASS</td><td>bool (toggle)</td><td class="num">0 <span class="dim">(0%)</span></td><td>Main</td><td class="path"><code>/composition/layers/8/video/effects/outlinehaze/bypassed</code><br><code>/composition/layers/9/video/effects/outlinehaze/bypassed</code></td><td class="dim">Bypasses OutlineHaze on layers 8+9 (0=haze on, &gt;=128=bypassed/off).</td></tr>
+<tr><td class="num">35</td><td>DISTORT BYPASS</td><td>bool (toggle)</td><td class="num">255 <span class="dim">(100%)</span></td><td>Main</td><td class="path"><code>/composition/video/effects/distortion/bypassed</code></td><td class="dim">Bypasses the composition-level distortion effect (defaults bypassed/off).</td></tr>
+<tr><td class="num">36</td><td>AUTO VJ</td><td>choice</td><td class="num">0 <span class="dim">(0%)</span></td><td>Main</td><td class="path"><code>/composition/layers/1/autopilot/target</code></td><td class="dim">Layer 1 autopilot target: 0=Off, 64/128/192=Target 1/2/3.</td></tr>
+<tr class="group"><td colspan="7">Color</td></tr>
+<tr><td class="num">37</td><td>BG R</td><td>color</td><td class="num">0 <span class="dim">(0%)</span></td><td>BG / R</td><td class="path"><code>/composition/groups/1/video/effects/colorize/effect/color/red</code></td><td class="dim">R component of the BG sub-fixture RGB color (fans out to 1 target; drive with the MA3 color picker).</td></tr>
+<tr><td class="num">38</td><td>BG G</td><td>color</td><td class="num">0 <span class="dim">(0%)</span></td><td>BG / G</td><td class="path"><code>/composition/groups/1/video/effects/colorize/effect/color/green</code></td><td class="dim">G component of the BG sub-fixture RGB color (fans out to 1 target; drive with the MA3 color picker).</td></tr>
+<tr><td class="num">39</td><td>BG B</td><td>color</td><td class="num">0 <span class="dim">(0%)</span></td><td>BG / B</td><td class="path"><code>/composition/groups/1/video/effects/colorize/effect/color/blue</code></td><td class="dim">B component of the BG sub-fixture RGB color (fans out to 1 target; drive with the MA3 color picker).</td></tr>
+<tr class="group"><td colspan="7">Util</td></tr>
+<tr><td class="num">40</td><td>BG COLOR BYPASS</td><td>bool (toggle)</td><td class="num">255 <span class="dim">(100%)</span></td><td>Main</td><td class="path"><code>/composition/groups/1/video/effects/colorize/bypassed</code></td><td class="dim">Bypasses the BG colorize effect (defaults bypassed/off until a color is chosen).</td></tr>
+<tr class="group"><td colspan="7">Color</td></tr>
+<tr><td class="num">41</td><td>LOGO R</td><td>color</td><td class="num">0 <span class="dim">(0%)</span></td><td>LOGO / R</td><td class="path"><code>/composition/layers/8/video/effects/outlinehaze/effect/color/red</code><br><code>/composition/layers/9/video/effects/outlinehaze/effect/color/red</code></td><td class="dim">R component of the LOGO sub-fixture RGB color (fans out to 2 targets; drive with the MA3 color picker).</td></tr>
+<tr><td class="num">42</td><td>LOGO G</td><td>color</td><td class="num">0 <span class="dim">(0%)</span></td><td>LOGO / G</td><td class="path"><code>/composition/layers/8/video/effects/outlinehaze/effect/color/green</code><br><code>/composition/layers/9/video/effects/outlinehaze/effect/color/green</code></td><td class="dim">G component of the LOGO sub-fixture RGB color (fans out to 2 targets; drive with the MA3 color picker).</td></tr>
+<tr><td class="num">43</td><td>LOGO B</td><td>color</td><td class="num">0 <span class="dim">(0%)</span></td><td>LOGO / B</td><td class="path"><code>/composition/layers/8/video/effects/outlinehaze/effect/color/blue</code><br><code>/composition/layers/9/video/effects/outlinehaze/effect/color/blue</code></td><td class="dim">B component of the LOGO sub-fixture RGB color (fans out to 2 targets; drive with the MA3 color picker).</td></tr>
+<tr><td class="num">44</td><td>FLASH R</td><td>color</td><td class="num">0 <span class="dim">(0%)</span></td><td>FLASH / R</td><td class="path"><code>/composition/layers/12/clips/3/video/effects/flashmaster/effect/color1/red</code><br><code>/composition/layers/12/clips/4/video/effects/flashmaster/effect/color1/red</code><br><code>/composition/layers/12/clips/7/video/effects/flashmaster/effect/color1/red</code></td><td class="dim">R component of the FLASH sub-fixture RGB color (fans out to 3 targets; drive with the MA3 color picker).</td></tr>
+<tr><td class="num">45</td><td>FLASH G</td><td>color</td><td class="num">0 <span class="dim">(0%)</span></td><td>FLASH / G</td><td class="path"><code>/composition/layers/12/clips/3/video/effects/flashmaster/effect/color1/green</code><br><code>/composition/layers/12/clips/4/video/effects/flashmaster/effect/color1/green</code><br><code>/composition/layers/12/clips/7/video/effects/flashmaster/effect/color1/green</code></td><td class="dim">G component of the FLASH sub-fixture RGB color (fans out to 3 targets; drive with the MA3 color picker).</td></tr>
+<tr><td class="num">46</td><td>FLASH B</td><td>color</td><td class="num">0 <span class="dim">(0%)</span></td><td>FLASH / B</td><td class="path"><code>/composition/layers/12/clips/3/video/effects/flashmaster/effect/color1/blue</code><br><code>/composition/layers/12/clips/4/video/effects/flashmaster/effect/color1/blue</code><br><code>/composition/layers/12/clips/7/video/effects/flashmaster/effect/color1/blue</code></td><td class="dim">B component of the FLASH sub-fixture RGB color (fans out to 3 targets; drive with the MA3 color picker).</td></tr>
+<tr><td class="num">47</td><td>MORPH1 R</td><td>color</td><td class="num">0 <span class="dim">(0%)</span></td><td>MORPH1 / R</td><td class="path"><code>/composition/video/effects/colormorph/effect/color1/red</code></td><td class="dim">R component of the MORPH1 sub-fixture RGB color (fans out to 1 target; drive with the MA3 color picker).</td></tr>
+<tr><td class="num">48</td><td>MORPH1 G</td><td>color</td><td class="num">0 <span class="dim">(0%)</span></td><td>MORPH1 / G</td><td class="path"><code>/composition/video/effects/colormorph/effect/color1/green</code></td><td class="dim">G component of the MORPH1 sub-fixture RGB color (fans out to 1 target; drive with the MA3 color picker).</td></tr>
+<tr><td class="num">49</td><td>MORPH1 B</td><td>color</td><td class="num">0 <span class="dim">(0%)</span></td><td>MORPH1 / B</td><td class="path"><code>/composition/video/effects/colormorph/effect/color1/blue</code></td><td class="dim">B component of the MORPH1 sub-fixture RGB color (fans out to 1 target; drive with the MA3 color picker).</td></tr>
+<tr><td class="num">50</td><td>MORPH2 R</td><td>color</td><td class="num">0 <span class="dim">(0%)</span></td><td>MORPH2 / R</td><td class="path"><code>/composition/video/effects/colormorph/effect/color3/red</code></td><td class="dim">R component of the MORPH2 sub-fixture RGB color (fans out to 1 target; drive with the MA3 color picker).</td></tr>
+<tr><td class="num">51</td><td>MORPH2 G</td><td>color</td><td class="num">0 <span class="dim">(0%)</span></td><td>MORPH2 / G</td><td class="path"><code>/composition/video/effects/colormorph/effect/color3/green</code></td><td class="dim">G component of the MORPH2 sub-fixture RGB color (fans out to 1 target; drive with the MA3 color picker).</td></tr>
+<tr><td class="num">52</td><td>MORPH2 B</td><td>color</td><td class="num">0 <span class="dim">(0%)</span></td><td>MORPH2 / B</td><td class="path"><code>/composition/video/effects/colormorph/effect/color3/blue</code></td><td class="dim">B component of the MORPH2 sub-fixture RGB color (fans out to 1 target; drive with the MA3 color picker).</td></tr>
+<tr class="group"><td colspan="7">Util</td></tr>
+<tr><td class="num">53</td><td>MORPH SPEED</td><td>range (fader)</td><td class="num">0 <span class="dim">(0%)</span></td><td>Main</td><td class="path"><code>/composition/video/effects/colormorph/effect/speed</code></td><td class="dim">ColorMorph cycle speed.</td></tr>
+<tr><td class="num">54</td><td>MORPH BYPASS</td><td>bool (toggle)</td><td class="num">255 <span class="dim">(100%)</span></td><td>Main</td><td class="path"><code>/composition/video/effects/colormorph/bypassed</code></td><td class="dim">Bypasses the ColorMorph composition effect (defaults bypassed/off).</td></tr>
+<tr class="group"><td colspan="7">FX</td></tr>
+<tr><td class="num">55</td><td>EDGE FX</td><td>range (fader)</td><td class="num">0 <span class="dim">(0%)</span></td><td>Main</td><td class="path"><code>/composition/groups/1/video/effects/edgedetection/opacity</code></td><td class="dim">Group 1 content FX opacity (EDGE FX).</td></tr>
+<tr><td class="num">56</td><td>ACUARELA</td><td>range (fader)</td><td class="num">0 <span class="dim">(0%)</span></td><td>Main</td><td class="path"><code>/composition/groups/1/video/effects/acuarela/opacity</code></td><td class="dim">Group 1 content FX opacity (ACUARELA).</td></tr>
+<tr><td class="num">57</td><td>BLOOM</td><td>range (fader)</td><td class="num">0 <span class="dim">(0%)</span></td><td>Main</td><td class="path"><code>/composition/groups/1/video/effects/bloom/opacity</code></td><td class="dim">Group 1 content FX opacity (BLOOM).</td></tr>
+<tr><td class="num">58</td><td>GOO</td><td>range (fader)</td><td class="num">0 <span class="dim">(0%)</span></td><td>Main</td><td class="path"><code>/composition/groups/1/video/effects/goo/opacity</code></td><td class="dim">Group 1 content FX opacity (GOO).</td></tr>
+<tr><td class="num">59</td><td>INF ZOOM</td><td>range (fader)</td><td class="num">0 <span class="dim">(0%)</span></td><td>Main</td><td class="path"><code>/composition/groups/1/video/effects/infinitezoom/opacity</code></td><td class="dim">Group 1 content FX opacity (INF ZOOM).</td></tr>
+<tr><td class="num">60</td><td>METASHAPE</td><td>range (fader)</td><td class="num">0 <span class="dim">(0%)</span></td><td>Main</td><td class="path"><code>/composition/groups/1/video/effects/metashape/opacity</code></td><td class="dim">Group 1 content FX opacity (METASHAPE).</td></tr>
+<tr><td class="num">61</td><td>GLITCH</td><td>range (fader)</td><td class="num">0 <span class="dim">(0%)</span></td><td>Main</td><td class="path"><code>/composition/groups/1/video/effects/shiftglitch/opacity</code></td><td class="dim">Group 1 content FX opacity (GLITCH).</td></tr>
+<tr><td class="num">62</td><td>HUE ROTATE</td><td>range (fader)</td><td class="num">145 <span class="dim">(57%)</span></td><td>Main</td><td class="path"><code>/composition/groups/1/video/effects/huerotate/effect/huerotate</code></td><td class="dim">Group 1 hue rotation (defaults to the HUE RST rest position, 0.57).</td></tr>
+<tr><td class="num">63</td><td>ZOOM RST</td><td>event (momentary)</td><td class="num">0 <span class="dim">(0%)</span></td><td>Main</td><td class="path"><code>/composition/groups/1/video/effects/infinitezoom/effect/reset</code></td><td class="dim">Resets the infinite-zoom effect.</td></tr>
+<tr><td class="num">64</td><td>ACUA RST</td><td>event (momentary)</td><td class="num">0 <span class="dim">(0%)</span></td><td>Main</td><td class="path"><code>/composition/groups/1/video/effects/acuarela/effect/reset</code></td><td class="dim">Resets the acuarela effect.</td></tr>
+<tr class="group"><td colspan="7">Logo</td></tr>
+<tr><td class="num">65</td><td>LOGO ON</td><td>event (momentary)</td><td class="num">0 <span class="dim">(0%)</span></td><td>Main</td><td class="path"><code>/composition/layers/9/clips/2/connect</code><br><code>/composition/layers/8/clear</code></td><td class="dim">Main logo on (also clears the DJ-page alt logo layer 8).</td></tr>
+<tr><td class="num">66</td><td>LOGO OFF</td><td>event (momentary)</td><td class="num">0 <span class="dim">(0%)</span></td><td>Main</td><td class="path"><code>/composition/layers/8/clear</code><br><code>/composition/layers/9/clear</code></td><td class="dim">Clears both logo layers (8 and 9).</td></tr>
+<tr><td class="num">67</td><td>PULLMAXX</td><td>event (momentary)</td><td class="num">0 <span class="dim">(0%)</span></td><td>Main</td><td class="path"><code>/composition/layers/8/clips/17/connect</code></td><td class="dim">Alt logo (PULLMAXX) on layer 8 — distinct from the DJ-page PULLMAXX track on ch 88.</td></tr>
+<tr><td class="num">68</td><td>CLR LOGO</td><td>event (momentary)</td><td class="num">0 <span class="dim">(0%)</span></td><td>Main</td><td class="path"><code>/composition/layers/9/clear</code></td><td class="dim">Clears the main logo layer (9).</td></tr>
+<tr class="group"><td colspan="7">DJ</td></tr>
+<tr><td class="num">69</td><td>OFF</td><td>event (momentary)</td><td class="num">0 <span class="dim">(0%)</span></td><td>Main</td><td class="path"><code>/composition/layers/17/clips/1/connect</code></td><td class="dim">DJ Intro page clip trigger (OFF).</td></tr>
+<tr><td class="num">70</td><td>KOLLAR</td><td>event (momentary)</td><td class="num">0 <span class="dim">(0%)</span></td><td>Main</td><td class="path"><code>/composition/layers/17/clips/2/connect</code></td><td class="dim">DJ Intro page clip trigger (KOLLAR).</td></tr>
+<tr><td class="num">71</td><td>NEWIK</td><td>event (momentary)</td><td class="num">0 <span class="dim">(0%)</span></td><td>Main</td><td class="path"><code>/composition/layers/17/clips/3/connect</code></td><td class="dim">DJ Intro page clip trigger (NEWIK).</td></tr>
+<tr><td class="num">72</td><td>COOKY</td><td>event (momentary)</td><td class="num">0 <span class="dim">(0%)</span></td><td>Main</td><td class="path"><code>/composition/layers/17/clips/4/connect</code></td><td class="dim">DJ Intro page clip trigger (COOKY).</td></tr>
+<tr><td class="num">73</td><td>YAMINA</td><td>event (momentary)</td><td class="num">0 <span class="dim">(0%)</span></td><td>Main</td><td class="path"><code>/composition/layers/17/clips/5/connect</code></td><td class="dim">DJ Intro page clip trigger (YAMINA).</td></tr>
+<tr><td class="num">74</td><td>REGAN</td><td>event (momentary)</td><td class="num">0 <span class="dim">(0%)</span></td><td>Main</td><td class="path"><code>/composition/layers/17/clips/6/connect</code></td><td class="dim">DJ Intro page clip trigger (REGAN).</td></tr>
+<tr><td class="num">75</td><td>BEGI</td><td>event (momentary)</td><td class="num">0 <span class="dim">(0%)</span></td><td>Main</td><td class="path"><code>/composition/layers/17/clips/7/connect</code></td><td class="dim">DJ Intro page clip trigger (BEGI).</td></tr>
+<tr><td class="num">76</td><td>METZKER</td><td>event (momentary)</td><td class="num">0 <span class="dim">(0%)</span></td><td>Main</td><td class="path"><code>/composition/layers/17/clips/8/connect</code></td><td class="dim">DJ Intro page clip trigger (METZKER).</td></tr>
+<tr><td class="num">77</td><td>JAURI</td><td>event (momentary)</td><td class="num">0 <span class="dim">(0%)</span></td><td>Main</td><td class="path"><code>/composition/layers/17/clips/9/connect</code></td><td class="dim">DJ Intro page clip trigger (JAURI).</td></tr>
+<tr><td class="num">78</td><td>ANTONYO</td><td>event (momentary)</td><td class="num">0 <span class="dim">(0%)</span></td><td>Main</td><td class="path"><code>/composition/layers/17/clips/10/connect</code></td><td class="dim">DJ Intro page clip trigger (ANTONYO).</td></tr>
+<tr><td class="num">79</td><td>WILLCOX</td><td>event (momentary)</td><td class="num">0 <span class="dim">(0%)</span></td><td>Main</td><td class="path"><code>/composition/layers/17/clips/11/connect</code></td><td class="dim">DJ Intro page clip trigger (WILLCOX).</td></tr>
+<tr><td class="num">80</td><td>SATIUMX</td><td>event (momentary)</td><td class="num">0 <span class="dim">(0%)</span></td><td>Main</td><td class="path"><code>/composition/layers/17/clips/12/connect</code></td><td class="dim">DJ Intro page clip trigger (SATIUMX).</td></tr>
+<tr><td class="num">81</td><td>PUREBEAT</td><td>event (momentary)</td><td class="num">0 <span class="dim">(0%)</span></td><td>Main</td><td class="path"><code>/composition/layers/17/clips/13/connect</code></td><td class="dim">DJ Intro page clip trigger (PUREBEAT).</td></tr>
+<tr><td class="num">82</td><td>LOVING ARMS</td><td>event (momentary)</td><td class="num">0 <span class="dim">(0%)</span></td><td>Main</td><td class="path"><code>/composition/layers/17/clips/14/connect</code></td><td class="dim">DJ Intro page clip trigger (LOVING ARMS).</td></tr>
+<tr><td class="num">83</td><td>HANVAI PG</td><td>event (momentary)</td><td class="num">0 <span class="dim">(0%)</span></td><td>Main</td><td class="path"><code>/composition/layers/17/clips/15/connect</code></td><td class="dim">DJ Intro page clip trigger (HANVAI PG).</td></tr>
+<tr><td class="num">84</td><td>DJ JUNIOR</td><td>event (momentary)</td><td class="num">0 <span class="dim">(0%)</span></td><td>Main</td><td class="path"><code>/composition/layers/17/clips/16/connect</code></td><td class="dim">DJ Intro page clip trigger (DJ JUNIOR).</td></tr>
+<tr><td class="num">85</td><td>CRSTPHR</td><td>event (momentary)</td><td class="num">0 <span class="dim">(0%)</span></td><td>Main</td><td class="path"><code>/composition/layers/17/clips/17/connect</code></td><td class="dim">DJ Intro page clip trigger (CRSTPHR).</td></tr>
+<tr><td class="num">86</td><td>BRICKLAKE</td><td>event (momentary)</td><td class="num">0 <span class="dim">(0%)</span></td><td>Main</td><td class="path"><code>/composition/layers/17/clips/18/connect</code></td><td class="dim">DJ Intro page clip trigger (BRICKLAKE).</td></tr>
+<tr><td class="num">87</td><td>JOER JUNIOR</td><td>event (momentary)</td><td class="num">0 <span class="dim">(0%)</span></td><td>Main</td><td class="path"><code>/composition/layers/17/clips/19/connect</code></td><td class="dim">DJ Intro page clip trigger (JOER JUNIOR).</td></tr>
+<tr><td class="num">88</td><td>PULLMAXX</td><td>event (momentary)</td><td class="num">0 <span class="dim">(0%)</span></td><td>Main</td><td class="path"><code>/composition/layers/17/clips/20/connect</code></td><td class="dim">DJ Intro page clip trigger (PULLMAXX).</td></tr>
+<tr><td class="num">89</td><td>#21</td><td>event (momentary)</td><td class="num">0 <span class="dim">(0%)</span></td><td>Main</td><td class="path"><code>/composition/layers/17/clips/21/connect</code></td><td class="dim">DJ Intro page clip trigger (#21).</td></tr>
+<tr><td class="num">90</td><td>#22</td><td>event (momentary)</td><td class="num">0 <span class="dim">(0%)</span></td><td>Main</td><td class="path"><code>/composition/layers/17/clips/22/connect</code></td><td class="dim">DJ Intro page clip trigger (#22).</td></tr>
+<tr><td class="num">91</td><td>R1 LOGO</td><td>event (momentary)</td><td class="num">0 <span class="dim">(0%)</span></td><td>Main</td><td class="path"><code>/composition/layers/9/clips/2/connect</code><br><code>/composition/layers/8/clear</code></td><td class="dim">DJ-page logo shortcut (R1 LOGO) — duplicates ch 65 LOGO ON for on-page reach.</td></tr>
+<tr><td class="num">92</td><td>LOGO OFF</td><td>event (momentary)</td><td class="num">0 <span class="dim">(0%)</span></td><td>Main</td><td class="path"><code>/composition/layers/8/clear</code><br><code>/composition/layers/9/clear</code></td><td class="dim">DJ-page logo shortcut — duplicates ch 66 LOGO OFF for on-page reach.</td></tr>
+<tr class="group"><td colspan="7">Tempo</td></tr>
+<tr><td class="num">93</td><td>TAP TEMPO</td><td>event (momentary)</td><td class="num">0 <span class="dim">(0%)</span></td><td>Main</td><td class="path"><code>/composition/tempocontroller/tempotap</code></td><td class="dim">Tap-tempo input to Resolume&#x27;s tempo controller.</td></tr>
+<tr><td class="num">94</td><td>RESYNC</td><td>event (momentary)</td><td class="num">0 <span class="dim">(0%)</span></td><td>Main</td><td class="path"><code>/composition/tempocontroller/resync</code></td><td class="dim">Resyncs the beat phase to the last tap/BPM.</td></tr>
+<tr class="group"><td colspan="7">Transform</td></tr>
+<tr><td class="num">95</td><td>POS X</td><td>range (fader)</td><td class="num">128 <span class="dim">(50%)</span></td><td>Main</td><td class="path"><code>/composition/video/effects/transform/effect/positionx</code></td><td class="dim">Composition transform position X (LS stick).</td></tr>
+<tr><td class="num">96</td><td>POS Y</td><td>range (fader)</td><td class="num">128 <span class="dim">(50%)</span></td><td>Main</td><td class="path"><code>/composition/video/effects/transform/effect/positiony</code></td><td class="dim">Composition transform position Y (LS stick).</td></tr>
+<tr><td class="num">97</td><td>SCALE</td><td>range (fader)</td><td class="num">26 <span class="dim">(10%)</span></td><td>Main</td><td class="path"><code>/composition/video/effects/transform/effect/scale</code></td><td class="dim">Composition transform scale (RS stick Y).</td></tr>
+<tr><td class="num">98</td><td>ROTATION</td><td>range (fader)</td><td class="num">128 <span class="dim">(50%)</span></td><td>Main</td><td class="path"><code>/composition/video/effects/transform/effect/rotationz</code></td><td class="dim">Composition transform rotation Z (RS stick X).</td></tr>
+</tbody></table>
+</div>
+
+<footer>Generated 2026-08-22 by tools/gen-ma3-handoff.py from campus-forum-stage.json &middot;
+regenerate with <code>npm run ma3</code>.</footer>
+</body>
+</html>

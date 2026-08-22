@@ -13,7 +13,8 @@
   "scripts": {
     "start": "electron .",
     "test": "node --test \"test/*.test.js\"",
-    "dist:win": "electron-builder --win --x64"
+    "dist:win": "electron-builder --win --x64",
+    "ma3": "python3 tools/gen-ma3-gdtf.py && python3 tools/gen-resolume-dmx-preset.py && python3 tools/gen-ma3-handoff.py"
   },
   "build": {
     "appId": "hu.rogger.controller",
