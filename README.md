@@ -140,9 +140,13 @@ faders. Nothing is echoed back.
 
 ```bash
 npm install
-npm test            # codec / config / engine unit + integration tests
+npm test            # codec / config / engine / bpm / combos / library unit tests
 npm start           # run the app under Electron (config.dev.json)
 node test/serve.js  # browser mode with a mock OSC bridge on :5199
+node test/ui/combos.spec.mjs          # Playwright UI checks (spawn their own server
+node test/ui/editor-settings.spec.mjs #   where needed; bpm-page.spec.mjs expects
+node test/ui/bpm-page.spec.mjs        #   test/serve.js to be running)
+npm run ma3         # regenerate the grandMA3 GDTF, Resolume preset and LD sheet
 ```
 
 ## Building the Windows exe
@@ -155,14 +159,46 @@ The bundled show config (`configs/campus-forum-stage.json`) seeds the user
 config on first launch; **Settings → Reload default mapping** restores it any
 time. Config lives at `%APPDATA%/ROGGER/config.json` (packaged).
 
+## grandMA3 handoff (DMX / Art-Net)
+
+The tested ROGGER functions are also published as a **DMX fixture** so a
+lighting designer can drive Resolume from a grandMA3 desk without ROGGER in
+the loop — `npm run ma3` regenerates everything from the show config:
+
+- `dist-ma3/ROGGER@Resolume Remote@v2.gdtf` — GDTF 1.2 fixture, one 98-channel
+  mode (master + layer/group levels, flash/bump/util, 5 RGB colour
+  sub-fixtures, FX ramps, logo, DJ names, tempo, transform). Copy it into
+  `gma3_library/fixturetypes/` and import it in Patch.
+- `dist-ma3/ROGGER_MA3.xml` — the matching Resolume **DMX shortcut preset**
+  (`tools/install-resolume-preset.sh` copies it into `Shortcuts/DMX/`; the
+  composition remembers its preset, so pick `ROGGER_MA3` once in
+  Shortcuts → Edit DMX and save the composition, or pass `--composition`).
+- `docs/ma3-handoff.html` — the cheat sheet for the LD (patch, network,
+  channel table, semantics). Send it with the files.
+- `tools/artnet-send.js` — zero-dependency Art-Net sender for bench tests
+  (`node tools/artnet-send.js --host <resolume-ip> --set 16=255 --seconds 2`).
+- `tools/dmx_map.py` is the single source of truth for the channel map;
+  `python3 tools/test_dmx_tools.py` checks map, GDTF and preset.
+
+Verified live (2026-08-22) on Resolume Arena 7.26: range, momentary
+(piano hold/release), bool, choice, colour and layer-clear channels all
+follow incoming Art-Net.
+
 ## Architecture
 
 - `src/main/osc.js` — dependency-free OSC 1.0 codec (i/f/s, bundles).
 - `src/main/osc-engine.js` — UDP send/receive, learn, status, reconnect.
 - `src/main/config-store.js` — schema defaults, tolerant merge, atomic save.
-- `src/main/ipc.js` — bridge handlers incl. REST-backed DJ sync / BPM seed.
+- `src/main/ipc.js` — bridge handlers incl. REST-backed DJ sync / BPM seed,
+  config export/import.
 - `src/renderer/` — zero-dependency vanilla JS/CSS; runs in a plain browser
-  via a mock bridge for the Playwright suite (75+ checks).
+  via a mock bridge for the Playwright checks in `test/ui/`.
+  - `js/bpm/` — Web Audio BPM analyser (pure DSP core + worklet + page).
+  - `js/gamepad.js` + `js/gamepad-resolve.js` — controller polling and the
+    pure combo/modifier resolver.
+  - `js/remote-api.js` — the inbound `/rogger/*` OSC vocabulary.
+- `tools/` — generators for the grandMA3 GDTF, the Resolume DMX preset, the
+  LD/APC40 cheat sheets, plus the Art-Net test sender.
 
 Design and plan documents live in `docs/superpowers/`.
 
@@ -173,6 +209,9 @@ is plenty of room to grow. Good places to jump in:
 
 - **New button behaviors / OSC targets** — the command library and button
   editor are designed to be extended.
+- **Beat detection** — the Web Audio BPM core is pure JS with synthetic-audio
+  tests; better onset/tempo tracking is welcome.
+- **grandMA3 / DMX** — more channels in `tools/dmx_map.py`, other desks.
 - **Hardware surfaces** — mappings beyond the APC40 mkII, other handhelds and
   touch devices.
 - **Docs, tests, bug reports** — always appreciated.
