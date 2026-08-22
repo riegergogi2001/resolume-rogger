@@ -2,8 +2,9 @@
 // button repeats. Purely local — taps come from the TAP button, no OSC here.
 let taps = [];
 let mult = 1;
-let mode = 'tap'; // 'tap' = manual taps, 'auto' = follow the target app's BPM
+let mode = 'tap'; // 'tap' = manual taps, 'auto' = follow the target app's BPM, 'mic' = BPM page analyser
 let autoBpm = null;
+let micBpm = null;
 const subs = new Set();
 
 function notify() {
@@ -41,9 +42,23 @@ export function setAutoBpm(bpm) {
   if (changed) notify();
 }
 
-// Current beat length in ms (x mult): auto BPM when following the target app,
-// otherwise tap-averaged; null before 2 taps.
+// Set by the BPM page's mic analyser on every update; null when it has no
+// confident reading yet.
+export function setMicBpm(bpm) {
+  const next = bpm && Number.isFinite(bpm) ? bpm : null;
+  const changed = next !== micBpm && !(next !== null && micBpm !== null && Math.abs(next - micBpm) <= 0.05);
+  micBpm = next;
+  if (changed) notify();
+}
+
+export function getMicBpm() {
+  return micBpm;
+}
+
+// Current beat length in ms (x mult): mic-analyser BPM, auto BPM when
+// following the target app, or tap-averaged; null before a source is ready.
 export function beatMs() {
+  if (mode === 'mic') return micBpm ? (60000 / micBpm) * mult : null;
   if (mode === 'auto' && autoBpm) return (60000 / autoBpm) * mult;
   if (taps.length < 2) return null;
   return ((taps[taps.length - 1] - taps[0]) / (taps.length - 1)) * mult;

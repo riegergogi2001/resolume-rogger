@@ -75,7 +75,14 @@ function defaults() {
       autoReconnect: true,
     },
     ui: { theme: 'dark' },
-    beat: { source: 'tap' }, // 'tap' = manual, 'auto' = follow Resolume's BPM
+    // 'tap' = manual taps, 'auto' = follow Resolume's BPM, 'mic' = BPM page
+    // mic/line-in analyser (src/renderer/js/bpm/).
+    beat: {
+      source: 'tap',
+      micDeviceId: '',        // '' = system default input
+      micAutoStart: false,    // auto-start mic capture on boot
+      micSendTempo: false,    // "Send Tempo to Resolume" toggle on the BPM page
+    },
     // Analog gamepad triggers: pressed depth maps onto a float param
     // (from -> to), release snaps back; optional engage/disengage message.
     triggers: {

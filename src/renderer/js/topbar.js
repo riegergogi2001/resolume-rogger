@@ -68,20 +68,24 @@ export function renderTopbar(el, { onToggleEdit, onOpenSettings }) {
   const half = multButton('bpm-half', '÷2', 2);
   const dbl = multButton('bpm-double', '×2', 0.5);
 
-  // beat source: manual taps or auto-follow the target app's BPM
+  // beat source: manual taps, auto-follow the target app's BPM, or the mic
+  // analyser (BPM page). Cycles TAP -> AUTO -> MIC -> TAP.
+  const SOURCE_LABELS = { tap: 'Tap', auto: 'Auto', mic: 'Mic' };
+  const SOURCE_CYCLE = ['tap', 'auto', 'mic'];
   const srcBtn = document.createElement('button');
   srcBtn.className = 'mini-btn u-caps';
   srcBtn.id = 'bpm-source';
   function applySource(src) {
     beat.setMode(src);
-    srcBtn.textContent = 'Auto'; // lit = follow Resolume, unlit = manual taps
-    srcBtn.classList.toggle('on', src === 'auto');
+    srcBtn.textContent = SOURCE_LABELS[src] ?? 'Tap';
+    srcBtn.classList.toggle('on', src !== 'tap');
     if (src === 'auto') {
       rogger.seedBpm().then(bpm => { if (bpm) beat.setAutoBpm(bpm); }).catch(() => {});
     }
   }
   srcBtn.addEventListener('pointerdown', () => {
-    const next = beat.getMode() === 'auto' ? 'tap' : 'auto';
+    const cur = SOURCE_CYCLE.indexOf(beat.getMode());
+    const next = SOURCE_CYCLE[(cur + 1) % SOURCE_CYCLE.length] ?? 'tap';
     if (state.get().beat) state.get().beat.source = next;
     state.persist();
     applySource(next);
