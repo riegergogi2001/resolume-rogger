@@ -45,6 +45,7 @@ function buildIndex(comp) {
 }
 
 const layerName = l => l?.name?.value ?? '?';
+const val = p => (p && typeof p === 'object' && 'value' in p ? p.value : undefined);
 const clipName = c => c?.name?.value ?? '';
 
 /**
@@ -78,7 +79,11 @@ function resolve(address, idx) {
         : { ok: false, what: `clip "${name}" (layer ${m[1]}) has no effect "${fx}"` };
     }
     if (!name) return { ok: false, what: `layer ${m[1]} "${layerName(layer)}" clip ${m[2]} is EMPTY` };
-    return { ok: true, what: `layer ${m[1]} "${layerName(layer)}" clip ${m[2]} "${name}"`, clip: name, layer: layerName(layer) };
+    return {
+      ok: true, what: `layer ${m[1]} "${layerName(layer)}" clip ${m[2]} "${name}"`,
+      clip: name, layer: layerName(layer),
+      container: `layer ${m[1]} "${layerName(layer)}"`, containerLevel: val(layer.master),
+    };
   }
 
   // /composition/layers/N/...
@@ -87,7 +92,12 @@ function resolve(address, idx) {
     const layer = idx.layers[li];
     if (!layer) return { ok: false, what: `layer ${m[1]} does not exist` };
     const rest = m[2];
-    if (rest === 'clear') return { ok: true, what: `clear layer ${m[1]} "${layerName(layer)}"`, layer: layerName(layer) };
+    if (rest === 'clear') {
+      return {
+        ok: true, what: `clear layer ${m[1]} "${layerName(layer)}"`, layer: layerName(layer),
+        container: `layer ${m[1]} "${layerName(layer)}"`, containerLevel: val(layer.master),
+      };
+    }
     if (rest === 'master') return { ok: true, what: `master of layer ${m[1]} "${layerName(layer)}"`, layer: layerName(layer) };
     if (rest.startsWith('video/effects/')) {
       const fx = oscName(rest.split('/')[2]);
@@ -116,8 +126,16 @@ function resolve(address, idx) {
     }
     if (rest.startsWith('video/effects/')) {
       const fx = oscName(rest.split('/')[2]);
-      return idx.groupEffects[gi].has(fx)
-        ? { ok: true, what: `group ${gi + 1} "${gname}" effect ${fx}` }
+      const entry = idx.groupEffects[gi].get(fx);
+      return entry
+        ? {
+          ok: true,
+          what: `group ${gi + 1} "${gname}" effect ${fx}`,
+          effect: entry.effect,
+          effectKey: `group${gi + 1}:${fx}`,
+          container: `group ${gi + 1} "${gname}"`,
+          containerLevel: val(group.master),
+        }
         : { ok: false, what: `group ${gi + 1} "${gname}" has no effect "${fx}"` };
     }
     return { ok: true, what: `group "${gname}" ${rest}` };
@@ -134,8 +152,16 @@ function resolve(address, idx) {
   // /composition/video/effects/<fx>/...
   if ((m = a.match(/^\/composition\/video\/effects\/([^/]+)\//))) {
     const fx = oscName(m[1]);
-    return idx.compEffects.has(fx)
-      ? { ok: true, what: `composition effect ${fx}` }
+    const entry = idx.compEffects.get(fx);
+    return entry
+      ? {
+        ok: true,
+        what: `composition effect ${fx}`,
+        effect: entry.effect,
+        effectKey: `composition:${fx}`,
+        container: 'the composition',
+        containerLevel: val(idx.comp.master),
+      }
       : { ok: false, what: `composition has no effect "${fx}"` };
   }
 
@@ -175,8 +201,28 @@ async function main() {
   console.log(`config      ${path.relative(process.cwd(), CONFIG)}`);
   console.log(`composition ${comp.name?.value} (via ${HOST}:9292)\n`);
 
+  // Which effects does some control switch on for itself? A bypassed effect
+  // is only a problem when nothing on the surface can un-bypass it.
+  const bypassDrivers = new Set();
+  const collect = control => {
+    for (const { addr } of addressesOf(control)) {
+      if (!/\/bypassed$/.test(addr ?? '')) continue;
+      const r = resolve(addr, idx);
+      if (r.effectKey) bypassDrivers.add(r.effectKey);
+    }
+  };
+  for (const [key] of SECTIONS) for (const c of cfg[key] ?? []) collect(c);
+  for (const t of cfg.colorTargets?.items ?? []) {
+    for (const step of [...(t.onSteps ?? []), ...(t.offSteps ?? [])]) {
+      if (!/\/bypassed$/.test(step.address ?? '')) continue;
+      const r = resolve(step.address, idx);
+      if (r.effectKey) bypassDrivers.add(r.effectKey);
+    }
+  }
+
   let broken = 0;
   let odd = 0;
+  const silent = [];
   for (const [key, title] of SECTIONS) {
     const controls = cfg[key] ?? [];
     const lines = [];
@@ -187,6 +233,15 @@ async function main() {
           broken += 1;
           lines.push(`  [BROKEN] ${i + 1}. ${control.label} (${role}) -> ${addr}\n             ${r.what}`);
           continue;
+        }
+        // Reaches a real parameter, but would anyone see it?
+        if (role === 'address' && !/\/bypassed$/.test(addr)) {
+          if (r.effect && val(r.effect.bypassed) === true && !bypassDrivers.has(r.effectKey)) {
+            silent.push(`${title} ${i + 1}. ${control.label} — ${r.what} is BYPASSED and nothing on the surface turns it back on`);
+          }
+          if (r.containerLevel === 0) {
+            silent.push(`${title} ${i + 1}. ${control.label} — ${r.container} is at 0, so this will not be seen`);
+          }
         }
         // A clip trigger on a layer that is not an FX layer is a content
         // trigger wearing an FX button's clothes.
@@ -232,7 +287,13 @@ async function main() {
     console.log('');
   }
 
-  console.log(`${broken} broken address(es), ${odd} misplaced control(s), ${unreached.length} unmapped effect(s).`);
+  if (silent.length) {
+    console.log('--- reaches a real parameter, but nobody would see it ---');
+    for (const s2 of silent) console.log(`  ${s2}`);
+    console.log('');
+  }
+
+  console.log(`${broken} broken address(es), ${odd} misplaced control(s), ${silent.length} silent control(s), ${unreached.length} unmapped effect(s).`);
   process.exitCode = broken ? 1 : 0;
 }
 main().catch(err => { console.error('verify failed:', err.message); process.exitCode = 1; });

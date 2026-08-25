@@ -234,6 +234,13 @@ clothes** — a DJ logo clip sitting in the FX bank is the exact mistake it was
 written to catch. It also lists effects the composition offers that no control
 reaches.
 
+It then asks the harder question: *would anyone see it?* A button that drives a
+real parameter on a **bypassed** effect, or on a group or layer whose master is
+at zero, does exactly nothing on the screens while looking perfectly healthy.
+Those are reported as silent controls — unless some other control on the surface
+un-bypasses that effect itself, which is how the HAZE, DISTORT and MORPH toggles
+are meant to work.
+
 `check:live` proves the whole path: ROGGER's OSC codec, the network, Resolume's
 OSC input, the actual parameter. Every parameter is read, driven somewhere it
 was not, verified and **restored to the value it had** — safe to run mid-set.
