@@ -236,19 +236,25 @@ export function renderFxGrid(el, { isEditMode, onEdit }) {
   const pageEls = [];
 
   let curPage = 0;
-  function showPage(p) {
-    curPage = p;
-    pageEls.forEach((pg, i) => pg.classList.toggle('active', i === p));
-    tabs.querySelectorAll('.page-tab').forEach((t, i) => t.classList.toggle('on', i === p));
-  }
-  activeSetPage = showPage;
-  activeGetPage = () => curPage;
-
   // Settings → Pages hides everything but Page 1 (PAGE_DEFS[0]) by label;
   // covers any future page (e.g. BPM) automatically since it just checks
   // labels, not a hardcoded list.
   const hiddenPages = new Set(state.get().ui?.hiddenPages ?? []);
   const visibleDefs = PAGE_DEFS.filter((d, i) => i === 0 || !hiddenPages.has(d.label));
+
+  function showPage(p) {
+    curPage = p;
+    pageEls.forEach((pg, i) => pg.classList.toggle('active', i === p));
+    tabs.querySelectorAll('.page-tab').forEach((t, i) => t.classList.toggle('on', i === p));
+    // The layout keys off which page is up: the Colors page carries its own
+    // target chips and swatch bank, so the footer's copy of both is hidden
+    // there and the picker gets the space instead.
+    const def = visibleDefs[p];
+    document.body.dataset.page = (def?.label ?? '').toLowerCase().replace(/\s+/g, '-');
+  }
+  activeSetPage = showPage;
+  activeGetPage = () => curPage;
+
 
   visibleDefs.forEach(({ kind, label, layout, faderKind }, p) => {
     const buttons = state.get()[kind] ?? [];
