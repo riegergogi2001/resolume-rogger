@@ -18,7 +18,8 @@
     "payload": "node tools/build-payload.js",
     "release": "npm test && npm run payload && npm run dist:win",
     "verify:config": "node tools/verify-config.js",
-    "check:live": "node tools/live-check.js"
+    "check:live": "node tools/live-check.js",
+    "audit:layout": "node tools/audit-layout.js"
   },
   "build": {
     "appId": "hu.rogger.controller",
