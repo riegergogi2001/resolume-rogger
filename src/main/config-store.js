@@ -124,8 +124,9 @@ function defaults() {
     // Defaults mirror the autoVJ template composition: layer 12 = FX rack
     // cue clips, comp-level BOOMER/PUSHER/Distortion, group 1 = content FX.
     // fxButtons 0-7 = FLASH bank (cue clips), 8-15 = BUMP bank (comp FX).
-    // Pad layout: A/B/X/Y = PUSH WHT / FLASH M / FLASH M2 / INVERT, RB =
+    // Pad layout: A/B/X/Y = PUSH WHT / FLASH M / FLASH M2 / INVERT, LS-click =
     // PIXELATE, RS-click = SUCK IT!, D-pad = SLICE STR + BOOM BLUR/EXPO/EDGE,
+    // RB = deliberately free, the operator's own modifier for combos,
     // and LB is a clean modifier (nothing plain on it): LB+A/B/X/Y = the
     // bump combos PUSH BLK / PUSH X2 / BOOM BLOW / BOOM INV. RT keeps its
     // analog INVERT stomp and doubles as a modifier: RT+A/B/X/Y = the page-2
@@ -135,7 +136,7 @@ function defaults() {
       fxButton(1, { label: 'FLASH M', icon: '⚡', color: ACCENTS.yellow, mode: 'hold', address: '/composition/layers/12/clips/3/connect', gamepadButton: 1 }),
       fxButton(2, { label: 'FLASH M2', icon: '⚡', color: ACCENTS.yellow, mode: 'hold', address: '/composition/layers/12/clips/4/connect', gamepadButton: 2 }),
       fxButton(3, { label: 'INVERT', icon: '⚡', color: ACCENTS.red, mode: 'hold', address: '/composition/layers/12/clips/5/connect', gamepadButton: 3 }),
-      fxButton(4, { label: 'PIXELATE', icon: '⚡', color: ACCENTS.cyan, mode: 'hold', address: '/composition/layers/12/clips/6/connect', gamepadButton: 5 }),
+      fxButton(4, { label: 'PIXELATE', icon: '⚡', color: ACCENTS.cyan, mode: 'hold', address: '/composition/layers/12/clips/6/connect', gamepadButton: 10 }),
       fxButton(5, { label: 'FE STR', icon: '⚡', color: ACCENTS.orange, mode: 'hold', address: '/composition/layers/12/clips/7/connect' }),
       fxButton(6, { label: 'SUCK IT!', icon: '⚡', color: ACCENTS.magenta, mode: 'hold', address: '/composition/layers/12/clips/8/connect', gamepadButton: 11 }),
       fxButton(7, { label: 'SLICE STR', icon: '⚡', color: ACCENTS.purple, mode: 'toggle', address: '/composition/layers/12/clips/9/connect', gamepadButton: 12 }),

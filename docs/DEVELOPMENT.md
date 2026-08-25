@@ -92,7 +92,8 @@ Zero runtime dependencies (vanilla JS/CSS + Electron) and a hand-rolled OSC
   than A alone). Badges show combos as `RT+A`. The shipped layout uses **LB as a clean
   modifier** (nothing is bound to LB alone): `LB+A` PUSH BLK, `LB+B` PUSH X2,
   `LB+X` BOOM BLOW, `LB+Y` BOOM INV, next to A/B/X/Y = PUSH WHT / FLASH M /
-  FLASH M2 / INVERT; SUCK IT! sits on RS-click. RT keeps its analog INVERT
+  FLASH M2 / INVERT; SUCK IT! sits on RS-click, PIXELATE on LS-click, and **RB
+  ships free** as the operator's own modifier. RT keeps its analog INVERT
   stomp and doubles as a modifier: `RT+A` GLITCH, `RT+B` BLOOM, `RT+X` EDGE FX,
   `RT+Y` HUE SPIN — the Page 2 content pushers, reachable without leaving Page 1. Set a modifier in the editor's
   "Modifier (hold with)" row below the controller button pick, or arm

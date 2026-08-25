@@ -178,25 +178,25 @@ async function main() {
       return m?.args?.[0]?.value;
     }
 
-    // RB (PIXELATE): a plain hold with no RT combo, so it still fires while
-    // RT is engaged. (X would resolve to the RT+X content pusher now.)
+    // LS-click (PIXELATE): a plain hold with no RT combo, so it still fires
+    // while RT is engaged. (X would resolve to the RT+X content pusher now.)
     const flashM2 = defaults.fxButtons[4];
-    assert(flashM2.gamepadButton === 5 && flashM2.mode === 'hold' && flashM2.address !== trig.engageAddress,
-      'defaults: fxButtons[4] is a hold binding on RB, separate from the RT engage clip');
-    console.log('\n[pad] hold RB + engage RT + deflect LS, then the pad disconnects');
+    assert(flashM2.gamepadButton === 10 && flashM2.mode === 'hold' && flashM2.address !== trig.engageAddress,
+      'defaults: fxButtons[4] is a hold binding on LS-click, separate from the RT engage clip');
+    console.log('\n[pad] hold LS-click + engage RT + deflect LS, then the pad disconnects');
     await setPad(idleButtons());
     await clearLog();
     await page.evaluate(() => {
       window.__gamepadOverride = {
         buttons: Array.from({ length: 16 }, (_, i) => (
-          i === 5 ? { pressed: true, value: 1 } : i === 7 ? { pressed: true, value: 0.6 } : { pressed: false, value: 0 })),
+          i === 10 ? { pressed: true, value: 1 } : i === 7 ? { pressed: true, value: 0.6 } : { pressed: false, value: 0 })),
         axes: [0.5, 0, 0, 0],
       };
     });
     await page.evaluate(() => new Promise(res => requestAnimationFrame(() => requestAnimationFrame(res))));
     await page.waitForTimeout(30);
     log = await readLog();
-    assert(argOf(log, flashM2.address) === flashM2.value, 'RB held: press message sent');
+    assert(argOf(log, flashM2.address) === flashM2.value, 'LS-click held: press message sent');
     assert(argOf(log, trig.engageAddress) === trig.engageValue, 'RT engaged: engage message sent');
     assert(typeof argOf(log, stickX.address) === 'number' && argOf(log, stickX.address) !== stickX.center, 'LS deflected: axis message sent');
 
@@ -344,6 +344,77 @@ async function main() {
     const outFile = path.join(outDir, 'v2-combos.png');
     await page.screenshot({ path: outFile });
     console.log(`\n[screenshot] saved ${outFile}`);
+
+    // ---------------------------------------------------------------
+    // Gamepad learn captures a combo with a digital modifier: hold LB, press
+    // A. The first button is held back until a second one arrives (combo) or
+    // it is released alone (plain binding).
+    // ---------------------------------------------------------------
+    console.log('\n[learn] hold LB + press A binds LB+A; press and release B binds B');
+    await setPad(idleButtons());
+    await page.click('#edit-toggle');
+    await page.click('.fx-btn[data-kind="fxButtons"][data-index="0"]'); // GENERA, unbound
+    await page.waitForSelector('#editor-overlay');
+    // The gamepad learn button is the last .learn-btn in the form (the OSC
+    // Learn comes first); its text changes while listening, so no text filter.
+    const learnBtn = page.locator('#editor-overlay .learn-btn').last();
+    assert(/gamepad learn/i.test(await learnBtn.textContent()), 'found the Gamepad learn button');
+    await learnBtn.click();
+    await setPad(withButtons([[4, { pressed: true, value: 1 }]]));                                   // LB down, held
+    assert(await page.locator('#editor-overlay .learn-btn').last()
+      .evaluate(el => el.classList.contains('listening')),
+      'a single held button does not finish the learn (still listening)');
+    await setPad(withButtons([[4, { pressed: true, value: 1 }], [0, { pressed: true, value: 1 }]])); // + A
+    await page.waitForTimeout(100);
+    const ctrlRow = page.locator('.field').filter({ has: page.locator('label', { hasText: /^Controller button$/ }) });
+    const modRow = page.locator('.field').filter({ has: page.locator('label', { hasText: /^Modifier \(hold with\)$/ }) });
+    assert(await ctrlRow.locator('button.on').textContent() === 'A', 'the second button is the control');
+    assert(await modRow.locator('button.on').textContent() === 'LB', 'the held button is the modifier');
+    await setPad(idleButtons());
+    await page.click('#ed-save');
+    await page.waitForSelector('#editor-overlay', { state: 'detached' });
+    assert(await page.locator('.fx-btn[data-kind="fxButtons"][data-index="0"] .fx-pad').textContent() === 'LB+A',
+      'the badge shows LB+A');
+
+    await page.click('.fx-btn[data-kind="fxButtons"][data-index="0"]');
+    await page.waitForSelector('#editor-overlay');
+    await page.locator('#editor-overlay .learn-btn').last().click();
+    await setPad(withButtons([[1, { pressed: true, value: 1 }]]));   // B down
+    await setPad(idleButtons());                                      // B up, alone
+    await page.waitForTimeout(100);
+    assert(await ctrlRow.locator('button.on').textContent() === 'B', 'a button pressed and released alone binds plainly');
+    assert(await modRow.locator('button.on').textContent() === 'NONE', 'with no modifier');
+    await page.click('#ed-save');
+    await page.waitForSelector('#editor-overlay', { state: 'detached' });
+    assert(await page.locator('.fx-btn[data-kind="fxButtons"][data-index="0"] .fx-pad').textContent() === 'B',
+      'the badge shows B');
+    await page.click('#edit-toggle');
+
+    // ---------------------------------------------------------------
+    // Arming learn must not swallow the release of a hold FX that was
+    // already down: the repeat chain has to stop when the finger lifts.
+    // ---------------------------------------------------------------
+    console.log('\n[learn] a hold engaged before arming still releases while learn listens');
+    await setPad(idleButtons());
+    await setPad(withButtons([[0, { pressed: true, value: 1 }]]));   // A down in live mode: PUSH WHT hold + repeat
+    await page.waitForTimeout(60);
+    await page.click('#edit-toggle');
+    await page.click('.fx-btn[data-kind="fxButtons"][data-index="1"]'); // any editor
+    await page.waitForSelector('#editor-overlay');
+    await page.locator('#editor-overlay .learn-btn').last().click();    // arm learn, A still held
+    await clearLog();
+    await setPad(idleButtons());                                        // A released while learn listens
+    await page.waitForTimeout(500);
+    log = await readLog();
+    const pushMsgs = log.filter(m => m.address === pushWhtAddr);
+    assert(pushMsgs.some(m => m.args?.[0]?.value === pushWht.releaseValue),
+      'the hold sent its release message');
+    assert(!pushMsgs.length || pushMsgs.at(-1).args?.[0]?.value === pushWht.releaseValue,
+      'and nothing kept firing after it');
+    await page.locator('#editor-overlay .learn-btn').last().click();    // cancel learn
+    await page.click('#ed-save');
+    await page.waitForSelector('#editor-overlay', { state: 'detached' });
+    await page.click('#edit-toggle');
 
     await browser.close();
     console.log('\nALL COMBO UI CHECKS PASSED');

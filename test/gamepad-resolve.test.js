@@ -182,6 +182,10 @@ for (const [name, load] of [
       [0, 1, 2, 3].map(b => labelOf(cfg, resolveBinding(cfg, b, new Set()))),
       ['PUSH WHT', 'FLASH M', 'FLASH M2', 'INVERT'], 'A/B/X/Y alone are unchanged');
     assert.equal(labelOf(cfg, resolveBinding(cfg, 11, new Set())), 'SUCK IT!', 'SUCK IT! moved to RS-click');
+    assert.equal(labelOf(cfg, resolveBinding(cfg, 10, new Set())), 'PIXELATE', 'PIXELATE on LS-click');
+    const RB = 5;
+    assert.equal(resolveBinding(cfg, RB, new Set()), null, 'RB is free: the operator\'s own modifier');
+    assert.ok(!HANDLE_KINDS.some(k => (cfg[k] ?? []).some(x => x && (x.gamepadModifier === RB))), 'and ships with no RB combos');
     const RT = 7;
     assert.deepEqual(
       [0, 1, 2, 3].map(b => labelOf(cfg, resolveBinding(cfg, b, new Set([RT])))),
