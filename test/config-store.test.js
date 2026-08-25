@@ -41,8 +41,10 @@ test('defaults mirror the autoVJ template: cue-clip flash bank + comp-FX bump ba
     'flash bank fires FX-rack cue clips');
   assert.ok(cfg.fxButtons.slice(9).every(b => b.address.startsWith('/composition/video/effects/')),
     'bump bank drives composition-level FX (slot 8 is the hidden spare)');
-  const bound = cfg.fxButtons.map(b => b.gamepadButton).filter(p => p >= 0);
-  assert.equal(new Set(bound).size, bound.length, 'no gamepad button bound twice');
+  // A pad button may carry a plain binding and combos with different
+  // modifiers; the (button, modifier) pair is what must be unique.
+  const bound = cfg.fxButtons.filter(b => b.gamepadButton >= 0).map(b => `${b.gamepadButton}/${b.gamepadModifier ?? -1}`);
+  assert.equal(new Set(bound).size, bound.length, 'no (button, modifier) pair bound twice');
 });
 
 test('default faders are master, layers 1-4, logo and the FX time strips', () => {
