@@ -183,6 +183,35 @@ reported as a download rather than an over-the-air update. Bump
 `rogger.minShell` in `package.json` when a payload starts depending on
 something only a newer exe provides.
 
+## Checking the config against the show
+
+Two tools answer "will every button do something tomorrow", against the
+composition that is actually open:
+
+```bash
+npm run verify:config    # every OSC address in the config resolves to something
+npm run check:live       # fire each control and read the parameter back
+npm run check:live -- --fire   # ...including clips and clears (output dark!)
+```
+
+`verify:config` walks every address on every button, fader, colour preset and
+colour target and resolves it against the live composition over the REST API.
+It reports addresses that point at nothing, clips that are empty, effects the
+composition does not have, and **content triggers wearing an FX button's
+clothes** — a DJ logo clip sitting in the FX bank is the exact mistake it was
+written to catch. It also lists effects the composition offers that no control
+reaches.
+
+`check:live` proves the whole path: ROGGER's OSC codec, the network, Resolume's
+OSC input, the actual parameter. Every parameter is read, driven somewhere it
+was not, verified and **restored to the value it had** — safe to run mid-set.
+Clip triggers, clears and momentary events change what is on the screens, so
+they are skipped unless you pass `--fire`; with it, each clip is connected,
+confirmed, and the previously connected clip is put back.
+
+Both need Resolume's webserver on port 9292 and OSC input on the configured
+port.
+
 ## Resolume setup
 
 1. Preferences → OSC: enable **OSC Input** (this composition uses port 7432).
@@ -310,7 +339,8 @@ src/payload-store.js    SHELL — payload directory + boot state on disk
     plus the full-panel list picker used where a native `<select>` would
     mangle long system text.
 - `tools/` — generators for the grandMA3 GDTF, the Resolume DMX preset, the
-  LD/APC40 cheat sheets, the OTA payload bundler, plus the Art-Net test sender.
+  LD/APC40 cheat sheets, the OTA payload bundler, the config verifier and live
+  round-trip checker, plus the Art-Net test sender.
 
 Design and plan documents live in `docs/superpowers/`.
 
