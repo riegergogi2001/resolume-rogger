@@ -101,6 +101,10 @@ at both 1920×1080 and 1280×800):
   and haptics (press ticks, strobe rumble).
 - **Pages** — show/hide every page except Page 1; hidden pages drop their
   tab immediately. Covers any page added later automatically.
+- **Updates** — over-the-air updates (see below): running version and
+  source (BUNDLED / OTA), auto-check toggle, **Check now**, release notes,
+  download with progress, **Restart** to apply, and a **Remove updates,
+  run the bundled version** escape hatch.
 - **Backup** — **Export config…** / **Import config…** (native file
   dialogs; import tolerantly merges onto the built-in defaults, so a
   partial or foreign file can't corrupt or crash the app) and **Reload
@@ -126,6 +130,53 @@ faders. Nothing is echoed back.
 | `/rogger/tap` | — | tap tempo. |
 | `/rogger/resync` | — | resync beat. |
 
+## Updates (over the air)
+
+The packaged exe is a thin **shell** around a swappable **payload** — the
+whole app (`src/` + `configs/`) as a ~80 KB tarball. An update downloads the
+payload, not an 85 MB reinstall, so it takes a second on a venue's Wi-Fi and
+needs no installer, no UAC prompt and no admin rights.
+
+- **Checking** is automatic on launch (Settings → Updates turns it off).
+  **Downloading and restarting are always an explicit tap** — nothing swaps
+  code under a running show, and a restart while the OSC lamp reads LIVE asks
+  for confirmation first.
+- Every payload is verified against the **sha256** in its release manifest
+  before it is unpacked, extracted into a staging directory, checked for
+  bootability, and only then renamed into place. A failed or truncated
+  download leaves nothing behind.
+- An installed payload takes effect **on the next launch**, never mid-session.
+- **Rollback is automatic.** A payload that fails to load is blacklisted and
+  the previous one (ultimately the bundled copy) boots instead — in the same
+  launch if it fails outright, after two failed starts if it comes up broken.
+  The Updates tab says when this has happened.
+- **Safe mode** forces the bundled payload: launch with `--safe`, or set
+  `ROGGER_SAFE=1`.
+- Some releases change the Electron shell itself (a `minShell` bump). Those
+  cannot be applied over the air; the app says so and links to the release.
+
+Payloads live in `%APPDATA%/ROGGER/payloads/<version>/`, with the boot state
+(active version, crash counter, blacklist) in `payloads/state.json`.
+
+### Cutting a release
+
+```bash
+npm version minor          # or patch/major
+npm run release            # tests + payload bundle + Windows exe
+gh release create v<version> \
+  "dist/ROGGER-<version>.exe" \
+  "dist-payload/rogger-payload-<version>.tar.gz" \
+  "dist-payload/rogger-payload-<version>.json" \
+  --title "ROGGER <version>" --notes "..."
+```
+
+The app looks for exactly `rogger-payload-<version>.tar.gz` and
+`rogger-payload-<version>.json` on the **latest** release, and matches the
+manifest's version against the release tag. A release without those assets is
+reported as a download rather than an over-the-air update. Bump
+`rogger.minShell` in `package.json` when a payload starts depending on
+something only a newer exe provides.
+
 ## Resolume setup
 
 1. Preferences → OSC: enable **OSC Input** (this composition uses port 7432).
@@ -140,14 +191,21 @@ faders. Nothing is echoed back.
 
 ```bash
 npm install
-npm test            # codec / config / engine / bpm / combos / library unit tests
+npm test            # codec / config / engine / bpm / combos / library / tarball /
+                    #   payload-resolve / updater unit tests
 npm start           # run the app under Electron (config.dev.json)
 node test/serve.js  # browser mode with a mock OSC bridge on :5199
 node test/ui/combos.spec.mjs          # Playwright UI checks (spawn their own server
 node test/ui/editor-settings.spec.mjs #   where needed; bpm-page.spec.mjs expects
-node test/ui/bpm-page.spec.mjs        #   test/serve.js to be running)
+node test/ui/updates.spec.mjs         #   test/serve.js to be running)
+node test/ui/bpm-page.spec.mjs
+python3 tools/test_dmx_tools.py       # DMX map / GDTF / Resolume preset checks
+npm run payload     # build the OTA payload bundle + manifest into dist-payload/
 npm run ma3         # regenerate the grandMA3 GDTF, Resolume preset and LD sheet
 ```
+
+`ROGGER_SMOKE=1 npm start` boots, prints which payload it resolved, and exits —
+handy for checking the shell/payload split without a display.
 
 ## Building the Windows exe
 
@@ -186,19 +244,34 @@ follow incoming Art-Net.
 
 ## Architecture
 
+The exe is a shell around a replaceable payload:
+
+```
+src/bootstrap.js        SHELL — picks a payload, guards against crash loops
+src/payload-resolve.js  SHELL — pure resolution logic (which payload, rollback)
+src/payload-store.js    SHELL — payload directory + boot state on disk
+  └─ starts <payload>/src/main/main.js  →  everything below is updatable
+```
+
 - `src/main/osc.js` — dependency-free OSC 1.0 codec (i/f/s, bundles).
 - `src/main/osc-engine.js` — UDP send/receive, learn, status, reconnect.
 - `src/main/config-store.js` — schema defaults, tolerant merge, atomic save.
 - `src/main/ipc.js` — bridge handlers incl. REST-backed DJ sync / BPM seed,
-  config export/import.
+  config export/import, update check/download.
+- `src/main/updater.js` — GitHub release check, sha256-verified payload
+  download and staged install.
+- `src/main/tarball.js` — deterministic USTAR tar + gzip (pack and unpack)
+  with path-traversal and size guards; shared with `tools/build-payload.js`.
 - `src/renderer/` — zero-dependency vanilla JS/CSS; runs in a plain browser
   via a mock bridge for the Playwright checks in `test/ui/`.
   - `js/bpm/` — Web Audio BPM analyser (pure DSP core + worklet + page).
   - `js/gamepad.js` + `js/gamepad-resolve.js` — controller polling and the
     pure combo/modifier resolver.
   - `js/remote-api.js` — the inbound `/rogger/*` OSC vocabulary.
+  - `js/updates.js` — the Updates panel and the quiet check at launch.
+  - `js/dom.js` — shared overlay builders used by the editor and settings.
 - `tools/` — generators for the grandMA3 GDTF, the Resolume DMX preset, the
-  LD/APC40 cheat sheets, plus the Art-Net test sender.
+  LD/APC40 cheat sheets, the OTA payload bundler, plus the Art-Net test sender.
 
 Design and plan documents live in `docs/superpowers/`.
 
@@ -214,6 +287,8 @@ is plenty of room to grow. Good places to jump in:
 - **grandMA3 / DMX** — more channels in `tools/dmx_map.py`, other desks.
 - **Hardware surfaces** — mappings beyond the APC40 mkII, other handhelds and
   touch devices.
+- **Updates** — the payload/shell split is deliberately small; delta payloads,
+  release channels and update mirrors are all open ground.
 - **Docs, tests, bug reports** — always appreciated.
 
 Workflow: fork → branch → `npm test` (and `node test/serve.js` for UI checks)

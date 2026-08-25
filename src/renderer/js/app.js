@@ -10,6 +10,7 @@ import { renderColorRow, colorHandles } from './color-row.js';
 import { openSettings } from './settings.js';
 import { openEditor } from './editor.js';
 import { startRemoteApi } from './remote-api.js';
+import { autoCheckOnLaunch } from './updates.js';
 import * as beat from './beat-clock.js';
 
 let editMode = false;
@@ -57,6 +58,9 @@ async function boot() {
   startRemoteApi({ fxHandles, faderHandles, colorHandles, setPage, tap: tapAction, resync: resyncAction });
   rogger.onOscError(msg => showToast(msg, { error: true }));
   document.body.dataset.ready = '1';
+  // Last, and never awaited: the surface must be usable whether or not GitHub
+  // answers.
+  autoCheckOnLaunch();
 }
 
 boot();

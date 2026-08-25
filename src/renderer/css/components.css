@@ -637,6 +637,22 @@ body.edit-mode .color-btn {
   overflow-x: auto;
 }
 
+/* ---- Update download progress ---- */
+.update-progress {
+  height: 10px;
+  margin: 4px 0 8px;
+  border: 1px solid var(--line-bright);
+  border-radius: 999px;
+  background: var(--bg);
+  overflow: hidden;
+}
+.update-progress-fill {
+  height: 100%;
+  width: 0;
+  background: var(--accent);
+  transition: width 140ms linear;
+}
+
 /* ---- Toasts ---- */
 #toast-root {
   position: fixed;

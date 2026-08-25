@@ -1,62 +1,15 @@
 // Settings overlay: tabbed — Network, Controller (gamepad triggers/sticks/
-// haptics), Pages (show/hide), Backup (export/import/reload default),
-// About (version + inbound remote-API cheat sheet).
+// haptics), Pages (show/hide), Updates (over-the-air payload updates),
+// Backup (export/import/reload default), About (version + inbound remote-API
+// cheat sheet).
 import { rogger } from './bridge.js';
 import * as state from './state.js';
 import { showToast } from './toast.js';
 import { PAGE_DEFS } from './fx-grid.js';
+import { h, field, textInput, numInput, checkRow, row2, btnRow } from './dom.js';
+import { renderUpdates } from './updates.js';
 
-function h(tag, cls, text) {
-  const e = document.createElement(tag);
-  if (cls) e.className = cls;
-  if (text != null) e.textContent = text;
-  return e;
-}
-function field(label, input) {
-  const f = h('div', 'field');
-  f.append(h('label', null, label), input);
-  return f;
-}
-function textInput(value, oninput, placeholder) {
-  const i = h('input');
-  i.type = 'text';
-  i.value = value ?? '';
-  if (placeholder) i.placeholder = placeholder;
-  i.addEventListener('input', () => oninput(i.value));
-  return i;
-}
-function numInput(value, oninput, step = 'any') {
-  const i = h('input');
-  i.type = 'number';
-  i.step = step;
-  i.value = value ?? 0;
-  i.addEventListener('input', () => oninput(Number(i.value)));
-  return i;
-}
-function checkRow(label, on, onchange) {
-  const r = h('div', 'check-row');
-  const t = h('button', 'toggle');
-  t.classList.toggle('on', on);
-  t.addEventListener('pointerdown', () => {
-    const v = !t.classList.contains('on');
-    t.classList.toggle('on', v);
-    onchange(v);
-  });
-  r.append(h('span', null, label), t);
-  return r;
-}
-function row2(a, b) {
-  const r = h('div', 'row');
-  r.append(a, b);
-  return r;
-}
-function btnRow(...btns) {
-  const r = h('div', 'row');
-  r.append(...btns);
-  return r;
-}
-
-const TABS = ['Network', 'Controller', 'Pages', 'Backup', 'About'];
+const TABS = ['Network', 'Controller', 'Pages', 'Updates', 'Backup', 'About'];
 
 export function openSettings() {
   const root = document.getElementById('overlay-root');
@@ -73,7 +26,10 @@ export function openSettings() {
   overlay.appendChild(panel);
   root.appendChild(overlay);
 
-  function close() { overlay.remove(); }
+  function close() {
+    offStatus?.();
+    overlay.remove();
+  }
 
   // Per-tab drafts: edited freely, only committed to state on that tab's
   // own Save (Pages/Backup act immediately — there's nothing to stage).
@@ -83,6 +39,10 @@ export function openSettings() {
   const hapticsDraft = structuredClone(state.get().haptics ?? { enabled: true, press: true, strobe: true });
 
   let currentTab = 'Network';
+  // Kept current so the Updates tab can refuse to restart mid-cue.
+  let lastOscStatus = 'offline';
+  rogger.getStatus?.().then(v => { lastOscStatus = v ?? 'offline'; }).catch(() => {});
+  const offStatus = rogger.onStatus?.(v => { lastOscStatus = v; });
 
   function renderTabBar() {
     tabBar.innerHTML = '';
@@ -99,6 +59,7 @@ export function openSettings() {
     if (currentTab === 'Network') renderNetwork();
     else if (currentTab === 'Controller') renderController();
     else if (currentTab === 'Pages') renderPages();
+    else if (currentTab === 'Updates') renderUpdates(body, { oscStatus: () => lastOscStatus });
     else if (currentTab === 'Backup') renderBackup();
     else renderAbout();
   }

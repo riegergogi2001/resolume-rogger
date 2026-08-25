@@ -76,6 +76,13 @@ function defaults() {
       autoReconnect: true,
     },
     ui: { theme: 'dark' },
+    // Over-the-air payload updates from GitHub releases. Checking is automatic
+    // on launch; downloading and restarting are always an explicit tap, so an
+    // update can never interrupt a show on its own.
+    updates: {
+      autoCheck: true,
+      repo: 'riegergogi2001/resolume-rogger',
+    },
     // 'tap' = manual taps, 'auto' = follow Resolume's BPM, 'mic' = BPM page
     // mic/line-in analyser (src/renderer/js/bpm/).
     beat: {
@@ -317,6 +324,7 @@ function mergeConfig(base, patch) {
     version: base.version,
     network: deepMerge(base.network, isPlainObject(patch.network) ? patch.network : {}),
     ui: deepMerge(base.ui, isPlainObject(patch.ui) ? patch.ui : {}),
+    updates: deepMerge(base.updates, isPlainObject(patch.updates) ? patch.updates : {}),
     triggers: deepMerge(base.triggers, isPlainObject(patch.triggers) ? patch.triggers : {}),
     colorTargets: mergeColorTargets(base.colorTargets, patch.colorTargets),
     colorMorph: deepMerge(base.colorMorph, isPlainObject(patch.colorMorph) ? patch.colorMorph : {}),

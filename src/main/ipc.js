@@ -1,9 +1,21 @@
 'use strict';
 // Wires renderer IPC to the OSC engine and config store.
 const fs = require('node:fs');
+const { Updater } = require('./updater.js');
 
-function registerIpc({ ipcMain, engine, store, configPath, seedPath, getWindow, app, dialog }) {
+function registerIpc({ ipcMain, engine, store, configPath, seedPath, getWindow, app, dialog, shell, ctx = {} }) {
   let config = store.load(configPath);
+
+  // OTA updates. ctx comes from the shell bootstrap; without it (dev run,
+  // browser mock) there is no payload directory and the updater stays idle.
+  const updater = ctx.payloadsDir
+    ? new Updater({
+      repo: config.updates?.repo,
+      payloadsDir: ctx.payloadsDir,
+      currentVersion: ctx.payloadVersion,
+      shellVersion: ctx.shellVersion ?? app?.getVersion?.(),
+      })
+    : null;
 
   ipcMain.handle('config:reset', async () => {
     config = (seedPath && fs.existsSync(seedPath)) ? store.load(seedPath) : store.defaults();
@@ -30,6 +42,56 @@ function registerIpc({ ipcMain, engine, store, configPath, seedPath, getWindow, 
   ipcMain.handle('osc:test', () => engine.testConnection());
 
   ipcMain.handle('app:version', () => app?.getVersion?.() ?? null);
+
+  // --- OTA updates -------------------------------------------------------
+  // Everything here reports rather than throws: the Updates panel wants a
+  // status line, and a failed update must never take the controller down.
+  const updateEnvelope = extra => ({
+    supported: Boolean(updater),
+    source: ctx.source ?? 'dev',
+    safeMode: Boolean(ctx.safeMode),
+    payloadVersion: ctx.payloadVersion ?? app?.getVersion?.() ?? null,
+    shellVersion: ctx.shellVersion ?? app?.getVersion?.() ?? null,
+    quarantined: ctx.quarantined ?? [],
+    autoCheck: config.updates?.autoCheck !== false,
+    ...(updater ? updater.info() : {}),
+    ...extra,
+  });
+
+  ipcMain.handle('update:info', () => updateEnvelope());
+
+  ipcMain.handle('update:check', async () => {
+    if (!updater) return updateEnvelope({ result: { status: 'unsupported' } });
+    // Pick up a repo edited in the config since launch.
+    updater.repo = config.updates?.repo ?? updater.repo;
+    return updateEnvelope({ result: await updater.check() });
+  });
+
+  ipcMain.handle('update:download', async () => {
+    if (!updater) return updateEnvelope({ download: { ok: false, message: 'Updates are not available in this build.' } });
+    const win = getWindow();
+    const result = await updater.download(p => win?.webContents.send('update:progress', p));
+    return updateEnvelope({ download: result });
+  });
+
+  ipcMain.handle('update:set-auto', (_e, enabled) => {
+    config = { ...config, updates: { ...config.updates, autoCheck: Boolean(enabled) } };
+    store.save(configPath, config);
+    return updateEnvelope();
+  });
+
+  ipcMain.handle('update:reset', () => {
+    updater?.resetToBundled();
+    return updateEnvelope();
+  });
+
+  ipcMain.handle('update:open-releases', (_e, url) => {
+    const target = typeof url === 'string' && /^https:\/\/github\.com\//.test(url)
+      ? url
+      : `https://github.com/${config.updates?.repo ?? ''}/releases`;
+    shell?.openExternal(target);
+    return target;
+  });
 
   // Config backup/restore via native OS dialogs (desktop only — the browser
   // mock bridge has its own test-only stand-ins, see bridge.js).
