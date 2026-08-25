@@ -113,6 +113,17 @@ function mockBridge() {
     sendTyped: (address, args = []) => window.__oscLog.push({ address, args }),
     applyNetwork: async network => { window.__oscLog.push({ applyNetwork: network }); },
     testConnection: async () => ({ ok: true, detail: 'Mock bridge — no network.' }),
+    diagnoseLink: async () => window.__linkDiagnosis ?? {
+      ok: false,
+      summary: '1 of 3 legs failing: Resolume → ROGGER (feedback).',
+      legs: [
+        { id: 'rest', ok: true, title: 'Resolume webserver', detail: 'Mock bridge.' },
+        { id: 'send', ok: true, title: 'ROGGER → Resolume', detail: 'Mock bridge.' },
+        { id: 'feedback', ok: false, title: 'Resolume → ROGGER (feedback)',
+          detail: 'Nothing arrived on port 7001.',
+          fix: 'Resolume → Preferences → OSC → Output: set the target to 192.168.1.2:7001.' },
+      ],
+    },
     armLearn: () => { window.__learnArmed = true; },
     disarmLearn: () => { window.__learnArmed = false; },
     getStatus: async () => mockStatus,

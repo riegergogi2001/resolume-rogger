@@ -74,15 +74,34 @@ export function openSettings() {
     body.append(checkRow('Auto reconnect', netDraft.autoReconnect, v => { netDraft.autoReconnect = v; }));
     body.append(checkRow('Dark theme', true, () => {}));
 
-    const testResult = h('div', 'test-result');
+    // The link has three independent legs and each fails on its own, so the
+    // test reports them separately. Feedback is the one that dies quietly.
+    const testResult = h('div', 'link-legs');
+    testResult.id = 'set-test-result';
     const testBtn = h('button', 'big-btn u-caps', 'Test connection');
     testBtn.id = 'set-test';
     testBtn.addEventListener('pointerdown', async () => {
-      testResult.textContent = 'Testing…';
-      testResult.className = 'test-result';
-      const { ok, detail } = await rogger.testConnection();
-      testResult.textContent = detail;
-      testResult.className = 'test-result ' + (ok ? 'ok' : 'fail');
+      if (testBtn.disabled) return;
+      testBtn.disabled = true;
+      testResult.innerHTML = '';
+      testResult.append(h('div', 'test-result', 'Checking webserver, commands and feedback…'));
+      try {
+        const result = await rogger.diagnoseLink();
+        testResult.innerHTML = '';
+        testResult.append(h('div', 'test-result ' + (result.ok ? 'ok' : 'fail'), result.summary));
+        for (const leg of result.legs ?? []) {
+          const row = h('div', 'link-leg' + (leg.ok ? ' ok' : ' fail'));
+          row.append(h('div', 'link-leg-head u-caps', `${leg.ok ? '✓' : '✕'}  ${leg.title}`));
+          row.append(h('div', 'link-leg-detail', leg.detail));
+          if (!leg.ok && leg.fix) row.append(h('div', 'link-leg-fix', leg.fix));
+          testResult.append(row);
+        }
+      } catch (err) {
+        testResult.innerHTML = '';
+        testResult.append(h('div', 'test-result fail', `Test failed: ${err?.message ?? err}`));
+      } finally {
+        testBtn.disabled = false;
+      }
     });
     body.append(btnRow(testBtn));
     body.append(testResult);

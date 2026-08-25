@@ -201,6 +201,29 @@ async function main() {
     log = await readLog();
     assert(has(log, master.address, 0.5), `/rogger/fader/1 0.5 sends ${master.address} 0.5`);
 
+    // ---------------------------------------------------------------
+    // Settings -> Network: the link test reports three legs separately.
+    // ---------------------------------------------------------------
+    console.log('\n[settings] Network tab: three-leg link diagnostic');
+    await page.evaluate(() => document.querySelector('#settings-overlay')?.remove());
+    await page.click('#settings-open');
+    await page.waitForSelector('#settings-overlay');
+    await page.getByRole('button', { name: 'Network', exact: true }).click();
+    await page.click('#set-test');
+    await page.waitForSelector('#set-test-result .link-leg', { timeout: 5000 });
+    const legs = await page.locator('#set-test-result .link-leg').count();
+    assert(legs === 3, `the link test reports all three legs separately (got ${legs})`);
+    const failing = await page.locator('#set-test-result .link-leg.fail').count();
+    assert(failing === 1, `a failing leg is marked as such (got ${failing})`);
+    const fixText = await page.locator('#set-test-result .link-leg.fail .link-leg-fix').innerText();
+    assert(/Preferences/i.test(fixText) && /:7001/.test(fixText),
+      'the failing leg says exactly what to change and where to point it');
+    const okLegs = await page.locator('#set-test-result .link-leg.ok').count();
+    assert(okLegs === 2, 'the legs that work are still reported as working');
+    // The whole thing must fit the panel — this is the surface, not a console.
+    const overflow = await page.locator('#set-test-result').evaluate(el => el.scrollWidth - el.clientWidth);
+    assert(overflow <= 1, `the diagnostic fits its panel (overflows by ${overflow}px)`);
+
     await browser.close();
     console.log('\nALL EDITOR/SETTINGS/REMOTE-API UI CHECKS PASSED');
   } catch (err) {

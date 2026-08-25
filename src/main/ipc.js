@@ -3,6 +3,7 @@
 const fs = require('node:fs');
 const { Updater } = require('./updater.js');
 const { buildDjButtons } = require('./dj-sync.js');
+const { diagnose } = require('./diagnostics.js');
 
 function registerIpc({ ipcMain, engine, store, configPath, seedPath, getWindow, app, dialog, shell, ctx = {} }) {
   let config = store.load(configPath);
@@ -41,6 +42,10 @@ function registerIpc({ ipcMain, engine, store, configPath, seedPath, getWindow, 
     await engine.open();
   });
   ipcMain.handle('osc:test', () => engine.testConnection());
+  // Three-leg link check: webserver, our commands landing, and feedback
+  // coming back. Feedback is the leg that fails silently, so it gets its own
+  // verdict and the exact address to put into Resolume.
+  ipcMain.handle('osc:diagnose', () => diagnose({ engine, network: config.network }));
 
   ipcMain.handle('app:version', () => app?.getVersion?.() ?? null);
 
