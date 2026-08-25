@@ -15,13 +15,26 @@ function harness() {
   const ipcMain = { handle: (ch, fn) => { handlers[ch] = fn; }, on: (ch, fn) => { handlers[ch] = fn; } };
   const engine = new EventEmitter();
   engine.status = 'ready';
+  engine.configure = () => {};
+  engine.open = async () => true;
   engine.listenInfo = () => ({ port: 55555, configured: 7001, fallback: true });
   const sent = [];
   let win = null;
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'rogger-ipc-'));
+  const seedPath = path.join(dir, 'seed.json');
+  fs.writeFileSync(seedPath, JSON.stringify({
+    network: { targetIp: '192.168.1.100', targetPort: 7432 },
+    fxButtons: [{ label: 'SEED BUTTON' }],
+  }));
+  const configPath = path.join(dir, 'config.json');
+  fs.writeFileSync(configPath, JSON.stringify({
+    network: { targetIp: '10.20.30.40', targetPort: 7432 },
+    updates: { autoCheck: false },
+    fxButtons: [{ label: 'MY BUTTON' }],
+  }));
   registerIpc({
     ipcMain, engine, store,
-    configPath: path.join(dir, 'config.json'), seedPath: null,
+    configPath, seedPath,
     getWindow: () => win, app: null, dialog: null, shell: null, ctx: {},
   });
   const showWindow = () => { win = { isDestroyed: () => false, webContents: { send: (ch, p) => sent.push([ch, p]) } }; };
@@ -64,4 +77,12 @@ test('a destroyed window never receives anything, and nothing throws', async () 
   h.engine.emit('error', new Error('after teardown'));
   assert.equal(touched, 0, 'webContents.send is never called on a destroyed window');
   assert.deepEqual(h.sent, [], 'and nothing was delivered anywhere');
+});
+
+test('Reload default mapping restores the seed mapping but keeps this machine\'s network and update settings', async () => {
+  const h = harness();
+  const cfg = await h.handlers['config:reset']();
+  assert.equal(cfg.fxButtons[0].label, 'SEED BUTTON', 'the mapping comes from the seed');
+  assert.equal(cfg.network.targetIp, '10.20.30.40', 'Resolume\'s address is not replaced by the seed placeholder');
+  assert.equal(cfg.updates.autoCheck, false, 'update preference kept');
 });
