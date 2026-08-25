@@ -472,8 +472,13 @@ body.edit-mode .color-btn {
   letter-spacing: 0.1em;
   text-transform: uppercase;
 }
+/* theme.css strips borders and backgrounds off every input, so anything that
+   should look like a field has to say so. The macro/step rows are listed here
+   too — they were left out, which is why they rendered as bare floating text
+   with no box at all. */
 .field input[type="text"],
-.field input[type="number"] {
+.field input[type="number"],
+.macro-row input {
   height: 52px;
   padding: 0 14px;
   border: 1px solid var(--line-bright);
@@ -481,7 +486,8 @@ body.edit-mode .color-btn {
   background: var(--bg);
   font-size: 17px;
 }
-.field input:focus { border-color: var(--accent); }
+.field input:focus,
+.macro-row input:focus { border-color: var(--accent); }
 .field textarea {
   min-height: 96px;
   padding: 10px 14px;
@@ -780,15 +786,39 @@ body.edit-mode .color-btn {
 }
 
 /* ---- Macro editor rows ---- */
-.macro-row { display: flex; gap: 8px; align-items: center; }
-.macro-row input { flex: 1; }
+/* Address on its own full-width line, values and delete beneath it. */
+.macro-row {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  grid-template-areas:
+    "addr addr"
+    "vals del";
+  gap: 8px;
+  padding: 10px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: var(--panel-2);
+}
+.macro-row + .macro-row { margin-top: 8px; }
+.macro-row .macro-addr {
+  grid-area: addr;
+  min-width: 0;
+  font-size: 14px;
+}
+.macro-row .macro-vals {
+  grid-area: vals;
+  min-width: 0;
+}
 .macro-row .macro-del {
-  width: 52px; height: 52px;
+  grid-area: del;
+  width: 52px;
+  height: 52px;
   border: 1px solid var(--err);
   border-radius: 8px;
   color: var(--err);
   font-size: 18px;
 }
+.macro-row .macro-del:active { background: color-mix(in srgb, var(--err) 22%, transparent); }
 
 /* ---- COLORS page (color lab) ---- */
 .lab-chips {

@@ -31,7 +31,10 @@ html, body {
   touch-action: none;
 }
 
-button, input {
+/* textarea belongs here too. Left out, it kept the UA default black text,
+   which on this background made every multi-line field — the colour bases, the
+   macro editors — near invisible. */
+button, input, textarea, select {
   font-family: inherit;
   color: inherit;
   background: none;

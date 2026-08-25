@@ -100,7 +100,7 @@ export function renderColorRow(el, { isEditMode, onEdit }) {
         }
       } else if (c.macro?.length) {
         for (const step of c.macro) rogger.send(step.address, step.values ?? []);
-      } else {
+      } else if (c.address) {
         rogger.send(c.address, c.args ?? []);
       }
       setTimeout(() => b.classList.remove('pressed'), 160);

@@ -135,16 +135,51 @@ async function runLayoutAudit(win) {
       if (cs.display === 'none' || cs.visibility === 'hidden') continue;
       const r = el.getBoundingClientRect();
       if (r.width < 1 || r.height < 1) continue;
-      const text = (el.textContent || '').trim();
+      // A form field's content is its value, not its textContent — setting
+      // .value from JS leaves textContent empty, so reading the wrong one
+      // skips every input and textarea in the app.
+      const isField = el.tagName === 'TEXTAREA' || el.tagName === 'INPUT';
+      const text = isField ? (el.value || '').trim() : (el.textContent || '').trim();
       if (!text) continue;
-      if ([...el.children].some(c => (c.textContent || '').trim() === text)) continue;
+      if (!isField && [...el.children].some(c => (c.textContent || '').trim() === text)) continue;
       const dx = el.scrollWidth - el.clientWidth;
       const dy = el.scrollHeight - el.clientHeight;
       const cutX = dx > 1 && cs.overflowX !== 'visible';
       const cutY = dy > 1 && cs.overflowY !== 'visible' && !/auto|scroll/.test(cs.overflowY);
-      if (!cutX && !cutY) continue;
       const cls = typeof el.className === 'string' && el.className
         ? '.' + el.className.trim().split(/\\s+/).slice(0, 2).join('.') : '';
+      // Text the same colour as what it sits on is as good as missing, and it
+      // happens silently whenever an element misses the colour-inheritance
+      // rule. Walk up for the first painted background to compare against.
+      const lum = c => {
+        const m = /rgba?\\(([^)]+)\\)/.exec(c);
+        if (!m) return null;
+        const [rr, gg, bb] = m[1].split(',').map(Number);
+        const f = v => { const x = v / 255; return x <= 0.03928 ? x / 12.92 : Math.pow((x + 0.055) / 1.055, 2.4); };
+        return 0.2126 * f(rr) + 0.7152 * f(gg) + 0.0722 * f(bb);
+      };
+      let bgEl = el, bg = null;
+      while (bgEl && !bg) {
+        const c = getComputedStyle(bgEl).backgroundColor;
+        if (c && !/rgba\\(0, 0, 0, 0\\)|transparent/.test(c)) bg = c;
+        bgEl = bgEl.parentElement;
+      }
+      const lf = lum(cs.color);
+      const lb = bg == null ? null : lum(bg);
+      if (lf != null && lb != null) {
+        const ratio = (Math.max(lf, lb) + 0.05) / (Math.min(lf, lb) + 0.05);
+        if (ratio < 1.6) {
+          out.push({
+            text: text.slice(0, 40),
+            sel: el.tagName.toLowerCase() + cls,
+            dx: 0, dy: 0,
+            box: 'contrast ' + ratio.toFixed(2) + ':1  ' + cs.color + ' on ' + bg,
+            font: cs.fontFamily.split(',')[0] + ' ' + cs.fontSize,
+          });
+          continue;
+        }
+      }
+      if (!cutX && !cutY) continue;
       out.push({
         text: text.slice(0, 40),
         sel: el.tagName.toLowerCase() + cls,
@@ -181,6 +216,34 @@ async function runLayoutAudit(win) {
   await win.webContents.executeJavaScript(
     "document.querySelectorAll('#fx-grid .page-tab')[0].dispatchEvent(new PointerEvent('pointerdown', { bubbles: true }))");
   await wait(200);
+
+  // Editors live behind edit mode, and they hold the densest chrome in the
+  // app — the macro rows, the multi-line address fields. Walk those too.
+  const tap = sel => win.webContents.executeJavaScript(
+    `(() => { const el = document.querySelector(${JSON.stringify(sel)});
+      if (!el) return false;
+      el.dispatchEvent(new PointerEvent('pointerdown', { bubbles: true }));
+      return true; })()`);
+  const closeOverlay = () => win.webContents.executeJavaScript(
+    "document.querySelector('.overlay')?.remove(), true");
+
+  await tap('#edit-toggle');
+  await wait(300);
+  total += await scan('edit mode');
+  for (const [sel, label] of [
+    ['#fx-grid .fx-btn', 'FX button editor'],
+    ['#fader-rack .fader-track', 'fader editor'],   // the track owns the edit tap
+    ['#color-row .color-btn', 'colour preset editor'],
+    ['#color-row .target-pick', 'colour target editor'],
+  ]) {
+    if (!await tap(sel)) continue;
+    await wait(450);
+    total += await scan(label);
+    await closeOverlay();
+    await wait(150);
+  }
+  await tap('#edit-toggle');
+  await wait(250);
 
   await win.webContents.executeJavaScript(
     "document.getElementById('settings-open').dispatchEvent(new PointerEvent('pointerdown', { bubbles: true }))");

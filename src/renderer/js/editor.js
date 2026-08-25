@@ -47,6 +47,27 @@ function parseCsvValues(text) {
     .map(s => (Number.isNaN(Number(s)) ? s : Number(s)));
 }
 
+/**
+ * One address/values/delete row, shared by the macro editor and the colour
+ * target step lists. The address gets a line of its own: an OSC address runs
+ * to 55 characters and sharing a row with a one-digit value hid the end of
+ * every one of them, which is exactly the half you need to read to check it.
+ */
+function stepRow(step, onDelete) {
+  const row = h('div', 'macro-row');
+  const addr = textInput(step.address, v => { step.address = v; });
+  addr.className = 'macro-addr';
+  addr.placeholder = '/composition/...';
+  const vals = textInput((step.values ?? []).join(', '), v => { step.values = parseCsvValues(v); });
+  vals.className = 'macro-vals';
+  vals.placeholder = 'values, comma separated';
+  const del = h('button', 'macro-del', '✕');
+  del.setAttribute('aria-label', 'Remove this step');
+  del.addEventListener('pointerdown', onDelete);
+  row.append(addr, vals, del);
+  return row;
+}
+
 function macroSection(body, draft) {
   body.append(h('div', 'lib-group-title u-caps', 'Macro (overrides single message)'));
   const macroBox = h('div');
@@ -54,14 +75,7 @@ function macroSection(body, draft) {
   function renderMacro() {
     macroBox.replaceChildren();
     (draft.macro ?? []).forEach((step, mi) => {
-      const row = h('div', 'macro-row');
-      const addr = textInput(step.address, v => { step.address = v; });
-      addr.placeholder = '/address';
-      const vals = textInput((step.values ?? []).join(', '), v => { step.values = parseCsvValues(v); });
-      vals.placeholder = 'values, comma separated';
-      const del = h('button', 'macro-del', '✕');
-      del.addEventListener('pointerdown', () => { draft.macro.splice(mi, 1); renderMacro(); });
-      row.append(addr, vals, del);
+      const row = stepRow(step, () => { draft.macro.splice(mi, 1); renderMacro(); });
       macroBox.appendChild(row);
     });
     const add = h('button', 'big-btn u-caps', '+ Add macro step');
@@ -414,15 +428,7 @@ export function openEditor(kind, index) {
       function renderSteps() {
         box.replaceChildren();
         (draft[key] ?? []).forEach((step, si) => {
-          const row = h('div', 'macro-row');
-          const addr = textInput(step.address, v => { step.address = v; });
-          addr.placeholder = '/address';
-          const vals = textInput((step.values ?? []).join(', '), v => { step.values = parseCsvValues(v); });
-          vals.placeholder = 'values, comma separated';
-          const del = h('button', 'macro-del', '✕');
-          del.addEventListener('pointerdown', () => { draft[key].splice(si, 1); renderSteps(); });
-          row.append(addr, vals, del);
-          box.appendChild(row);
+          box.appendChild(stepRow(step, () => { draft[key].splice(si, 1); renderSteps(); }));
         });
         const add = h('button', 'big-btn u-caps', `+ Add step`);
         add.addEventListener('pointerdown', () => {

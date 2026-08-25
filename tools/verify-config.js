@@ -73,9 +73,13 @@ function resolve(address, idx) {
     const rest = m[3] ?? '';
     if (rest.startsWith('/video/effects/')) {
       const fx = oscName(rest.split('/')[3]);
-      const has = effectIndex(clip).has(fx);
-      return has
-        ? { ok: true, what: `clip "${name}" effect ${fx}` }
+      const entry = effectIndex(clip).get(fx);
+      return entry
+        ? {
+          ok: true, what: `clip "${name}" effect ${fx}`,
+          effect: entry.effect, effectKey: `layer${m[1]}clip${m[2]}:${fx}`,
+          container: `layer ${m[1]} "${layerName(layer)}"`, containerLevel: val(layer.master),
+        }
         : { ok: false, what: `clip "${name}" (layer ${m[1]}) has no effect "${fx}"` };
     }
     if (!name) return { ok: false, what: `layer ${m[1]} "${layerName(layer)}" clip ${m[2]} is EMPTY` };
@@ -101,8 +105,13 @@ function resolve(address, idx) {
     if (rest === 'master') return { ok: true, what: `master of layer ${m[1]} "${layerName(layer)}"`, layer: layerName(layer) };
     if (rest.startsWith('video/effects/')) {
       const fx = oscName(rest.split('/')[2]);
-      return idx.layerEffects[li].has(fx)
-        ? { ok: true, what: `layer ${m[1]} "${layerName(layer)}" effect ${fx}` }
+      const entry = idx.layerEffects[li].get(fx);
+      return entry
+        ? {
+          ok: true, what: `layer ${m[1]} "${layerName(layer)}" effect ${fx}`,
+          effect: entry.effect, effectKey: `layer${m[1]}:${fx}`,
+          container: `layer ${m[1]} "${layerName(layer)}"`, containerLevel: val(layer.master),
+        }
         : { ok: false, what: `layer ${m[1]} "${layerName(layer)}" has no effect "${fx}"` };
     }
     // autopilot, dashboard and friends are real layer params but not exposed
@@ -181,6 +190,87 @@ function addressesOf(control) {
   return out;
 }
 
+
+/** Resolve an effect parameter, e.g. .../effects/colorize/effect/color */
+function resolveParam(address, idx) {
+  const m = /^(.*)\/effect\/([^/]+)$/.exec(address ?? '');
+  if (!m) return null;
+  const owner = resolve(`${m[1]}/opacity`, idx);   // reuse the effect lookup
+  if (!owner?.effect) return { ok: false, what: owner?.what ?? 'unknown effect' };
+  const want = oscName(m[2]);
+  const hit = Object.entries(owner.effect.params ?? {})
+    .find(([k]) => oscName(k) === want);
+  return hit
+    ? { ok: true, param: hit[1], name: hit[0], effect: owner.effect, effectKey: owner.effectKey, what: `${owner.what} param "${hit[0]}"` }
+    : { ok: false, what: `${owner.what} has no parameter "${m[2]}"` };
+}
+
+/**
+ * The colour system: targets carry colour bases (a ParamColor that ROGGER
+ * drives per channel) plus on/off step lists. Nothing validated these before,
+ * and they are the least visible part of the config.
+ */
+function checkColours(cfg, idx, bypassDrivers) {
+  const problems = [];
+  const notes = [];
+  const bypassOwners = new Map();
+
+  for (const t of cfg.colorTargets?.items ?? []) {
+    const label = t.label ?? t.id;
+    if (!t.colorBases?.length) problems.push(`target "${label}" has no colour base — picking a colour does nothing`);
+
+    for (const base of t.colorBases ?? []) {
+      const r = resolveParam(base, idx);
+      if (!r?.ok) { problems.push(`target "${label}" base ${base}\n             ${r?.what ?? 'does not resolve'}`); continue; }
+      if (r.param.valuetype !== 'ParamColor') {
+        problems.push(`target "${label}" base ${base}\n             resolves to a ${r.param.valuetype}, not a colour`);
+        continue;
+      }
+      // A colour target whose effect is bypassed and which does not switch it
+      // on is silent: you pick a colour and nothing happens.
+      const bypassed = val(r.effect.bypassed) === true;
+      const switchesItself = (t.onSteps ?? []).some(s => /\/bypassed$/.test(s.address ?? ''));
+      if (bypassed && !switchesItself && !bypassDrivers.has(r.effectKey)) {
+        problems.push(`target "${label}" drives ${r.what}, but that effect is BYPASSED and the target has no on-step to switch it on`);
+      } else if (bypassed && !switchesItself) {
+        notes.push(`target "${label}" only shows once its effect is switched on elsewhere on the surface`);
+      }
+    }
+
+    for (const [kind, steps] of [['on', t.onSteps], ['off', t.offSteps]]) {
+      for (const step of steps ?? []) {
+        const r = /\/(red|green|blue|alpha)$/.test(step.address ?? '')
+          ? resolveParam(step.address.replace(/\/(red|green|blue|alpha)$/, ''), idx)
+          : resolve(step.address, idx);
+        if (!r?.ok) problems.push(`target "${label}" ${kind}-step ${step.address}\n             ${r?.what ?? 'does not resolve'}`);
+        if (/\/bypassed$/.test(step.address ?? '')) {
+          const owners = bypassOwners.get(step.address) ?? new Set();
+          owners.add(label);
+          bypassOwners.set(step.address, owners);
+        }
+      }
+    }
+  }
+
+  // Two targets sharing one bypass means switching one off switches the other
+  // off with it.
+  for (const [address, owners] of bypassOwners) {
+    if (owners.size > 1) {
+      notes.push(`targets ${[...owners].join(' and ')} share ${address.replace('/composition', '')} — turning one off turns the other off too`);
+    }
+  }
+
+  for (const [key, address] of Object.entries(cfg.colorMorph ?? {})) {
+    if (!address) continue;
+    const r = resolve(address, idx);
+    if (!r?.ok) problems.push(`colorMorph.${key} ${address}\n             ${r?.what ?? 'does not resolve'}`);
+    if (bypassOwners.has(address)) {
+      notes.push(`colorMorph.${key} repeats ${address.replace('/composition', '')}, already used by ${[...bypassOwners.get(address)].join(' and ')}`);
+    }
+  }
+  return { problems, notes };
+}
+
 const SECTIONS = [
   ['fxButtons', 'Page 1'],
   ['fxButtons2', 'Page 2'],
@@ -256,6 +346,19 @@ async function main() {
       console.log(lines.join('\n'));
       console.log('');
     }
+  }
+
+  const colours = checkColours(cfg, idx, bypassDrivers);
+  if (colours.problems.length) {
+    console.log('--- colour targets ---');
+    for (const p2 of colours.problems) console.log(`  [BROKEN] ${p2}`);
+    console.log('');
+    broken += colours.problems.length;
+  }
+  if (colours.notes.length) {
+    console.log('--- colour system, worth knowing ---');
+    for (const n of [...new Set(colours.notes)]) console.log(`  ${n}`);
+    console.log('');
   }
 
   // What the composition offers that nothing in the config reaches.
