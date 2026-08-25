@@ -1,6 +1,13 @@
 // Shared DOM builders for the overlay panels (editor, settings, updates).
 // These were duplicated verbatim in editor.js and settings.js; keeping one
 // copy means a touch-target or styling fix lands everywhere at once.
+//
+// Controls inside a scrolling panel body react to `click` — a completed tap —
+// not to `pointerdown`. The surface itself uses pointerdown for latency, but
+// there nothing scrolls; in a panel a finger that lands on a toggle and drags
+// to scroll fires pointerdown before the browser decides it is a scroll, and
+// that was flipping toggles and picking rows under a scrolling finger. The
+// browser only fires click when the finger did not scroll.
 
 export function h(tag, cls, text) {
   const e = document.createElement(tag);
@@ -45,7 +52,7 @@ export function checkRow(label, on, onchange) {
   const r = h('div', 'check-row');
   const t = h('button', 'toggle');
   t.classList.toggle('on', on);
-  t.addEventListener('pointerdown', () => {
+  t.addEventListener('click', () => {
     const v = !t.classList.contains('on');
     t.classList.toggle('on', v);
     onchange(v);
@@ -59,7 +66,7 @@ export function seg(options, current, onpick) {
   const btns = options.map(o => {
     const b = h('button', null, o.label);
     b.classList.toggle('on', o.v === current);
-    b.addEventListener('pointerdown', () => {
+    b.addEventListener('click', () => {
       btns.forEach(x => x.classList.remove('on'));
       b.classList.add('on');
       onpick(o.v);
@@ -122,12 +129,12 @@ export function pickFromList({ title, items, current, empty }) {
       row.classList.toggle('on', item.value === current);
       row.append(h('span', 'pick-row-label', item.label));
       if (item.detail) row.append(h('span', 'pick-row-detail', item.detail));
-      row.addEventListener('pointerdown', () => close(item.value));
+      row.addEventListener('click', () => close(item.value));
       body.appendChild(row);
     }
 
     const cancel = h('button', 'big-btn u-caps', 'Cancel');
-    cancel.addEventListener('pointerdown', () => close(null));
+    cancel.addEventListener('click', () => close(null));
     foot.appendChild(cancel);
     // Tapping the scrim is the same as cancelling — the panel itself must not
     // pass the tap through.

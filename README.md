@@ -26,10 +26,10 @@ Zero runtime dependencies (vanilla JS/CSS + Electron) and a hand-rolled OSC
     mismatch instead of copying it onto a button, and slots that lost their
     clip are cleared rather than left showing a stale name.
   - **Colors** — advanced picker (hue strip + saturation/value pad, throttled
-    live sends), 16 quick swatches, and a ColorMorph strip: Color 1 / Color 3
-    wells, SPEED slider, MORPH on/off with OSC feedback. Drives the same
-    switchable targets as the main color row (BG / LOGO / FLASH / MORPH 1 /
-    MORPH 2).
+    live sends), 16 quick swatches, and a ColorMorph strip: MORPH SPEED slider
+    and MORPH on/off with OSC feedback. Drives the same switchable targets as
+    the main color row (BG / LOGO / FLASH / MORPH 1 / MORPH 2); the two morph
+    colours are ordinary targets in the chip row, each on the page exactly once.
   - **BPM page (mic analyser)** — a realtime tempo analyser built natively
     on Web Audio (no Python, no ML): pick an input device from a full list
     panel (not a native `<select>`, which cut long device names off inside a
@@ -68,7 +68,8 @@ Zero runtime dependencies (vanilla JS/CSS + Electron) and a hand-rolled OSC
   colour writes into the same store, so a device that behaves lights the presets
   for the right reason with no other change.
 - **10 color presets + target switch** — the small squares at the row's end
-  choose what the picker paints (background colorize / logo outline-haze /
+  choose what the picker paints (background colorize / every colour on both
+  logo layers, linked — Colorize + OutlineHaze on LOGO DJ and LOGO MAIN /
   strobe color / ColorMorph Color 1 / Color 3); OFF fires the target's release
   steps. Feedback lights the matching preset.
 - **Topbar** — OSC target, analog-mapping readout, beat clock (BPM + beat ms,
@@ -227,6 +228,14 @@ is safe to run mid-set. When feedback is dead it prints the exact line to type:
    FIX: Resolume → Preferences → OSC → Output: enable it and set the target
         to 192.168.1.254:7001.
 ```
+
+The other way feedback dies is on ROGGER's own side: if something else on the
+machine already holds UDP 7001 (or Windows has excluded the port), the engine
+still opens — on a spare port, so every button keeps firing — but nothing from
+Resolume can arrive. That is not a toast that vanishes in three seconds: the
+topbar shows **NO FEEDBACK · PORT 7001 BUSY · SETTINGS → NETWORK** in place of
+the trigger readout until the port is freed or changed and the settings are
+saved again, and Test connection names the port it fell back to.
 
 That address is read from the machine ROGGER is running on, so running the test
 **on the console at the venue** tells you what to type into Resolume there.

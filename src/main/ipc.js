@@ -34,7 +34,27 @@ function registerIpc({ ipcMain, engine, store, configPath, seedPath, getWindow, 
   });
   ipcMain.on('osc:send', (_e, address, values) => engine.send(address, values));
   ipcMain.on('osc:send-typed', (_e, address, args) => engine.sendTyped(address, args));
-  ipcMain.handle('osc:status:get', () => engine.status);
+  // The launch-time bind runs before the renderer has a page, so anything
+  // the engine reports then (a busy listen port, say) would be lost. Keep it
+  // until the surface asks for its first status, then replay it.
+  const earlyErrors = [];
+  let rendererReady = false;
+  function sendToWindow(channel, payload) {
+    const win = getWindow();
+    if (!win || win.isDestroyed?.()) return false;
+    win.webContents.send(channel, payload);
+    return true;
+  }
+  ipcMain.handle('osc:status:get', () => {
+    if (!rendererReady) {
+      rendererReady = true;
+      setTimeout(() => {
+        for (const text of earlyErrors.splice(0)) sendToWindow('osc:error', text);
+      }, 0);
+    }
+    return engine.status;
+  });
+  ipcMain.handle('osc:listen:get', () => engine.listenInfo());
   ipcMain.handle('network:apply', async (_e, network) => {
     config = { ...config, network: { ...config.network, ...network } };
     store.save(configPath, config);
@@ -161,10 +181,15 @@ function registerIpc({ ipcMain, engine, store, configPath, seedPath, getWindow, 
   ipcMain.on('learn:arm', () => engine.armLearn());
   ipcMain.on('learn:disarm', () => engine.disarmLearn());
 
-  engine.on('status', s => getWindow()?.webContents.send('osc:status', s));
-  engine.on('message', m => getWindow()?.webContents.send('osc:message', m));
-  engine.on('learn', m => getWindow()?.webContents.send('osc:learn', m));
-  engine.on('error', err => getWindow()?.webContents.send('osc:error', String(err?.message ?? err)));
+  engine.on('status', s => sendToWindow('osc:status', s));
+  engine.on('listen', info => sendToWindow('osc:listen', info));
+  engine.on('message', m => sendToWindow('osc:message', m));
+  engine.on('learn', m => sendToWindow('osc:learn', m));
+  engine.on('error', err => {
+    const text = String(err?.message ?? err);
+    if (rendererReady && sendToWindow('osc:error', text)) return;
+    if (earlyErrors.length < 20) earlyErrors.push(text);
+  });
 
   return { getConfig: () => config };
 }

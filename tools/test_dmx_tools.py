@@ -21,7 +21,7 @@ TOOLS_DIR = os.path.dirname(os.path.abspath(__file__))
 REPO_ROOT = os.path.dirname(TOOLS_DIR)
 sys.path.insert(0, TOOLS_DIR)
 
-from dmx_map import DEFAULT_CONFIG_PATH, build_map  # noqa: E402
+from dmx_map import DEFAULT_CONFIG_PATH, PULLMAXX_LOGO_ADDRESS, build_map  # noqa: E402
 
 
 def load_hyphenated(name, filename):
@@ -75,6 +75,19 @@ def main():
     print(f'[ok] map: 98 channels, unique+ordered, all targets /composition/*, '
           f'DJ labels match config fxButtons3 ({len(dj_rows)} channels)')
 
+    # ch 67 must be the alt-logo clip trigger (spec row 67), never derived from
+    # fxButtons2[12] — that button is the FX OFF macro whose primary address is
+    # an opacity path, which is where the old code silently pointed ch 67.
+    ch67 = rows[66]
+    assert ch67['ch'] == 67 and ch67['kind'] == 'event', f'ch 67 must be an event channel, got {ch67}'
+    assert ch67['targets'] == ['/composition/layers/8/clips/17/connect'], (
+        f"ch 67 (PULLMAXX) must target the layer-8 clip-17 connect path, got {ch67['targets']}"
+    )
+    assert PULLMAXX_LOGO_ADDRESS == ch67['targets'][0]
+    assert not any('/opacity' in t for t in ch67['targets']), 'ch 67 must not be bound to an opacity path'
+    checks += 1
+    print(f"[ok] ch 67 PULLMAXX -> {ch67['targets'][0]} (event)")
+
     # ---- 2. GDTF fixture ----------------------------------------------------
     run_generator('gen-ma3-gdtf.py')
     gdtf_mod = load_hyphenated('gen_ma3_gdtf', 'gen-ma3-gdtf.py')
@@ -104,6 +117,12 @@ def main():
     assert len(shortcuts) >= 98, f'expected >= 98 shortcuts, got {len(shortcuts)}'
     assert pdom.documentElement.tagName == 'DMXShortcutPreset'
     assert pdom.documentElement.getAttribute('name') == 'ROGGER_MA3'
+    ch67_key = preset_mod.dmx_key(0, 67)
+    ch67_sc = [sc for sc in shortcuts
+               if sc.getElementsByTagName('RawInputMessage')[0].getAttribute('key') == ch67_key]
+    assert len(ch67_sc) == 1, f'expected exactly one shortcut on ch 67, got {len(ch67_sc)}'
+    ch67_path = ch67_sc[0].getElementsByTagName('ShortcutPath')[0].getAttribute('path')
+    assert ch67_path == '/composition/layers/8/clips/17/connect', f'ch 67 preset path is {ch67_path!r}'
     checks += 1
     print(f'[ok] Resolume preset: {preset_path} parses, {len(shortcuts)} shortcuts (>= 98)')
 

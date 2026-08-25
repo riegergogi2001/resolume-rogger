@@ -114,9 +114,15 @@ test('load() deep-merges partial configs over defaults and repairs array lengths
   assert.ok(cfg.fxButtons[0].address.startsWith('/'), 'missing fields filled in merged entry');
 });
 
-test('load() unions colorTargets by id so configs saved before morph targets keep them', () => {
+const LOGO_COLORIZE_8 = '/composition/layers/8/video/effects/colorize/effect/color';
+const LOGO_COLORIZE_9 = '/composition/layers/9/video/effects/colorize/effect/color';
+const LOGO_HAZE_8 = '/composition/layers/8/video/effects/outlinehaze/effect/color';
+const LOGO_HAZE_9 = '/composition/layers/9/video/effects/outlinehaze/effect/color';
+
+test('a saved colorTargets list is authoritative: a deleted built-in stays deleted', () => {
   const file = path.join(dir, 'config.json');
-  // a config saved when only bg/logo/flash existed, with a customized bg
+  // The operator removed both MORPH targets in the editor and the app saved
+  // the list without them. They must not come back on the next launch.
   fs.writeFileSync(file, JSON.stringify({
     colorTargets: {
       active: 'logo',
@@ -129,12 +135,69 @@ test('load() unions colorTargets by id so configs saved before morph targets kee
   }));
   const cfg = store.load(file);
   const ids = cfg.colorTargets.items.map(x => x.id);
-  assert.deepEqual(ids, ['bg', 'logo', 'flash', 'morph1', 'morph2'], 'new targets survive old saves');
+  assert.deepEqual(ids, ['bg', 'logo', 'flash'], 'nothing the operator removed is resurrected');
   assert.equal(cfg.colorTargets.active, 'logo', 'saved active target kept');
   assert.equal(cfg.colorTargets.items[0].swatch, '#123456', 'saved customization kept');
-  assert.ok(cfg.colorTargets.items[3].colorBases[0].includes('colormorph/effect/color1'));
-  assert.ok(cfg.colorTargets.items[4].colorBases[0].includes('colormorph/effect/color3'));
+  assert.equal(cfg.colorTargets.items[0].label, 'BG', 'missing fields filled from the default of that id');
+  assert.ok(cfg.colorTargets.items[0].colorBases[0].includes('groups/1/video/effects/colorize'));
   assert.equal(cfg.colorMorph.speedAddress, '/composition/video/effects/colormorph/effect/speed');
+});
+
+test('a config with no colorTargets section, or an empty list, gets the defaults', () => {
+  const none = store.merge({ network: { targetIp: '1.2.3.4' } });
+  assert.deepEqual(none.colorTargets, store.defaults().colorTargets);
+  const empty = store.merge({ colorTargets: { active: 'bg', items: [] } });
+  assert.deepEqual(empty.colorTargets, store.defaults().colorTargets, 'the picker always has somewhere to send');
+});
+
+test('a saved active id that no longer exists falls back to the first saved target', () => {
+  const merged = store.merge({ colorTargets: { active: 'morph1', items: [{ id: 'flash' }, { id: 'bg' }] } });
+  assert.equal(merged.colorTargets.active, 'flash');
+});
+
+test('the LOGO target drives every colour on both logo layers, linked', () => {
+  const logo = store.defaults().colorTargets.items.find(t => t.id === 'logo');
+  // Colorize is what actually tints the logos on LOGO DJ (8) and LOGO MAIN
+  // (9); OutlineHaze is the optional glow the HAZE toggle switches on. One
+  // pick must land on all four so the two logos can never drift apart.
+  assert.deepEqual(logo.colorBases, [LOGO_COLORIZE_8, LOGO_COLORIZE_9, LOGO_HAZE_8, LOGO_HAZE_9]);
+  const bypassSteps = steps => steps.map(s => `${s.address}=${s.values.join(',')}`);
+  assert.deepEqual(bypassSteps(logo.onSteps), [
+    '/composition/layers/8/video/effects/colorize/bypassed=0',
+    '/composition/layers/9/video/effects/colorize/bypassed=0',
+  ], 'picking a colour switches Colorize on for both logos');
+  assert.deepEqual(bypassSteps(logo.offSteps), [
+    '/composition/layers/8/video/effects/colorize/bypassed=1',
+    '/composition/layers/9/video/effects/colorize/bypassed=1',
+    '/composition/layers/8/video/effects/outlinehaze/bypassed=1',
+    '/composition/layers/9/video/effects/outlinehaze/bypassed=1',
+  ], 'OFF returns both logos to their own colours and drops the haze');
+});
+
+test('an untouched legacy LOGO target (haze only) is upgraded on load, a customized one is left alone', () => {
+  // Exactly what every config saved before this change holds for LOGO.
+  const legacy = {
+    id: 'logo', label: 'LOGO', swatch: '#eaeef5',
+    colorBases: [LOGO_HAZE_8, LOGO_HAZE_9],
+    onSteps: [],
+    offSteps: [
+      { address: '/composition/layers/8/video/effects/outlinehaze/bypassed', values: [1] },
+      { address: '/composition/layers/9/video/effects/outlinehaze/bypassed', values: [1] },
+    ],
+  };
+  const fresh = store.defaults().colorTargets.items.find(t => t.id === 'logo');
+
+  const upgraded = store.merge({ colorTargets: { active: 'bg', items: [{ ...legacy, swatch: '#abcdef' }] } })
+    .colorTargets.items[0];
+  assert.deepEqual(upgraded.colorBases, fresh.colorBases, 'wiring follows the shipped default');
+  assert.deepEqual(upgraded.onSteps, fresh.onSteps);
+  assert.deepEqual(upgraded.offSteps, fresh.offSteps);
+  assert.equal(upgraded.swatch, '#abcdef', 'cosmetic customization survives the upgrade');
+
+  const custom = { ...legacy, colorBases: [LOGO_HAZE_8] };
+  const kept = store.merge({ colorTargets: { active: 'bg', items: [custom] } }).colorTargets.items[0];
+  assert.deepEqual(kept.colorBases, [LOGO_HAZE_8], 'a target the operator rewired is not touched');
+  assert.deepEqual(kept.offSteps, legacy.offSteps);
 });
 
 test('save() creates parent directories', () => {
@@ -207,6 +270,16 @@ test('a colour target added by hand survives a load', () => {
   const added = merged.colorTargets.items.at(-1);
   assert.equal(added.label, 'BOOM');
   assert.deepEqual(added.colorBases, ['/composition/video/effects/boomer/effect/colorizecolor']);
+});
+
+test('a hand-added target with no wiring starts blank, not with a copy of another target\'s addresses', () => {
+  const patch = structuredClone(store.defaults());
+  patch.colorTargets.items.push({ id: 'blank', label: 'BLANK' });
+  const added = store.merge(patch).colorTargets.items.at(-1);
+  assert.deepEqual(added.colorBases, []);
+  assert.deepEqual(added.onSteps, []);
+  assert.deepEqual(added.offSteps, []);
+  assert.equal(typeof added.swatch, 'string');
 });
 
 test('a stray duplicate target id is ignored, not allowed to hijack the real one', () => {

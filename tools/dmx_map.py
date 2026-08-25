@@ -54,6 +54,8 @@ FALLBACK_MORPH2_BASE = '/composition/video/effects/colormorph/effect/color3'
 # Tempo tap/resync are app-wide constants (src/renderer/js/topbar.js,
 # fx-grid.js, osc-library.js), not per-show config fields.
 TEMPO_TAP_ADDRESS = '/composition/tempocontroller/tempotap'
+# ch 67: the 'pullmaxx overlay' clip on layer 8 (LOGO DJ) — spec row 67.
+PULLMAXX_LOGO_ADDRESS = '/composition/layers/8/clips/17/connect'
 TEMPO_RESYNC_ADDRESS = '/composition/tempocontroller/resync'
 
 
@@ -390,9 +392,13 @@ def build_map(config_path=None):
     })
     rows.append({
         'ch': 67, 'block': 'Logo', 'name': 'PULLMAXX', 'kind': 'event',
-        'targets': [fx2[12]['address']], 'default': 0,
+        # Pinned to the clip itself (design spec row 67), NOT read from the
+        # config: fxButtons2[12] is the FX OFF macro since 1ee1846, and its
+        # primary address is an opacity path — binding an event channel there
+        # would silently zero group-1 FX instead of firing the alt logo.
+        'targets': [PULLMAXX_LOGO_ADDRESS], 'default': 0,
         'geometry': 'Main', 'component': None,
-        'note': 'Alt logo (PULLMAXX) on layer 8 — distinct from the DJ-page PULLMAXX track on ch 88.',
+        'note': 'Alt logo (PULLMAXX overlay) on layer 8 — distinct from the DJ-page PULLMAXX track on ch 88.',
     })
     rows.append({
         'ch': 68, 'block': 'Logo', 'name': 'CLR LOGO', 'kind': 'event',

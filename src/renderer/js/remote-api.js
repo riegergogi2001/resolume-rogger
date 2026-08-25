@@ -13,7 +13,8 @@ const FX_KIND_BY_PAGE = { 1: 'fxButtons', 2: 'fxButtons2', 3: 'fxButtons3' };
 
 function firstNumericArg(args) {
   const a = args?.[0];
-  return a && typeof a.value === 'number' ? a.value : undefined;
+  // A NaN float is valid OSC and must not reach a fader or the page switch.
+  return a && typeof a.value === 'number' && Number.isFinite(a.value) ? a.value : undefined;
 }
 
 // address/args -> a small typed intent, or null if not a recognized/valid
@@ -65,7 +66,8 @@ export function parseRemote(address, args) {
 
   if (address === '/rogger/page') {
     const v = firstNumericArg(args);
-    if (typeof v !== 'number') return null;
+    // Page 0 or a fraction would deactivate every page and leave the surface blank.
+    if (!Number.isInteger(v) || v < 1) return null;
     return { type: 'page', n: v };
   }
 
@@ -113,9 +115,15 @@ export function startRemoteApi({ fxHandles, faderHandles, colorHandles, setPage,
       case 'color':
         colorHandles?.[parsed.index]?.press();
         break;
-      case 'page':
+      case 'page': {
+        // Beyond the last visible tab there is no page to show — switching
+        // there would blank the surface. Hidden pages drop their tab, so
+        // the tab count is the live upper bound.
+        const tabs = typeof document !== 'undefined' ? document.querySelectorAll('#fx-grid .page-tab').length : 0;
+        if (tabs && parsed.n > tabs) return;
         setPage?.(parsed.n - 1);
         break;
+      }
       case 'tap':
         tap?.();
         break;

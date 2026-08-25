@@ -8,6 +8,8 @@ function mockBridge() {
   let learnCb = null;
   const messageCbs = new Set();
   const statusCbs = new Set();
+  const listenCbs = new Set();
+  let mockListen = { port: 7001, configured: 7001, fallback: false };
 
   const fallbackConfig = { version: 1,
     network: { targetIp: '192.168.1.100', targetPort: 7000, listenPort: 7001, autoConnect: true, autoReconnect: true },
@@ -29,6 +31,7 @@ function mockBridge() {
   window.__emitLearn = msg => { if (learnCb) learnCb(msg); };
   window.__emitOscIn = msg => { for (const cb of messageCbs) cb(msg); };
   window.__emitStatus = s => { mockStatus = s; for (const cb of statusCbs) cb(s); };
+  window.__emitListen = info => { mockListen = info; for (const cb of listenCbs) cb(info); };
 
   // Minimal deep-merge for the mock config:import — mirrors config-store's
   // shape-preserving merge closely enough for UI tests (array-of-objects
@@ -127,6 +130,8 @@ function mockBridge() {
     armLearn: () => { window.__learnArmed = true; },
     disarmLearn: () => { window.__learnArmed = false; },
     getStatus: async () => mockStatus,
+    getListen: async () => mockListen,
+    onListen: cb => { listenCbs.add(cb); return () => listenCbs.delete(cb); },
     onStatus: cb => {
       statusCbs.add(cb);
       setTimeout(() => cb(mockStatus), 0);

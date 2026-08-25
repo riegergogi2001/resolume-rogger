@@ -66,6 +66,21 @@
   border-radius: 50%;
   background: var(--text-dim);
 }
+.listen-warn {
+  display: flex;
+  align-items: center;
+  height: 44px;
+  padding: 0 12px;
+  border: 1px solid var(--warn);
+  border-radius: var(--radius);
+  color: var(--warn);
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  white-space: nowrap;
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--warn) 40%, transparent);
+}
+.listen-warn[hidden] { display: none; }
 .status-pill[data-status="offline"] .dot { background: #565b63; }
 .status-pill[data-status="ready"] .dot { background: var(--warn); box-shadow: 0 0 10px var(--warn); }
 .status-pill[data-status="live"]  .dot { background: var(--ok);   box-shadow: 0 0 10px var(--ok); }
@@ -627,6 +642,10 @@ body.edit-mode .color-btn {
 .big-btn:active { background: var(--panel-3); }
 .big-btn.primary { background: var(--accent); border-color: var(--accent); color: #05161a; }
 .big-btn.danger { border-color: var(--err); color: var(--err); }
+/* A big button placed straight into the panel body (Gamepad learn, the
+   library's Back, Use swatch color) is a column-flex item there: flex: 1 with
+   a zero basis and nothing to grow into collapsed it to its 20px text line. */
+.panel-body > .big-btn { flex: none; }
 
 .swatch-row { display: flex; gap: 10px; flex-wrap: wrap; }
 .swatch-pick {
@@ -979,34 +998,10 @@ body.edit-mode .color-btn {
 
 .lab-morph {
   display: grid;
-  grid-template-columns: 1fr 1fr 1.6fr auto;
+  grid-template-columns: 1fr auto;
   gap: 10px;
 }
-.morph-well {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  min-height: 48px;
-  padding: 8px 12px;
-  border: 1px solid var(--line);
-  border-radius: var(--radius);
-  background: var(--panel);
-  font-size: 11px;
-  font-weight: 800;
-  letter-spacing: 0.08em;
-  color: var(--text-dim);
-}
-.morph-well.on {
-  border-color: var(--accent);
-  color: var(--text);
-}
-.well-swatch {
-  width: 24px;
-  height: 24px;
-  border-radius: 50%;
-  border: 1px solid var(--line-bright);
-  background: #000;
-}
+.lab-morph[hidden] { display: none; }
 .morph-speed {
   display: flex;
   align-items: center;

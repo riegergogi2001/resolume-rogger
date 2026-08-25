@@ -3,7 +3,11 @@
 // installed as a devDependency), exercises the BPM tab controls, injects
 // synthetic 128 BPM audio straight into window.__bpmTracker (bypassing the
 // mic so this runs headless/CI-safe), and checks the topbar MIC readout
-// picks it up. Not part of `npm test` (needs a browser download) — run with:
+// picks it up. Then, with the mic actually started, it rebuilds the surface
+// (Settings -> Pages toggles renderAll) and checks that exactly one analyser —
+// one live mic track, one open AudioContext — survives, including when two
+// rebuilds land while a start() is still waiting on getUserMedia.
+// Not part of `npm test` (needs a browser download) — run with:
 //
 //   node test/serve.js &          # port 5199
 //   node test/ui/bpm-page.spec.mjs
@@ -75,6 +79,35 @@ async function main() {
   const consoleErrors = [];
   page.on('console', msg => { if (msg.type() === 'error') consoleErrors.push(msg.text()); });
   page.on('pageerror', err => consoleErrors.push(String(err)));
+
+  // Instrument the media APIs the analyser opens, so the rebuild checks can
+  // count what is really still alive afterwards: every track getUserMedia
+  // handed out (readyState 'live' until stop()) and every AudioContext built
+  // (state 'closed' after close()). getUserMedia stays Chromium's fake-device
+  // one underneath; __gum.hold parks calls until __gum.release(), so a
+  // rebuild can be made to land in the middle of a start().
+  await page.addInitScript(() => {
+    window.__gum = { calls: 0, resolved: 0, tracks: [], hold: false, waiters: [] };
+    window.__gum.release = () => {
+      window.__gum.hold = false;
+      window.__gum.waiters.splice(0).forEach(resume => resume());
+    };
+    const md = navigator.mediaDevices;
+    const realGum = md.getUserMedia.bind(md);
+    md.getUserMedia = async constraints => {
+      window.__gum.calls++;
+      if (window.__gum.hold) await new Promise(resume => window.__gum.waiters.push(resume));
+      const stream = await realGum(constraints);
+      window.__gum.tracks.push(...stream.getTracks());
+      window.__gum.resolved++;
+      return stream;
+    };
+    window.__audioContexts = [];
+    const RealAudioContext = window.AudioContext;
+    window.AudioContext = class extends RealAudioContext {
+      constructor(...args) { super(...args); window.__audioContexts.push(this); }
+    };
+  });
 
   try {
     await page.goto(baseUrl, { waitUntil: 'load' });
@@ -156,6 +189,63 @@ async function main() {
     const shotPath = path.join(artifactDir, 'v2-bpm-page.png');
     await page.screenshot({ path: shotPath });
     console.log('Screenshot saved:', shotPath);
+
+    // ---- surface rebuild: exactly one analyser stays alive ----
+    // Every renderAll() (a Settings -> Pages toggle is one) rebuilds the BPM
+    // page and its analyser. The previous one must let go of the mic and its
+    // AudioContext; only the replacement may be listening afterwards.
+    const alive = () => page.evaluate(() => ({
+      gumCalls: window.__gum.calls,
+      liveTracks: window.__gum.tracks.filter(t => t.readyState === 'live').length,
+      openContexts: window.__audioContexts.filter(c => c.state !== 'closed').length,
+    }));
+    // The current page's Start button flips to Stop once its analyser.start()
+    // has resolved; with no getUserMedia still pending, every start is done.
+    const waitForListening = () => page.waitForFunction(() =>
+      document.querySelector('#bpm-run')?.textContent === 'Stop'
+      && window.__gum.resolved === window.__gum.calls, { timeout: 5000 });
+
+    await page.click('#bpm-run');
+    await waitForListening();
+    let a = await alive();
+    assert(a.liveTracks === 1 && a.openContexts === 1,
+      `Start opens one mic track and one AudioContext (${JSON.stringify(a)})`);
+    console.log('OK: Start -> one live mic track, one open AudioContext');
+
+    await page.click('#settings-open');
+    await page.waitForSelector('#settings-overlay');
+    await page.getByRole('button', { name: 'Pages', exact: true }).click();
+    const djToggle = page.locator('#settings-overlay .check-row', { hasText: 'Show DJ Intro' }).locator('.toggle');
+
+    for (const step of ['hide DJ Intro', 'show DJ Intro']) {
+      const before = await alive();
+      await djToggle.click();          // renderAll -> BPM page rebuilt; micAutoStart restarts it
+      await waitForListening();
+      await page.waitForTimeout(300);  // let the old AudioContext's close() settle
+      a = await alive();
+      assert(a.gumCalls > before.gumCalls, `${step}: the rebuilt page started its own analyser`);
+      assert(a.liveTracks === 1, `${step}: exactly one live mic track after the rebuild (got ${a.liveTracks})`);
+      assert(a.openContexts === 1, `${step}: exactly one open AudioContext after the rebuild (got ${a.openContexts})`);
+    }
+    console.log('OK: a surface rebuild stops the previous analyser; one stays alive');
+
+    // ---- race: two rebuilds while a start() still waits on getUserMedia ----
+    // The middle page's analyser is not "running" yet when its page is torn
+    // down; its start() resolves later and must not stay listening behind
+    // the final page.
+    await page.evaluate(() => { window.__gum.hold = true; });
+    await djToggle.click();            // rebuild 1: its start() parks on getUserMedia
+    await djToggle.click();            // rebuild 2: tears down a page that never got running
+    a = await alive();
+    assert(a.liveTracks === 0, `nothing listens while getUserMedia is held (got ${a.liveTracks})`);
+    await page.evaluate(() => window.__gum.release());
+    await waitForListening();
+    await page.waitForTimeout(500);    // let every parked start() finish its worklet load and settle
+    a = await alive();
+    assert(a.liveTracks === 1, `race: exactly one live mic track after back-to-back rebuilds (got ${a.liveTracks})`);
+    assert(a.openContexts === 1, `race: exactly one open AudioContext after back-to-back rebuilds (got ${a.openContexts})`);
+    console.log('OK: back-to-back rebuilds mid-start leave exactly one analyser running');
+    await page.click('#set-close');
 
     const seriousErrors = consoleErrors.filter(e => !/ResizeObserver|getUserMedia/i.test(e));
     if (seriousErrors.length) {

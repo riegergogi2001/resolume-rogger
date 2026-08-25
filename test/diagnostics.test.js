@@ -172,3 +172,69 @@ test('localAddresses returns usable IPv4 addresses only', () => {
     assert.notEqual(a.address, '127.0.0.1', 'loopback is useless as an OSC output target');
   }
 });
+
+// --- the address in the FIX line, and the probe's direction -----------------
+const { rankAddresses } = require('../src/main/diagnostics.js');
+
+test('rankAddresses puts the adapter on Resolume\'s subnet first and link-local last', () => {
+  const ranked = rankAddresses([
+    { name: 'ZeroTier One', address: '10.147.20.5', netmask: '255.255.255.0' },
+    { name: 'Ethernet', address: '169.254.12.7', netmask: '255.255.0.0' },   // dock with no DHCP lease
+    { name: 'Wi-Fi', address: '192.168.50.23', netmask: '255.255.255.0' },
+  ], '192.168.50.10');
+  assert.deepEqual(ranked.map(a => a.address), ['192.168.50.23', '10.147.20.5', '169.254.12.7']);
+});
+
+test('the FIX line leads with the address Resolume can actually reach', async () => {
+  const comp = composition({ groupFx: [[effect('Goo', 0)]] });
+  const engine = fakeEngine({ feedback: false });
+  const r = await diagnose({
+    engine, network: { targetIp: '192.168.50.10', targetPort: 7432, listenPort: 7001 },
+    sleep: noSleep, fetchImpl: fakeFetch(engine, comp),
+    addresses: [
+      { name: 'ZeroTier One', address: '10.147.20.5', netmask: '255.255.255.0' },
+      { name: 'Wi-Fi', address: '192.168.50.23', netmask: '255.255.255.0' },
+    ],
+  });
+  const fb = r.legs.find(l => l.id === 'feedback');
+  assert.match(fb.fix, /set the target to 192\.168\.50\.23:7001/);
+  assert.match(fb.fix, /Broadcast/, 'broadcast output needs no address at all');
+});
+
+test('the master at 1.0 is nudged downward, so a clamped parameter cannot fake a dead send leg', async () => {
+  const comp = composition({ groupFx: [[effect('Bloom', 1)]], master: 1 });
+  const engine = fakeEngine({ feedback: true });
+  const raw = engine.send;
+  engine.send = (a, v) => raw(a, [Math.max(0, Math.min(1, v[0]))]); // Resolume clamps
+  const r = await run(engine, comp);
+  const send = r.legs.find(l => l.id === 'send');
+  assert.equal(send.ok, true, send.detail);
+  assert.ok(engine.sent[0].values[0] < 1, 'nudged below 1');
+  assert.equal(engine.sent[1].values[0], 1, 'restored to exactly 1');
+});
+
+test('an engine with no open socket is reported as ROGGER\'s problem, not Resolume\'s', async () => {
+  const comp = composition({ groupFx: [[effect('Goo', 0)]] });
+  const engine = fakeEngine({ feedback: false });
+  engine.status = 'offline';
+  const r = await run(engine, comp);
+  const send = r.legs.find(l => l.id === 'send');
+  assert.equal(send.ok, false);
+  assert.match(send.detail, /socket is not open/i);
+  assert.doesNotMatch(send.fix ?? '', /OSC Input/, 'does not send the operator to the wrong preference');
+  assert.equal(engine.sent.length, 0, 'nothing is nudged through a closed socket');
+});
+
+test('a listen port ROGGER could not bind is named as the reason feedback is missing', async () => {
+  const comp = composition({ groupFx: [[effect('Goo', 0)]] });
+  const engine = fakeEngine({ feedback: false });
+  engine.status = 'ready';
+  engine.listenFallback = true;
+  engine.listenAddress = () => ({ address: '0.0.0.0', family: 'IPv4', port: 61234 });
+  const r = await run(engine, comp);
+  const fb = r.legs.find(l => l.id === 'feedback');
+  assert.equal(fb.ok, false);
+  assert.match(fb.detail, /7001/);
+  assert.match(fb.detail, /another app|in use|could not open/i);
+  assert.match(fb.fix, /listen port/i);
+});

@@ -22,15 +22,42 @@ const FEEDBACK_WAIT_MS = 1500;
 // which is what makes it safe to run during a show.
 const NUDGE = 0.004;
 
-/** Non-internal IPv4 addresses of this machine, best guess first. */
+/** Non-internal IPv4 addresses of this machine, in interface order. */
 function localAddresses() {
   const out = [];
   for (const [name, addrs] of Object.entries(os.networkInterfaces())) {
     for (const a of addrs ?? []) {
-      if (a.family === 'IPv4' && !a.internal) out.push({ name, address: a.address });
+      if (a.family === 'IPv4' && !a.internal) out.push({ name, address: a.address, netmask: a.netmask });
     }
   }
   return out;
+}
+
+const ipToInt = ip => {
+  const m = /^(\d+)\.(\d+)\.(\d+)\.(\d+)$/.exec(String(ip ?? ''));
+  return m ? ((+m[1] << 24) | (+m[2] << 16) | (+m[3] << 8) | +m[4]) >>> 0 : null;
+};
+
+/**
+ * Order this machine's addresses for the FIX line. A console has several — the
+ * Ally carries Wi-Fi, a dock's Ethernet, maybe a VPN — and only the one on
+ * Resolume's own subnet is an address Resolume can send to. A link-local
+ * 169.254.x.x (an adapter with no DHCP lease) is never it.
+ */
+function rankAddresses(addresses, targetIp) {
+  const target = ipToInt(targetIp);
+  const score = a => {
+    const ip = ipToInt(a.address);
+    const mask = ipToInt(a.netmask);
+    if (ip == null) return 3;
+    if (target != null && mask != null && ((ip & mask) >>> 0) === ((target & mask) >>> 0)) return 0;
+    if (String(a.address).startsWith('169.254.')) return 2;
+    return 1;
+  };
+  return addresses
+    .map((a, i) => ({ a, i, s: score(a) }))
+    .sort((x, y) => x.s - y.s || x.i - y.i)
+    .map(x => x.a);
 }
 
 const oscName = n => String(n ?? '').toLowerCase().replace(/[^a-z0-9]/g, '');
@@ -69,6 +96,9 @@ function pickProbe(comp) {
       address: '/composition/master',
       rest: c => c?.master?.value,
       original: master,
+      // A master sitting at 1.0 (where it lives during a show) cannot go up:
+      // Resolume clamps the nudge away and the leg reads as dead.
+      nudge: master + NUDGE > 1 ? -NUDGE : NUDGE,
       what: 'composition master (nudged by 0.4%, then restored)',
     };
   }
@@ -96,13 +126,18 @@ function readOpacity(comp, base, oscKey) {
  * @param {object} opts.network  { targetIp, targetPort, listenPort }
  * @param {Function} [opts.fetchImpl]
  * @param {Function} [opts.sleep]
+ * @param {Array} [opts.addresses]  this machine's addresses (defaults to localAddresses())
  * @returns {Promise<{legs: Array, summary: string, ok: boolean}>}
  */
-async function diagnose({ engine, network, fetchImpl, sleep }) {
+async function diagnose({ engine, network, fetchImpl, sleep, addresses }) {
   const doFetch = fetchImpl ?? ((...a) => globalThis.fetch(...a));
   const wait = sleep ?? (ms => new Promise(r => setTimeout(r, ms)));
   const legs = [];
   const ip = network?.targetIp;
+  // Our own socket. If it is not open nothing below can be blamed on Resolume.
+  const socketOpen = engine.status !== 'offline';
+  const boundPort = engine.listenAddress?.()?.port;
+  const listenFallback = Boolean(engine.listenFallback) || (typeof boundPort === 'number' && boundPort !== network?.listenPort);
 
   // Watch for any inbound OSC for the whole run — that is leg 3's evidence.
   let inbound = 0;
@@ -138,13 +173,20 @@ async function diagnose({ engine, network, fetchImpl, sleep }) {
         detail: 'Cannot be verified without the webserver — there is no way to read back what arrived.',
         fix: 'Enable the webserver, then run this again.',
       });
+    } else if (!socketOpen) {
+      legs.push({
+        id: 'send', ok: false, title: 'ROGGER → Resolume',
+        detail: 'ROGGER\'s own OSC socket is not open — nothing was sent, so this is not a Resolume setting.',
+        fix: 'Settings → Network → Save network settings to reopen it (or restart ROGGER). If the listen port is held by another app, change it here.',
+      });
     } else if (!probe) {
       legs.push({
         id: 'send', ok: false, title: 'ROGGER → Resolume',
         detail: 'Found no parameter safe to nudge in this composition.',
       });
     } else {
-      engine.send(probe.address, [probe.original + NUDGE]);
+      const nudge = probe.nudge ?? NUDGE;
+      engine.send(probe.address, [probe.original + nudge]);
       await wait(300);
       let moved = false;
       try {
@@ -152,7 +194,7 @@ async function diagnose({ engine, network, fetchImpl, sleep }) {
           signal: AbortSignal.timeout(REST_TIMEOUT_MS),
         });
         const after = probe.rest(await res.json());
-        moved = Math.abs(Number(after) - (probe.original + NUDGE)) < 0.002;
+        moved = Math.abs(Number(after) - (probe.original + nudge)) < 0.002;
       } catch { /* leave moved false */ }
       engine.send(probe.address, [probe.original]);   // always put it back
       await wait(150);
@@ -170,20 +212,28 @@ async function diagnose({ engine, network, fetchImpl, sleep }) {
 
     // ---- leg 3: feedback comes back ----
     await wait(FEEDBACK_WAIT_MS);
-    const addresses = localAddresses();
-    const hint = addresses.length
-      ? addresses.map(a => `${a.address}:${network.listenPort}`).join(' or ')
+    const ranked = rankAddresses(addresses ?? localAddresses(), ip);
+    const [best, ...others] = ranked;
+    const hint = best
+      ? `${best.address}:${network.listenPort}` +
+        (others.length ? ` (this machine also has ${others.map(a => a.address).join(', ')} — use the one on Resolume's network)` : '')
       : `this machine:${network.listenPort}`;
     legs.push(inbound > 0
       ? {
         id: 'feedback', ok: true, title: 'Resolume → ROGGER (feedback)',
         detail: `${inbound} message(s) received. Lamps, latches and auto-BPM will follow Resolume.`,
       }
-      : {
-        id: 'feedback', ok: false, title: 'Resolume → ROGGER (feedback)',
-        detail: `Nothing arrived on port ${network.listenPort}. Buttons will still fire, but nothing on the surface will light up from Resolume, and Auto BPM will not follow.`,
-        fix: `Resolume → Preferences → OSC → Output: enable it and set the target to ${hint}.`,
-      });
+      : listenFallback
+        ? {
+          id: 'feedback', ok: false, title: 'Resolume → ROGGER (feedback)',
+          detail: `ROGGER could not open port ${network.listenPort} (another app on this machine is using it) and is listening on ${boundPort ?? 'an ephemeral port'} instead, which Resolume does not know about. Buttons still fire, but nothing lights up from Resolume.`,
+          fix: `Close the other app using UDP ${network.listenPort}, or pick a different listen port here and point Resolume's OSC Output at it; then Save network settings.`,
+        }
+        : {
+          id: 'feedback', ok: false, title: 'Resolume → ROGGER (feedback)',
+          detail: `Nothing arrived on port ${network.listenPort}. Buttons will still fire, but nothing on the surface will light up from Resolume, and Auto BPM will not follow.`,
+          fix: `Resolume → Preferences → OSC → Output: enable it and set the target to ${hint}, or set the target type to Broadcast (port ${network.listenPort}) so it reaches every machine on the subnet.`,
+        });
   } finally {
     engine.removeListener('message', onMessage);
   }
@@ -196,4 +246,4 @@ async function diagnose({ engine, network, fetchImpl, sleep }) {
   return { legs, summary, ok };
 }
 
-module.exports = { diagnose, localAddresses, pickProbe };
+module.exports = { diagnose, localAddresses, rankAddresses, pickProbe };

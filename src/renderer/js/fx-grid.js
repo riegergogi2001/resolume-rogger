@@ -72,10 +72,17 @@ let activeGetPage = () => 0;
 export function setPage(p) { activeSetPage?.(p); }
 export function getPage() { return activeGetPage(); }
 
+// Both outlive a rebuild. renderFxGrid() runs again whenever something a
+// per-control refresh cannot reflect changes (fader orientation, hidden pages,
+// a colour target added or removed, an import), and a rebuild used to drop
+// the operator back on Page 1 and show every latched toggle as off while the
+// effect it switched on was still running — the next tap sent ON again.
+const latched = new Set(); // `${kind}:${i}` keys of toggles currently on
+let lastPageLabel = null;  // the page that was up before the rebuild
+
 export function renderFxGrid(el, { isEditMode, onEdit }) {
   el.innerHTML = '';
   fxHandles.length = 0;
-  const latched = new Set(); // `${kind}:${i}` keys
 
   const offsets = {};
   {
@@ -112,6 +119,10 @@ export function renderFxGrid(el, { isEditMode, onEdit }) {
     }
     apply();
     state.subscribe(apply);
+    // Restore a toggle that was on before the rebuild; forget it if the
+    // control has since been edited into another mode.
+    if (cfg().mode === 'toggle' && latched.has(key)) b.classList.add('latched');
+    else latched.delete(key);
 
     function startRamp() {
       const startedAt = performance.now();
@@ -160,6 +171,10 @@ export function renderFxGrid(el, { isEditMode, onEdit }) {
     function scheduleRepeat() {
       const r = cfg().repeat;
       const iv = r.sync ? (beat.beatMs() ?? r.intervalMs) : r.intervalMs;
+      // One chain per button: a second press() while one is already running
+      // (pad + touch, remote API + pad) replaces it. Without this the first
+      // chain lost its handle and kept rescheduling itself after release.
+      clearTimeout(repeatTimer);
       repeatTimer = setTimeout(() => {
         fire(cfg(), cfg().value);
         scheduleRepeat();
@@ -250,6 +265,7 @@ export function renderFxGrid(el, { isEditMode, onEdit }) {
     // target chips and swatch bank, so the footer's copy of both is hidden
     // there and the picker gets the space instead.
     const def = visibleDefs[p];
+    lastPageLabel = def?.label ?? null;
     document.body.dataset.page = (def?.label ?? '').toLowerCase().replace(/\s+/g, '-');
   }
   activeSetPage = showPage;
@@ -374,5 +390,7 @@ export function renderFxGrid(el, { isEditMode, onEdit }) {
     (state.get().utilButtons ?? []).forEach((_, u) => makeButton('utilButtons', u, strip, true));
   }
 
-  showPage(0);
+  // Stay on the page that was up, unless it has just been hidden.
+  const keep = visibleDefs.findIndex(d => d.label === lastPageLabel);
+  showPage(keep >= 0 ? keep : 0);
 }

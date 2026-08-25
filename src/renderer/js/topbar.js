@@ -15,6 +15,15 @@ export function renderTopbar(el, { onToggleEdit, onOpenSettings }) {
   const spacer = document.createElement('div');
   spacer.className = 'topbar-spacer';
 
+  // Persistent warning when the OSC engine could not bind the configured
+  // listen port and is on a fallback one: commands still land, but nothing
+  // from Resolume will arrive until the port is freed or changed. A toast
+  // would be gone in seconds; this stays until the port is right.
+  const warn = document.createElement('div');
+  warn.className = 'listen-warn trig-readout u-caps';
+  warn.id = 'listen-warn';
+  warn.hidden = true;
+
   const pill = document.createElement('div');
   pill.className = 'status-pill u-caps';
   pill.dataset.status = 'offline';
@@ -162,7 +171,7 @@ export function renderTopbar(el, { onToggleEdit, onOpenSettings }) {
   gear.textContent = '⚙';
   gear.addEventListener('pointerdown', onOpenSettings);
 
-  el.append(mark, target, trig, spacer, bpm, srcBtn, half, dbl, batt, clock, tap, resync, pill, edit, gear);
+  el.append(mark, target, trig, warn, spacer, bpm, srcBtn, half, dbl, batt, clock, tap, resync, pill, edit, gear);
 
   function refreshTarget() {
     const n = state.get().network;
@@ -177,4 +186,16 @@ export function renderTopbar(el, { onToggleEdit, onOpenSettings }) {
   }
   rogger.getStatus().then(setStatus);
   rogger.onStatus(setStatus);
+
+  // The topbar is full at the window floor by design (nothing in it shrinks),
+  // so the warning takes the trigger readout's slot rather than adding one:
+  // that readout is a reminder of the LT/RT/LS/RS labels, this is a fault.
+  function setListen(info) {
+    const bad = Boolean(info?.fallback);
+    warn.hidden = !bad;
+    trig.hidden = bad;
+    if (bad) warn.textContent = `NO FEEDBACK · PORT ${info.configured} BUSY · SETTINGS → NETWORK`;
+  }
+  rogger.getListen?.().then(setListen).catch(() => {});
+  rogger.onListen?.(setListen);
 }

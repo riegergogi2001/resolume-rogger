@@ -96,14 +96,14 @@ export function renderUpdates(body, { oscStatus = () => 'offline' } = {}) {
     const checkBtn = h('button', 'big-btn u-caps', 'Check now');
     checkBtn.id = 'upd-check';
     checkBtn.disabled = !info.supported;
-    checkBtn.addEventListener('pointerdown', () => runCheck());
+    checkBtn.addEventListener('click', () => runCheck());
     controls.append(btnRow(checkBtn));
   }
 
   function restartButton(label) {
     const btn = h('button', 'big-btn primary u-caps', label);
     btn.id = 'upd-restart';
-    btn.addEventListener('pointerdown', () => {
+    btn.addEventListener('click', () => {
       // Restarting drops the OSC socket. If anything is still talking to us,
       // make the operator confirm rather than going dark mid-cue.
       if (oscStatus() === 'live' && !confirm('OSC is LIVE. Restart ROGGER now to apply the update?')) return;
@@ -115,7 +115,7 @@ export function renderUpdates(body, { oscStatus = () => 'offline' } = {}) {
   function releasesButton(url, label = 'Open releases page') {
     const btn = h('button', 'big-btn u-caps', label);
     btn.id = 'upd-releases';
-    btn.addEventListener('pointerdown', () => rogger.openReleases?.(url));
+    btn.addEventListener('click', () => rogger.openReleases?.(url));
     return btn;
   }
 
@@ -127,7 +127,7 @@ export function renderUpdates(body, { oscStatus = () => 'offline' } = {}) {
 
     const btn = h('button', 'big-btn primary u-caps', size ? `Download ${version} (${bytes(size)})` : `Download ${version}`);
     btn.id = 'upd-download';
-    btn.addEventListener('pointerdown', async () => {
+    btn.addEventListener('click', async () => {
       if (btn.disabled) return;
       btn.disabled = true;
       bar.hidden = false;
@@ -179,7 +179,7 @@ export function renderUpdates(body, { oscStatus = () => 'offline' } = {}) {
     if (info.installed?.length) {
       const resetBtn = h('button', 'big-btn danger u-caps', 'Remove updates, run the bundled version');
       resetBtn.id = 'upd-reset';
-      resetBtn.addEventListener('pointerdown', async () => {
+      resetBtn.addEventListener('click', async () => {
         info = await rogger.updateReset();
         result = null;
         setStatus('Downloaded updates removed. The bundled version starts on the next launch.', 'ok');

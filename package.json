@@ -1,7 +1,7 @@
 {
   "name": "rogger",
   "productName": "ROGGER",
-  "version": "2.1.0",
+  "version": "2.2.0",
   "description": "Touchscreen OSC performance controller for Resolume and OSC-compatible software, with over-the-air updates — optimized for ASUS ROG Ally X.",
   "main": "src/bootstrap.js",
   "private": true,
@@ -12,7 +12,7 @@
   },
   "scripts": {
     "start": "electron .",
-    "test": "node --test \"test/*.test.js\"",
+    "test": "node --test --test-timeout=30000 \"test/*.test.js\"",
     "dist:win": "electron-builder --win --x64",
     "ma3": "python3 tools/gen-ma3-gdtf.py && python3 tools/gen-resolume-dmx-preset.py && python3 tools/gen-ma3-handoff.py",
     "payload": "node tools/build-payload.js",

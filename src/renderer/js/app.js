@@ -57,6 +57,10 @@ async function boot() {
   startGamepad(fxHandles);
   startRemoteApi({ fxHandles, faderHandles, colorHandles, setPage, tap: tapAction, resync: resyncAction });
   rogger.onOscError(msg => showToast(msg, { error: true }));
+  // Holding a button is the main gesture here, and on a touchscreen Chromium
+  // treats a long press as the context-menu gesture. There is no menu to
+  // show, so refuse it rather than let it interrupt a held FX button.
+  document.addEventListener('contextmenu', e => e.preventDefault());
   document.body.dataset.ready = '1';
   // Last, and never awaited: the surface must be usable whether or not GitHub
   // answers.

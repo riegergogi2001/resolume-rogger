@@ -105,3 +105,13 @@ test('bad input never throws', () => {
   assert.doesNotThrow(() => parseRemote('/rogger/fx/1/2', 'not-an-array'));
   assert.equal(parseRemote('/rogger/fader/1', [{ type: 'i', value: 'nope' }]), null);
 });
+
+test('NaN and out-of-range page numbers never reach the surface', () => {
+  assert.equal(parseRemote('/rogger/fader/1', [{ type: 'f', value: NaN }]), null, 'NaN fader');
+  assert.equal(parseRemote('/rogger/gfader/1', [{ type: 'f', value: NaN }]), null, 'NaN group fader');
+  assert.equal(parseRemote('/rogger/page', [{ type: 'f', value: NaN }]), null, 'NaN page');
+  assert.equal(parseRemote('/rogger/page', [{ type: 'i', value: 0 }]), null, 'page 0 would blank every page');
+  assert.equal(parseRemote('/rogger/page', [{ type: 'i', value: -2 }]), null);
+  assert.equal(parseRemote('/rogger/page', [{ type: 'f', value: 1.5 }]), null, 'fractional page');
+  assert.deepEqual(parseRemote('/rogger/page', [{ type: 'f', value: 2 }]), { type: 'page', n: 2 }, 'a float 2.0 still works');
+});
