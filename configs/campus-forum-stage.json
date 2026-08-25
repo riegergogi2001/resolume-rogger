@@ -2092,10 +2092,8 @@
       "id": "color1",
       "label": "RED",
       "color": "#ff0000",
-      "address": "/composition/groups/1/video/effects/colorize/effect/color/red",
-      "args": [
-        1
-      ],
+      "address": "",
+      "args": [],
       "macro": [],
       "rgb": [
         1,
@@ -2108,10 +2106,8 @@
       "id": "color2",
       "label": "ORANGE",
       "color": "#ff6600",
-      "address": "/composition/groups/1/video/effects/colorize/effect/color/red",
-      "args": [
-        1
-      ],
+      "address": "",
+      "args": [],
       "macro": [],
       "rgb": [
         1,
@@ -2124,10 +2120,8 @@
       "id": "color3",
       "label": "YELLOW",
       "color": "#ffd900",
-      "address": "/composition/groups/1/video/effects/colorize/effect/color/red",
-      "args": [
-        1
-      ],
+      "address": "",
+      "args": [],
       "macro": [],
       "rgb": [
         1,
@@ -2140,10 +2134,8 @@
       "id": "color4",
       "label": "GREEN",
       "color": "#00ff26",
-      "address": "/composition/groups/1/video/effects/colorize/effect/color/red",
-      "args": [
-        0
-      ],
+      "address": "",
+      "args": [],
       "macro": [],
       "rgb": [
         0,
@@ -2156,10 +2148,8 @@
       "id": "color5",
       "label": "CYAN",
       "color": "#00e5ff",
-      "address": "/composition/groups/1/video/effects/colorize/effect/color/red",
-      "args": [
-        0
-      ],
+      "address": "",
+      "args": [],
       "macro": [],
       "rgb": [
         0,
@@ -2172,10 +2162,8 @@
       "id": "color6",
       "label": "BLUE",
       "color": "#1a4dff",
-      "address": "/composition/groups/1/video/effects/colorize/effect/color/red",
-      "args": [
-        0.1
-      ],
+      "address": "",
+      "args": [],
       "macro": [],
       "rgb": [
         0.1,
@@ -2188,10 +2176,8 @@
       "id": "color7",
       "label": "PURPLE",
       "color": "#8c26ff",
-      "address": "/composition/groups/1/video/effects/colorize/effect/color/red",
-      "args": [
-        0.55
-      ],
+      "address": "",
+      "args": [],
       "macro": [],
       "rgb": [
         0.55,
@@ -2204,10 +2190,8 @@
       "id": "color8",
       "label": "MAGENTA",
       "color": "#ff1ad9",
-      "address": "/composition/groups/1/video/effects/colorize/effect/color/red",
-      "args": [
-        1
-      ],
+      "address": "",
+      "args": [],
       "macro": [],
       "rgb": [
         1,
@@ -2220,10 +2204,8 @@
       "id": "color9",
       "label": "WHITE",
       "color": "#ffffff",
-      "address": "/composition/groups/1/video/effects/colorize/effect/color/red",
-      "args": [
-        1
-      ],
+      "address": "",
+      "args": [],
       "macro": [],
       "rgb": [
         1,
@@ -2236,10 +2218,8 @@
       "id": "color10",
       "label": "OFF",
       "color": "#3a3f47",
-      "address": "/composition/groups/1/video/effects/colorize/bypassed",
-      "args": [
-        1
-      ],
+      "address": "",
+      "args": [],
       "macro": [],
       "rgb": null,
       "isOff": true

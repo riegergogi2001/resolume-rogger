@@ -220,12 +220,16 @@ function defaults() {
       ['PURPLE', '#8c26ff', [0.55, 0.15, 1]],
       ['MAGENTA', '#ff1ad9', [1, 0.1, 0.85]],
       ['WHITE', '#ffffff', [1, 1, 1]],
+      // These route through whichever colour target is active (see
+      // color-row.js), so they deliberately carry no address of their own.
+      // They used to hardcode the BG colorize red channel with args set to the
+      // red component — a fossil from before targets existed. Nothing ever
+      // sent it, but the editor showed it, which made every preset look like
+      // it pointed somewhere it did not.
     ].map(([label, color, rgb], i) => colorButton(i, {
-      label, color, rgb, args: [rgb[0]],
-      address: '/composition/groups/1/video/effects/colorize/effect/color/red',
+      label, color, rgb, address: '', args: [],
     })).concat([
-      colorButton(9, { label: 'OFF', color: '#3a3f47', isOff: true,
-        address: '/composition/groups/1/video/effects/colorize/bypassed' }),
+      colorButton(9, { label: 'OFF', color: '#3a3f47', isOff: true, address: '', args: [] }),
     ]),
     // Switchable color-picker destinations (the 3 squares at the row's end).
     colorTargets: {
