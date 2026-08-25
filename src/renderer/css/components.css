@@ -409,6 +409,41 @@
   letter-spacing: 0;
 }
 
+/* ---- Utility strip (small latching toggles, every page) ---- */
+.util-strip {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  align-content: flex-start;
+}
+.util-strip .fx-btn {
+  flex: 0 0 auto;
+  /* sized to its own label like the rest of the fixed chrome */
+  min-width: max-content;
+  height: 46px;
+  flex-direction: row;
+  align-items: center;
+  padding: 0 12px;
+  gap: 8px;
+  border-left-width: 4px;
+  border-radius: 8px;
+}
+.util-strip .fx-btn .fx-icon { font-size: 15px; }
+.util-strip .fx-btn .fx-label {
+  font-size: 11px;
+  letter-spacing: 0.06em;
+  white-space: nowrap;
+  display: block;
+  overflow: visible;
+}
+/* the mode badge and the pad hint have no room here and say nothing useful */
+.util-strip .fx-btn .fx-mode { display: none; }
+.util-strip .fx-btn .fx-pad {
+  position: static;
+  max-width: none;
+  margin-left: 2px;
+}
+
 /* ---- Edit mode ---- */
 body.edit-mode .fx-btn,
 body.edit-mode .fader,

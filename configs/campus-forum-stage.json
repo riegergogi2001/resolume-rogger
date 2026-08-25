@@ -291,85 +291,6 @@
     },
     {
       "id": "fx9",
-      "label": "SPARE",
-      "icon": "·",
-      "color": "#3a3f47",
-      "mode": "hold",
-      "type": "int",
-      "address": "/composition/layers/12/clear",
-      "value": 1,
-      "offValue": 0,
-      "releaseValue": 0,
-      "releaseAddress": "",
-      "extraAddress": "",
-      "repeat": {
-        "enabled": false,
-        "intervalMs": 250,
-        "sync": false
-      },
-      "ramp": {
-        "enabled": false,
-        "from": 0,
-        "to": 1,
-        "durationMs": 1500
-      },
-      "macro": [],
-      "gamepadButton": -1
-    },
-    {
-      "id": "fx10",
-      "label": "BOOM ALL",
-      "icon": "☄",
-      "color": "#ff7a1a",
-      "mode": "hold",
-      "type": "int",
-      "address": "/composition/video/effects/boomer/effect/blur",
-      "value": 1,
-      "offValue": 0,
-      "releaseValue": 0,
-      "releaseAddress": "",
-      "extraAddress": "",
-      "repeat": {
-        "enabled": true,
-        "intervalMs": 200,
-        "sync": true
-      },
-      "ramp": {
-        "enabled": false,
-        "from": 0,
-        "to": 1,
-        "durationMs": 1500
-      },
-      "macro": [
-        {
-          "address": "/composition/video/effects/boomer/effect/blur",
-          "values": [
-            1
-          ]
-        },
-        {
-          "address": "/composition/video/effects/boomer/effect/exposure",
-          "values": [
-            1
-          ]
-        },
-        {
-          "address": "/composition/video/effects/boomer/effect/edge",
-          "values": [
-            1
-          ]
-        },
-        {
-          "address": "/composition/video/effects/boomer/effect/blow",
-          "values": [
-            1
-          ]
-        }
-      ],
-      "gamepadButton": -1
-    },
-    {
-      "id": "fx11",
       "label": "BOOM BLUR",
       "icon": "☄",
       "color": "#00e0ff",
@@ -396,7 +317,7 @@
       "gamepadButton": 13
     },
     {
-      "id": "fx12",
+      "id": "fx10",
       "label": "BOOM EXPO",
       "icon": "☄",
       "color": "#ffd93d",
@@ -423,7 +344,7 @@
       "gamepadButton": 14
     },
     {
-      "id": "fx13",
+      "id": "fx11",
       "label": "BOOM EDGE",
       "icon": "☄",
       "color": "#2ee66b",
@@ -450,7 +371,7 @@
       "gamepadButton": 15
     },
     {
-      "id": "fx14",
+      "id": "fx12",
       "label": "BOOM BLOW",
       "icon": "☄",
       "color": "#ff7a1a",
@@ -477,7 +398,7 @@
       "gamepadButton": -1
     },
     {
-      "id": "fx15",
+      "id": "fx13",
       "label": "PUSH WHT",
       "icon": "☄",
       "color": "#eaeef5",
@@ -504,7 +425,7 @@
       "gamepadButton": 0
     },
     {
-      "id": "fx16",
+      "id": "fx14",
       "label": "PUSH BLK",
       "icon": "☄",
       "color": "#8e9299",
@@ -529,6 +450,62 @@
       },
       "macro": [],
       "gamepadButton": 11
+    },
+    {
+      "id": "fx15",
+      "label": "FREE 1",
+      "icon": "·",
+      "color": "#3a3f47",
+      "mode": "tap",
+      "type": "int",
+      "address": "",
+      "value": 1,
+      "offValue": 0,
+      "releaseValue": 0,
+      "releaseAddress": "",
+      "extraAddress": "",
+      "repeat": {
+        "enabled": true,
+        "intervalMs": 200,
+        "sync": true
+      },
+      "ramp": {
+        "enabled": false,
+        "from": 0,
+        "to": 1,
+        "durationMs": 1500
+      },
+      "macro": [],
+      "gamepadButton": -1,
+      "gamepadModifier": -1
+    },
+    {
+      "id": "fx16",
+      "label": "FREE 2",
+      "icon": "·",
+      "color": "#3a3f47",
+      "mode": "tap",
+      "type": "int",
+      "address": "",
+      "value": 1,
+      "offValue": 0,
+      "releaseValue": 0,
+      "releaseAddress": "",
+      "extraAddress": "",
+      "repeat": {
+        "enabled": true,
+        "intervalMs": 200,
+        "sync": true
+      },
+      "ramp": {
+        "enabled": false,
+        "from": 0,
+        "to": 1,
+        "durationMs": 1500
+      },
+      "macro": [],
+      "gamepadButton": -1,
+      "gamepadModifier": -1
     }
   ],
   "fxButtons2": [
@@ -1811,6 +1788,146 @@
       },
       "macro": [],
       "gamepadButton": -1
+    },
+    {
+      "id": "util5",
+      "label": "SLICE ORDER",
+      "icon": "⇄",
+      "color": "#00e0ff",
+      "mode": "toggle",
+      "type": "int",
+      "address": "/composition/layers/12/clips/9/video/effects/slicestrobe/effect/strobemode",
+      "value": 1,
+      "offValue": 0,
+      "releaseValue": 0,
+      "releaseAddress": "",
+      "extraAddress": "",
+      "repeat": {
+        "enabled": false,
+        "intervalMs": 250,
+        "sync": false
+      },
+      "ramp": {
+        "enabled": false,
+        "from": 0,
+        "to": 1,
+        "durationMs": 1500
+      },
+      "macro": [],
+      "gamepadButton": -1,
+      "gamepadModifier": -1
+    },
+    {
+      "id": "util6",
+      "label": "EDGE STR",
+      "icon": "◨",
+      "color": "#ffd93d",
+      "mode": "toggle",
+      "type": "int",
+      "address": "/composition/layers/12/clips/9/video/effects/slicestrobe/effect/edgestrobe",
+      "value": 1,
+      "offValue": 0,
+      "releaseValue": 0,
+      "releaseAddress": "",
+      "extraAddress": "",
+      "repeat": {
+        "enabled": false,
+        "intervalMs": 250,
+        "sync": false
+      },
+      "ramp": {
+        "enabled": false,
+        "from": 0,
+        "to": 1,
+        "durationMs": 1500
+      },
+      "macro": [],
+      "gamepadButton": -1,
+      "gamepadModifier": -1
+    },
+    {
+      "id": "util7",
+      "label": "SYMMETRIC",
+      "icon": "⋈",
+      "color": "#2ee66b",
+      "mode": "toggle",
+      "type": "int",
+      "address": "/composition/layers/12/clips/9/video/effects/slicestrobe/effect/symettric",
+      "value": 1,
+      "offValue": 0,
+      "releaseValue": 0,
+      "releaseAddress": "",
+      "extraAddress": "",
+      "repeat": {
+        "enabled": false,
+        "intervalMs": 250,
+        "sync": false
+      },
+      "ramp": {
+        "enabled": false,
+        "from": 0,
+        "to": 1,
+        "durationMs": 1500
+      },
+      "macro": [],
+      "gamepadButton": -1,
+      "gamepadModifier": -1
+    },
+    {
+      "id": "util8",
+      "label": "S-O-RAMA",
+      "icon": "◧",
+      "color": "#b46bff",
+      "mode": "toggle",
+      "type": "int",
+      "address": "/composition/layers/12/clips/9/video/effects/slicestrobe/effect/slice-o-rama",
+      "value": 1,
+      "offValue": 0,
+      "releaseValue": 0,
+      "releaseAddress": "",
+      "extraAddress": "",
+      "repeat": {
+        "enabled": false,
+        "intervalMs": 250,
+        "sync": false
+      },
+      "ramp": {
+        "enabled": false,
+        "from": 0,
+        "to": 1,
+        "durationMs": 1500
+      },
+      "macro": [],
+      "gamepadButton": -1,
+      "gamepadModifier": -1
+    },
+    {
+      "id": "util9",
+      "label": "VIS STR",
+      "icon": "◉",
+      "color": "#ff7a1a",
+      "mode": "toggle",
+      "type": "int",
+      "address": "/composition/layers/12/clips/9/video/effects/slicestrobe/effect/visualstrobe",
+      "value": 1,
+      "offValue": 0,
+      "releaseValue": 0,
+      "releaseAddress": "",
+      "extraAddress": "",
+      "repeat": {
+        "enabled": false,
+        "intervalMs": 250,
+        "sync": false
+      },
+      "ramp": {
+        "enabled": false,
+        "from": 0,
+        "to": 1,
+        "durationMs": 1500
+      },
+      "macro": [],
+      "gamepadButton": -1,
+      "gamepadModifier": -1
     }
   ],
   "faders": [

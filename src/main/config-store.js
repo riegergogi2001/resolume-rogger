@@ -182,6 +182,25 @@ function defaults() {
       fxButton(1, { id: 'util2', label: 'HAZE', icon: '✦', color: ACCENTS.green, mode: 'toggle', address: '/composition/layers/8/video/effects/outlinehaze/bypassed', value: 0, offValue: 1, extraAddress: '/composition/layers/9/video/effects/outlinehaze/bypassed' }),
       fxButton(2, { id: 'util3', label: 'DISTORT', icon: '◈', color: ACCENTS.orange, mode: 'toggle', address: '/composition/video/effects/distortion/bypassed', value: 0, offValue: 1 }),
       fxButton(3, { id: 'util4', label: 'AUTO VJ', icon: '↻', color: ACCENTS.green, mode: 'toggle', address: '/composition/layers/1/autopilot/target', value: 3 }),
+      // SLICE STROBE (layer 12 clip 9). Verified against Resolume 7.26:
+      // strobemode is a choice (0 = Random, 1 = Slice Order); the rest are
+      // booleans. Resolume keeps the hyphens in slice-o-rama and spells
+      // Symettric its own way — both are its names, not typos here.
+      fxButton(4, { id: 'util5', label: 'SLICE ORDER', icon: '⇄', color: ACCENTS.cyan,
+        mode: 'toggle', type: 'int', value: 1, offValue: 0,
+        address: '/composition/layers/12/clips/9/video/effects/slicestrobe/effect/strobemode' }),
+      fxButton(5, { id: 'util6', label: 'EDGE STR', icon: '◨', color: ACCENTS.yellow,
+        mode: 'toggle', type: 'int', value: 1, offValue: 0,
+        address: '/composition/layers/12/clips/9/video/effects/slicestrobe/effect/edgestrobe' }),
+      fxButton(6, { id: 'util7', label: 'SYMMETRIC', icon: '⋈', color: ACCENTS.green,
+        mode: 'toggle', type: 'int', value: 1, offValue: 0,
+        address: '/composition/layers/12/clips/9/video/effects/slicestrobe/effect/symettric' }),
+      fxButton(7, { id: 'util8', label: 'S-O-RAMA', icon: '◧', color: ACCENTS.purple,
+        mode: 'toggle', type: 'int', value: 1, offValue: 0,
+        address: '/composition/layers/12/clips/9/video/effects/slicestrobe/effect/slice-o-rama' }),
+      fxButton(8, { id: 'util9', label: 'VIS STR', icon: '◉', color: ACCENTS.orange,
+        mode: 'toggle', type: 'int', value: 1, offValue: 0,
+        address: '/composition/layers/12/clips/9/video/effects/slicestrobe/effect/visualstrobe' }),
     ],
     faders: [
       fader(0, { label: 'MASTER', color: ACCENTS.green, address: '/composition/master' }),
@@ -300,9 +319,27 @@ function deepMerge(base, patch) {
 }
 
 // Control arrays keep the default length: extras dropped, gaps filled item-wise.
-function mergeControls(defaultsArr, patchArr) {
+/**
+ * Merge a control array from a config onto the defaults, by index.
+ *
+ * @param {boolean} [grow] allow the config to hold MORE controls than the
+ *   defaults. Off for the fixed banks — their grids have a set number of slots
+ *   and silently rendering a 17th button into an 8-slot bank helps nobody. On
+ *   for the utility strip, which is a row that simply gets longer, so a button
+ *   can be added there by hand without touching any code. Extra entries are
+ *   merged onto the last default so they still carry every field the renderer
+ *   expects.
+ */
+function mergeControls(defaultsArr, patchArr, grow = false) {
   if (!Array.isArray(patchArr)) return defaultsArr;
-  return defaultsArr.map((d, i) => (isPlainObject(patchArr[i]) ? deepMerge(d, patchArr[i]) : d));
+  const merged = defaultsArr.map((d, i) => (isPlainObject(patchArr[i]) ? deepMerge(d, patchArr[i]) : d));
+  if (!grow) return merged;
+  const template = defaultsArr[defaultsArr.length - 1];
+  if (!template) return merged;
+  for (let i = defaultsArr.length; i < patchArr.length; i += 1) {
+    if (isPlainObject(patchArr[i])) merged.push(deepMerge(template, patchArr[i]));
+  }
+  return merged;
 }
 
 // Saved items merge by id onto the defaults, so configs saved before a new
@@ -338,7 +375,7 @@ function mergeConfig(base, patch) {
     fxButtons: mergeControls(base.fxButtons, patch.fxButtons),
     fxButtons2: mergeControls(base.fxButtons2, patch.fxButtons2),
     fxButtons3: mergeControls(base.fxButtons3, patch.fxButtons3),
-    utilButtons: mergeControls(base.utilButtons, patch.utilButtons),
+    utilButtons: mergeControls(base.utilButtons, patch.utilButtons, true),
     faders: mergeControls(base.faders, patch.faders),
     groupFaders: mergeControls(base.groupFaders, patch.groupFaders),
     colorButtons: mergeControls(base.colorButtons, patch.colorButtons),

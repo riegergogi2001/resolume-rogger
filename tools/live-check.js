@@ -113,7 +113,16 @@ function readParam(comp, address) {
   return undefined;
 }
 
-const valueOf = p => (p && typeof p === 'object' && 'value' in p ? p.value : undefined);
+/**
+ * A ParamChoice reports its selection as the option *string* ("Slice Order")
+ * while OSC drives it by index, so comparing `value` against what we sent
+ * always looks like a failure. Read the index for those.
+ */
+const valueOf = p => {
+  if (!p || typeof p !== 'object') return undefined;
+  if (p.valuetype === 'ParamChoice') return typeof p.index === 'number' ? p.index : undefined;
+  return 'value' in p ? p.value : undefined;
+};
 /** ParamEvent is a momentary trigger: no value to read, and firing it shows. */
 const isTrigger = p => p && typeof p === 'object' && p.valuetype === 'ParamEvent';
 
@@ -178,7 +187,7 @@ async function fireVisible(targets, comp) {
 const SECTIONS = [
   ['fxButtons', 'Page 1'],
   ['fxButtons2', 'Page 2'],
-  ['utilButtons', 'Utility quad'],
+  ['utilButtons', 'Utility strip'],
   ['faders', 'Main faders'],
   ['groupFaders', 'Group faders'],
 ];
@@ -240,13 +249,17 @@ async function main() {
         if (before === undefined) { results.push(`${address} (no readback)`); continue; }
         // Drive it somewhere it is definitely not, then put it back.
         const isBool = typeof before === 'boolean';
-        const probe = isBool ? !before : (before > 0.5 ? 0.0 : 1.0);
+        const isChoice = param?.valuetype === 'ParamChoice';
+        const options = Array.isArray(param?.options) ? param.options.length : 2;
+        // For a choice, step to a different option that actually exists.
+        const probe = isChoice ? (before + 1) % Math.max(2, options)
+          : isBool ? !before : (before > 0.5 ? 0.0 : 1.0);
         await send(address, [isBool ? (probe ? 1 : 0) : probe]);
         await sleep(140);
         const mid = valueOf(readParam(await composition(), address));
         await send(address, [isBool ? (before ? 1 : 0) : before]);
         await sleep(120);
-        const moved = isBool ? mid === probe : Math.abs(Number(mid) - probe) < 0.02;
+        const moved = (isBool || isChoice) ? mid === probe : Math.abs(Number(mid) - probe) < 0.02;
         results.push({ address, before, probe, mid, moved });
       }
       const real = results.filter(r => typeof r === 'object');

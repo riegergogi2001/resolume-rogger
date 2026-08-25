@@ -16,7 +16,10 @@ const ALLOWED_PLACEHOLDERS = new Set(['L', 'C', 'N', 'G', 'D', 'FX', 'P', 'K']);
 // for concrete addresses pulled out of real config files.
 const PLACEHOLDER_PATTERNS = {
   L: '\\d+', C: '\\d+', N: '\\d+', G: '\\d+', D: '\\d+',
-  FX: '[a-z0-9]+', P: '[a-z0-9!]+', K: '[1-8]',
+  // A parameter name keeps its punctuation: Resolume lower-cases and strips
+  // spaces but leaves hyphens and "!" alone, so Slice-O-Rama addresses as
+  // slice-o-rama and PUSH! as push!. Verified live against Arena 7.26.
+  FX: '[a-z0-9]+', P: '[a-z0-9!-]+', K: '[1-8]',
 };
 
 function escapeRegex(s) {

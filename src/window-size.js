@@ -16,8 +16,8 @@
 // For reference, the target device (ASUS ROG Ally X) is 1920x1080.
 module.exports = {
   MIN_WIDTH: 1704,
-  MIN_HEIGHT: 979,
+  MIN_HEIGHT: 1035,
   // What `npm start` opens for development — above the floor, below the Ally X.
   DEV_WIDTH: 1760,
-  DEV_HEIGHT: 1000,
+  DEV_HEIGHT: 1040,
 };

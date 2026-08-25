@@ -33,8 +33,10 @@
 //                                 same tree, OSC just uses the shorter name)
 //   {D}  deck index         {FX} effect name, lower-cased/space-stripped,
 //                                 numbered on duplicates (pusher2, ...)
-//   {P}  effect parameter name, lower-cased/space-stripped, keeps "!" for
-//        event params (push!)
+//   {P}  effect parameter name: Resolume lower-cases it and strips spaces but
+//        keeps the rest of the punctuation, so "PUSH!" is push! and
+//        "Slice-O-Rama" is slice-o-rama. Guessing sliceorama silently does
+//        nothing — verified against Arena 7.26.
 //   {K}  dashboard quick-link slot, 1-8
 //
 // `kind` classifies how a value should be sent:
@@ -200,7 +202,7 @@ export const LIBRARY = [
   { group: 'Clip FX', label: 'Clip FX opacity', address: '/composition/layers/{L}/clips/{C}/video/effects/{FX}/opacity', kind: 'float', float: true },
   { group: 'Clip FX', label: 'Clip FX bypassed', address: '/composition/layers/{L}/clips/{C}/video/effects/{FX}/bypassed', kind: 'bool', values: [0, 1] },
   { group: 'Clip FX', label: 'Clip FX mixer blend mode', address: '/composition/layers/{L}/clips/{C}/video/effects/{FX}/mixer/blendmode', kind: 'choice' },
-  { group: 'Clip FX', label: 'Clip FX parameter', address: '/composition/layers/{L}/clips/{C}/video/effects/{FX}/effect/{P}', kind: 'float', float: true, hint: 'e.g. .../flashmaster/effect/strobespeed' },
+  { group: 'Clip FX', label: 'Clip FX parameter', address: '/composition/layers/{L}/clips/{C}/video/effects/{FX}/effect/{P}', kind: 'float', float: true, hint: 'e.g. .../flashmaster/effect/strobespeed, .../slicestrobe/effect/slice-o-rama (hyphens are kept)' },
   { group: 'Clip FX', label: 'Clip FX color red', address: '/composition/layers/{L}/clips/{C}/video/effects/{FX}/effect/{P}/red', kind: 'float', float: true, hint: 'ColorParameters decompose to /red /green /blue; {P} is the color param name, e.g. color1' },
   { group: 'Clip FX', label: 'Clip FX color green', address: '/composition/layers/{L}/clips/{C}/video/effects/{FX}/effect/{P}/green', kind: 'float', float: true },
   { group: 'Clip FX', label: 'Clip FX color blue', address: '/composition/layers/{L}/clips/{C}/video/effects/{FX}/effect/{P}/blue', kind: 'float', float: true },

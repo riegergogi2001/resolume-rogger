@@ -6,7 +6,8 @@ body {
      stretch the whole surface past the screen and push the LOGO fader and the
      settings button off the right edge. */
   grid-template-columns: minmax(0, 1fr);
-  grid-template-rows: 64px 1fr 128px;
+  /* topbar, the surface, the utility strip, the colour row */
+  grid-template-rows: 64px 1fr auto 128px;
   gap: 10px;
   padding: 10px;
 }
