@@ -7,6 +7,7 @@ import { showToast } from './toast.js';
 import { placeholders, expand, search } from './osc-library.js';
 import { BUTTON_NAMES, armGamepadLearn, disarmGamepadLearn } from './gamepad.js';
 import { bindingLabel, stealBinding } from './gamepad-resolve.js';
+import { h, field, textInput, numInput, textArea, checkRow, seg } from './dom.js';
 
 const GLYPHS = ['◆', '●', '▲', '▼', '■', '◉', '✕', '⚡', '⏱', '↻', '⊘', '⏻',
   '★', '♪', '☰', '◐', '▶', '◀', '⏸', '⏹', '✦', '☄', '♦', '▩'];
@@ -25,66 +26,6 @@ function hexToRgb01(hex) {
   return [((n >> 16) & 255) / 255, ((n >> 8) & 255) / 255, (n & 255) / 255];
 }
 
-function h(tag, cls, text) {
-  const e = document.createElement(tag);
-  if (cls) e.className = cls;
-  if (text != null) e.textContent = text;
-  return e;
-}
-function field(label, input) {
-  const f = h('div', 'field');
-  f.append(h('label', null, label), input);
-  return f;
-}
-function textInput(value, oninput) {
-  const i = h('input');
-  i.type = 'text';
-  i.value = value ?? '';
-  i.addEventListener('input', () => oninput(i.value));
-  return i;
-}
-function numInput(value, oninput, step = 'any') {
-  const i = h('input');
-  i.type = 'number';
-  i.step = step;
-  i.value = value ?? 0;
-  i.addEventListener('input', () => oninput(Number(i.value)));
-  return i;
-}
-function textArea(value, oninput, placeholder) {
-  const t = document.createElement('textarea');
-  t.value = value ?? '';
-  if (placeholder) t.placeholder = placeholder;
-  t.addEventListener('input', () => oninput(t.value));
-  return t;
-}
-function seg(options, current, onpick) {
-  const s = h('div', 'seg');
-  const btns = options.map(o => {
-    const b = h('button', null, o.label);
-    b.classList.toggle('on', o.v === current);
-    b.addEventListener('pointerdown', () => {
-      btns.forEach(x => x.classList.remove('on'));
-      b.classList.add('on');
-      onpick(o.v);
-    });
-    s.appendChild(b);
-    return b;
-  });
-  return s;
-}
-function checkRow(label, on, onchange) {
-  const r = h('div', 'check-row');
-  const t = h('button', 'toggle');
-  t.classList.toggle('on', on);
-  t.addEventListener('pointerdown', () => {
-    const v = !t.classList.contains('on');
-    t.classList.toggle('on', v);
-    onchange(v);
-  });
-  r.append(h('span', null, label), t);
-  return r;
-}
 function pickRow(items, cls, current, decorate, onpick) {
   const r = h('div', cls === 'swatch-pick' ? 'swatch-row' : 'glyph-row');
   items.forEach(item => {

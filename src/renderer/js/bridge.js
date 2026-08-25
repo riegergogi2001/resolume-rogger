@@ -3,9 +3,11 @@
 
 function mockBridge() {
   window.__oscLog = [];
+  let mockStatus = 'ready';
   let config = null;
   let learnCb = null;
   const messageCbs = new Set();
+  const statusCbs = new Set();
 
   const fallbackConfig = { version: 1,
     network: { targetIp: '192.168.1.100', targetPort: 7000, listenPort: 7001, autoConnect: true, autoReconnect: true },
@@ -26,6 +28,7 @@ function mockBridge() {
   // Let Playwright simulate incoming OSC (learn + feedback tests).
   window.__emitLearn = msg => { if (learnCb) learnCb(msg); };
   window.__emitOscIn = msg => { for (const cb of messageCbs) cb(msg); };
+  window.__emitStatus = s => { mockStatus = s; for (const cb of statusCbs) cb(s); };
 
   // Minimal deep-merge for the mock config:import — mirrors config-store's
   // shape-preserving merge closely enough for UI tests (array-of-objects
@@ -71,6 +74,35 @@ function mockBridge() {
     },
     getVersion: async () => 'mock',
     quit: () => { window.__quitCalled = true; },
+    relaunch: () => { window.__relaunchCalled = true; },
+    // Update mocks: tests drive them through window.__updateInfo /
+    // window.__updateResult so the Updates tab can be exercised without a
+    // network or a payload directory.
+    updateInfo: async () => window.__updateInfo ?? { supported: false, source: 'dev', payloadVersion: 'mock', autoCheck: true },
+    updateCheck: async () => {
+      window.__updateChecked = (window.__updateChecked ?? 0) + 1;
+      const info = window.__updateInfo ?? { supported: false, source: 'dev', payloadVersion: 'mock', autoCheck: true };
+      return { ...info, result: window.__updateResult ?? { status: 'up-to-date' } };
+    },
+    updateDownload: async () => {
+      window.__updateDownloaded = true;
+      const info = window.__updateInfo ?? {};
+      const version = window.__updateResult?.version ?? '0.0.0';
+      const download = window.__updateDownloadResult ?? { ok: true, version };
+      if (download.ok) window.__updateInfo = { ...info, staged: version, installed: [version] };
+      return { ...(window.__updateInfo ?? info), download };
+    },
+    updateSetAuto: async enabled => {
+      window.__updateInfo = { ...(window.__updateInfo ?? {}), autoCheck: enabled };
+      return window.__updateInfo;
+    },
+    updateReset: async () => {
+      window.__updateReset = true;
+      window.__updateInfo = { ...(window.__updateInfo ?? {}), staged: null, installed: [] };
+      return window.__updateInfo;
+    },
+    openReleases: url => { window.__releasesOpened = url ?? true; },
+    onUpdateProgress: cb => { window.__emitUpdateProgress = cb; return () => { window.__emitUpdateProgress = null; }; },
     syncDjPage: async () => { window.__djSynced = true; return config ?? loadConfig(); },
     seedBpm: async () => 128,
     send: (address, values = []) => window.__oscLog.push({ address, values }),
@@ -79,8 +111,12 @@ function mockBridge() {
     testConnection: async () => ({ ok: true, detail: 'Mock bridge — no network.' }),
     armLearn: () => { window.__learnArmed = true; },
     disarmLearn: () => { window.__learnArmed = false; },
-    getStatus: async () => 'ready',
-    onStatus: cb => { setTimeout(() => cb('ready'), 0); return () => {}; },
+    getStatus: async () => mockStatus,
+    onStatus: cb => {
+      statusCbs.add(cb);
+      setTimeout(() => cb(mockStatus), 0);
+      return () => statusCbs.delete(cb);
+    },
     onLearn: cb => { learnCb = cb; return () => { learnCb = null; }; },
     onMessage: cb => { messageCbs.add(cb); return () => messageCbs.delete(cb); },
     onOscError: () => () => {},
