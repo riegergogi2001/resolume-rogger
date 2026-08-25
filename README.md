@@ -100,8 +100,9 @@ editor (label, swatch, color-base addresses, on/off step macros).
 The gear icon opens a tabbed Settings panel (scrolls inside the panel body
 at both 1920×1080 and 1280×800):
 
-- **Network** — OSC target IP/port, listen port, auto connect/reconnect,
-  Test connection.
+- **Network** — OSC target IP/port, listen port, auto connect/reconnect, and
+  **Test connection**, which checks the three legs of the Resolume link
+  separately (see below).
 - **Controller** — LT/RT analog trigger mapping (address, from/to, release,
   optional engage message), LS/RS stick mapping (address, center, scale),
   and haptics (press ticks, strobe rumble).
@@ -183,6 +184,37 @@ reported as a download rather than an over-the-air update. Bump
 `rogger.minShell` in `package.json` when a payload starts depending on
 something only a newer exe provides.
 
+## When nothing lights up: the three-leg link test
+
+The Resolume link is three independent connections, and each fails on its own:
+
+| Leg | What it carries | Fails when |
+|---|---|---|
+| Webserver (9292) | DJ sync, BPM seed, this test | the webserver is off |
+| ROGGER → Resolume | every button and fader you touch | OSC Input is off / wrong port |
+| Resolume → ROGGER | **lamps, latches, feedback, Auto BPM** | OSC **Output** is off or aimed at the wrong machine |
+
+The third one is the dangerous one. Everything still *works* — buttons fire,
+faders move Resolume — but nothing on the surface lights up, no toggle latches
+from the desk, and Auto BPM never follows. Resolume's OSC output targets one
+fixed IP address, so it breaks the moment the console moves to another machine
+or the venue hands you a different network, and nothing tells you why.
+
+**Settings → Network → Test connection** reports each leg with its own verdict.
+It nudges a parameter that is already at zero (invisible) and restores it, so it
+is safe to run mid-set. When feedback is dead it prints the exact line to type:
+
+```
+✕  Resolume → ROGGER (feedback)
+   Nothing arrived on port 7001. Buttons will still fire, but nothing on the
+   surface will light up from Resolume, and Auto BPM will not follow.
+   FIX: Resolume → Preferences → OSC → Output: enable it and set the target
+        to 192.168.1.254:7001.
+```
+
+That address is read from the machine ROGGER is running on, so running the test
+**on the console at the venue** tells you what to type into Resolume there.
+
 ## Checking the config against the show
 
 Two tools answer "will every button do something tomorrow", against the
@@ -254,7 +286,7 @@ which can be 40 characters long and cannot be allowed to set the width of a
 ```bash
 npm install
 npm test            # codec / config / engine / bpm / combos / library / tarball /
-                    #   payload-resolve / updater / dj-sync unit tests
+                    #   payload-resolve / updater / dj-sync / diagnostics tests
 npm start           # run the app under Electron (config.dev.json)
 node test/serve.js  # browser mode with a mock OSC bridge on :5199
 node test/ui/combos.spec.mjs          # Playwright UI checks (spawn their own server
@@ -327,6 +359,8 @@ src/payload-store.js    SHELL — payload directory + boot state on disk
   with path-traversal and size guards; shared with `tools/build-payload.js`.
 - `src/main/dj-sync.js` — pure rebuild of the DJ page from a composition,
   including the group cross-check and stale-slot clearing.
+- `src/main/diagnostics.js` — the three-leg link test, including picking a
+  parameter that can be nudged without anyone seeing it.
 - `src/window-size.js` — the declared window floor (see above).
 - `src/renderer/` — zero-dependency vanilla JS/CSS; runs in a plain browser
   via a mock bridge for the Playwright checks in `test/ui/`.

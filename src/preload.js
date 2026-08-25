@@ -31,6 +31,7 @@ contextBridge.exposeInMainWorld('rogger', {
   getStatus: () => ipcRenderer.invoke('osc:status:get'),
   applyNetwork: network => ipcRenderer.invoke('network:apply', network),
   testConnection: () => ipcRenderer.invoke('osc:test'),
+  diagnoseLink: () => ipcRenderer.invoke('osc:diagnose'),
   armLearn: () => ipcRenderer.send('learn:arm'),
   disarmLearn: () => ipcRenderer.send('learn:disarm'),
   onStatus: cb => subscribe('osc:status', cb),

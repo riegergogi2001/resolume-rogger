@@ -702,6 +702,40 @@ body.edit-mode .color-btn {
   color: var(--text-dim);
 }
 
+/* ---- Link diagnostic legs ---- */
+.link-legs { display: flex; flex-direction: column; gap: 10px; }
+.link-leg {
+  padding: 10px 14px;
+  border: 1px solid var(--line);
+  border-left: 5px solid var(--line-bright);
+  border-radius: 8px;
+  background: var(--panel-2);
+}
+.link-leg.ok { border-left-color: var(--ok); }
+.link-leg.fail { border-left-color: var(--err); }
+.link-leg-head {
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+}
+.link-leg.ok .link-leg-head { color: var(--ok); }
+.link-leg.fail .link-leg-head { color: var(--err); }
+.link-leg-detail {
+  margin-top: 4px;
+  font-size: 12px;
+  line-height: 1.45;
+  color: var(--text-dim);
+}
+.link-leg-fix {
+  margin-top: 6px;
+  padding: 6px 10px;
+  border-radius: 6px;
+  background: var(--bg);
+  font-size: 12px;
+  line-height: 1.45;
+  color: var(--text);
+}
+
 /* ---- Update download progress ---- */
 .update-progress {
   height: 10px;
