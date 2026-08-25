@@ -32,7 +32,9 @@ Zero runtime dependencies (vanilla JS/CSS + Electron) and a hand-rolled OSC
     switchable targets as the main color row (BG / LOGO / FLASH / MORPH 1 /
     MORPH 2).
   - **BPM page (mic analyser)** — a realtime tempo analyser built natively
-    on Web Audio (no Python, no ML): pick an input device, Start/Stop
+    on Web Audio (no Python, no ML): pick an input device from a full list
+    panel (not a native `<select>`, which cut long device names off inside a
+    fixed-width box), Start/Stop
     capture, a vertical level meter, LOCK (freezes the reported bpm) with
     ÷2/×2 scaling, "Send Tempo to Resolume" (throttled `tempocontroller/tempo`
     once confidence is high enough), and "Resync on Next Beat" (fires
@@ -304,7 +306,9 @@ src/payload-store.js    SHELL — payload directory + boot state on disk
     pure combo/modifier resolver.
   - `js/remote-api.js` — the inbound `/rogger/*` OSC vocabulary.
   - `js/updates.js` — the Updates panel and the quiet check at launch.
-  - `js/dom.js` — shared overlay builders used by the editor and settings.
+  - `js/dom.js` — shared overlay builders used by the editor and settings,
+    plus the full-panel list picker used where a native `<select>` would
+    mangle long system text.
 - `tools/` — generators for the grandMA3 GDTF, the Resolume DMX preset, the
   LD/APC40 cheat sheets, the OTA payload bundler, plus the Art-Net test sender.
 

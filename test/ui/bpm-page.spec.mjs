@@ -127,10 +127,30 @@ async function main() {
     assert(Math.abs(readoutBpm - 128) <= 3, `#bpm-readout bpm ${readoutBpm} near 128`);
     console.log(`OK: #bpm-readout in MIC mode reads "${readoutText}"`);
 
-    // best-effort: let the device list (async getUserMedia probe +
-    // enumerateDevices) finish so the screenshot shows a populated select
-    await page.waitForFunction(() => document.querySelectorAll('#bpm-device option').length > 0,
+    // ---- device picker: a styled list panel, not a native <select> ----
+    // best-effort: let the async device probe finish so the button is painted
+    await page.waitForFunction(
+      () => !/Loading/.test(document.querySelector('.bpm-device-name')?.textContent ?? 'Loading'),
       { timeout: 3000 }).catch(() => {});
+    assert(await page.locator('#bpm-device').evaluate(el => el.tagName) === 'BUTTON',
+      '#bpm-device is a styled button, not a native select');
+    const deviceLabelBefore = (await page.locator('.bpm-device-name').textContent())?.trim();
+    assert(deviceLabelBefore && deviceLabelBefore.length > 0, `the picker names the current input ("${deviceLabelBefore}")`);
+
+    await page.click('#bpm-device');
+    await page.waitForSelector('.overlay--pick', { timeout: 4000 });
+    const rows = await page.locator('.overlay--pick .pick-row').count();
+    const emptyHint = await page.locator('.overlay--pick .hint').count();
+    assert(rows > 0 || emptyHint > 0, `the picker lists inputs (${rows}) or says there are none`);
+    // Long device names must be readable in full, never cut off.
+    if (rows > 0) {
+      const clipped = await page.locator('.overlay--pick .pick-row-label').evaluateAll(
+        els => els.filter(e => e.scrollWidth - e.clientWidth > 1).length);
+      assert(clipped === 0, 'no device name is truncated in the picker');
+    }
+    await page.locator('.overlay--pick .panel-foot button').click();
+    await page.waitForFunction(() => !document.querySelector('.overlay--pick'), { timeout: 3000 });
+    assert(true, 'Cancel closes the picker without changing the input');
 
     // ---- screenshot ----
     const shotPath = path.join(artifactDir, 'v2-bpm-page.png');
