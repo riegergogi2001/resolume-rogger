@@ -77,7 +77,7 @@ def attribute_name_for(row):
     Attribute across geometries (standard GDTF practice, mirrors the Cameo
     reference). Every other channel gets a dedicated custom Attribute; DJ
     block channels are prefixed DJ<NN>_ so labels that repeat elsewhere
-    (e.g. "PULLMAXX" on both ch 67 and ch 88, "LOGO OFF" on ch 66 and 92)
+    (e.g. "ALT LOGO" on both ch 67 and ch 88, "LOGO OFF" on ch 66 and 92)
     don't collide."""
     if row['block'] == 'Dimmer':
         return 'Dimmer'
@@ -116,7 +116,7 @@ def build_xml(rows):
         'ShortName': 'ROGGER',
         'LongName': 'ROGGER Resolume Remote v2',
         'Manufacturer': 'ROGGER',
-        'Description': 'Generated from the ROGGER show config (configs/campus-forum-stage.json) '
+        'Description': 'Generated from the ROGGER show config (configs/show.json) '
                         'by tools/gen-ma3-gdtf.py — one DMX mode driving the same OSC functions '
                         'ROGGER drives in Resolume.',
         'FixtureTypeID': FIXTURE_TYPE_ID,

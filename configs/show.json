@@ -1,7 +1,7 @@
 {
   "version": 1,
   "network": {
-    "targetIp": "192.168.20.157",
+    "targetIp": "192.168.1.100",
     "targetPort": 7432,
     "listenPort": 7001,
     "autoConnect": true,
@@ -1043,7 +1043,7 @@
     },
     {
       "id": "fx3-2",
-      "label": "KOLLAR",
+      "label": "TC 2",
       "icon": "♪",
       "color": "#ffd93d",
       "mode": "hold",
@@ -1070,7 +1070,7 @@
     },
     {
       "id": "fx3-3",
-      "label": "NEWIK",
+      "label": "TC 3",
       "icon": "♪",
       "color": "#2ee66b",
       "mode": "hold",
@@ -1097,7 +1097,7 @@
     },
     {
       "id": "fx3-4",
-      "label": "COOKY",
+      "label": "TC 4",
       "icon": "♪",
       "color": "#b46bff",
       "mode": "hold",
@@ -1124,7 +1124,7 @@
     },
     {
       "id": "fx3-5",
-      "label": "YAMINA",
+      "label": "TC 5",
       "icon": "♪",
       "color": "#ff7a1a",
       "mode": "hold",
@@ -1151,7 +1151,7 @@
     },
     {
       "id": "fx3-6",
-      "label": "REGAN",
+      "label": "TC 6",
       "icon": "♪",
       "color": "#3aa0ff",
       "mode": "hold",
@@ -1178,7 +1178,7 @@
     },
     {
       "id": "fx3-7",
-      "label": "BEGI",
+      "label": "TC 7",
       "icon": "♪",
       "color": "#ff3df0",
       "mode": "hold",
@@ -1205,7 +1205,7 @@
     },
     {
       "id": "fx3-8",
-      "label": "METZKER",
+      "label": "TC 8",
       "icon": "♪",
       "color": "#eaeef5",
       "mode": "hold",
@@ -1232,7 +1232,7 @@
     },
     {
       "id": "fx3-9",
-      "label": "JAURI",
+      "label": "TC 9",
       "icon": "♪",
       "color": "#00e0ff",
       "mode": "hold",
@@ -1259,7 +1259,7 @@
     },
     {
       "id": "fx3-10",
-      "label": "ANTONYO",
+      "label": "TC 10",
       "icon": "♪",
       "color": "#ffd93d",
       "mode": "hold",
@@ -1286,7 +1286,7 @@
     },
     {
       "id": "fx3-11",
-      "label": "WILLCOX",
+      "label": "TC 11",
       "icon": "♪",
       "color": "#2ee66b",
       "mode": "hold",
@@ -1313,7 +1313,7 @@
     },
     {
       "id": "fx3-12",
-      "label": "SATIUMX",
+      "label": "TC 12",
       "icon": "♪",
       "color": "#b46bff",
       "mode": "hold",
@@ -1340,7 +1340,7 @@
     },
     {
       "id": "fx3-13",
-      "label": "PUREBEAT",
+      "label": "TC 13",
       "icon": "♪",
       "color": "#ff7a1a",
       "mode": "hold",
@@ -1367,7 +1367,7 @@
     },
     {
       "id": "fx3-14",
-      "label": "LOVING ARMS",
+      "label": "TC 14",
       "icon": "♪",
       "color": "#3aa0ff",
       "mode": "hold",
@@ -1394,7 +1394,7 @@
     },
     {
       "id": "fx3-15",
-      "label": "HANVAI PG",
+      "label": "TC 15",
       "icon": "♪",
       "color": "#ff3df0",
       "mode": "hold",
@@ -1421,7 +1421,7 @@
     },
     {
       "id": "fx3-16",
-      "label": "DJ JUNIOR",
+      "label": "TC 16",
       "icon": "♪",
       "color": "#eaeef5",
       "mode": "hold",
@@ -1448,7 +1448,7 @@
     },
     {
       "id": "fx3-17",
-      "label": "CRSTPHR",
+      "label": "TC 17",
       "icon": "♪",
       "color": "#00e0ff",
       "mode": "hold",
@@ -1475,7 +1475,7 @@
     },
     {
       "id": "fx3-18",
-      "label": "BRICKLAKE",
+      "label": "TC 18",
       "icon": "♪",
       "color": "#ffd93d",
       "mode": "hold",
@@ -1502,7 +1502,7 @@
     },
     {
       "id": "fx3-19",
-      "label": "JOER JUNIOR",
+      "label": "TC 19",
       "icon": "♪",
       "color": "#2ee66b",
       "mode": "hold",
@@ -1529,7 +1529,7 @@
     },
     {
       "id": "fx3-20",
-      "label": "PULLMAXX",
+      "label": "TC 20",
       "icon": "♪",
       "color": "#b46bff",
       "mode": "hold",
@@ -1556,7 +1556,7 @@
     },
     {
       "id": "fx3-21",
-      "label": "#21",
+      "label": "TC 21",
       "icon": "·",
       "color": "#3a3f47",
       "mode": "hold",
@@ -1583,7 +1583,7 @@
     },
     {
       "id": "fx3-22",
-      "label": "#22",
+      "label": "TC 22",
       "icon": "·",
       "color": "#3a3f47",
       "mode": "hold",
@@ -1610,7 +1610,7 @@
     },
     {
       "id": "fx3-23",
-      "label": "R1 LOGO",
+      "label": "LOGO ON",
       "icon": "◆",
       "color": "#eaeef5",
       "mode": "hold",

@@ -1,7 +1,7 @@
 {
   "name": "rogger",
   "productName": "ROGGER",
-  "version": "2.2.1",
+  "version": "2.2.2",
   "description": "Touchscreen OSC performance controller for Resolume and OSC-compatible software, with over-the-air updates — optimized for ASUS ROG Ally X.",
   "main": "src/bootstrap.js",
   "private": true,

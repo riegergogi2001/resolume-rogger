@@ -21,7 +21,7 @@ function start(ctx = {}) {
     : path.join(__dirname, '..', '..', 'config.dev.json');
   // Seeded from the payload, not the exe: an OTA update can ship a corrected
   // default show config along with the code that reads it.
-  const seedPath = path.join(root, 'configs', 'campus-forum-stage.json');
+  const seedPath = path.join(root, 'configs', 'show.json');
 
   // one instance only — a second copy would fight over the OSC listen port
   if (!app.requestSingleInstanceLock()) {

@@ -7,7 +7,7 @@ const { pathToFileURL } = require('node:url');
 const configStore = require('../src/main/config-store.js');
 
 const libUrl = pathToFileURL(path.join(__dirname, '..', 'src/renderer/js/osc-library.js')).href;
-const campusConfigPath = path.join(__dirname, '..', 'configs', 'campus-forum-stage.json');
+const showConfigPath = path.join(__dirname, '..', 'configs', 'show.json');
 
 const VALID_KINDS = new Set(['event', 'float', 'int', 'bool', 'choice', 'string']);
 const ALLOWED_PLACEHOLDERS = new Set(['L', 'C', 'N', 'G', 'D', 'FX', 'P', 'K']);
@@ -210,12 +210,12 @@ test('every address referenced by config-store.defaults() matches a LIBRARY entr
   assert.deepEqual(unmatched, [], `addresses from config-store.defaults() with no LIBRARY match`);
 });
 
-test('every address referenced by configs/campus-forum-stage.json matches a LIBRARY entry', async () => {
+test('every address referenced by configs/show.json matches a LIBRARY entry', async () => {
   const { LIBRARY } = await import(libUrl);
   const regexes = LIBRARY.map(e => templateToRegex(e.address));
-  const cfg = JSON.parse(fs.readFileSync(campusConfigPath, 'utf8'));
+  const cfg = JSON.parse(fs.readFileSync(showConfigPath, 'utf8'));
   const addresses = collectAddresses(cfg);
   assert.ok(addresses.length > 20, `sanity check: expected to collect a good number of addresses, got ${addresses.length}`);
   const unmatched = addresses.filter(a => !regexes.some(r => r.test(a)));
-  assert.deepEqual(unmatched, [], `addresses from campus-forum-stage.json with no LIBRARY match`);
+  assert.deepEqual(unmatched, [], `addresses from show.json with no LIBRARY match`);
 });

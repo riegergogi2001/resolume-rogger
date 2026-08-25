@@ -169,7 +169,7 @@ function labelOf(cfg, entry) { return entry ? cfg[entry.kind][entry.index].label
 
 for (const [name, load] of [
   ['defaults', () => store.defaults()],
-  ['configs/campus-forum-stage.json', () => store.load(path.join(__dirname, '..', 'configs', 'campus-forum-stage.json'))],
+  ['configs/show.json', () => store.load(path.join(__dirname, '..', 'configs', 'show.json'))],
 ]) {
   test(`${name}: LB is a clean modifier and LB+A/B/X/Y fire the bump combos`, () => {
     const cfg = load();

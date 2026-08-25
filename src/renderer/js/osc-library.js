@@ -12,7 +12,7 @@
 //     ("Blend Mode" -> "blendmode", "Ignore Column Trigger" -> "ignorecolumntrigger")
 //   - underscores are stripped the same way ("tempo_tap" -> "tempotap",
 //     "play_state" -> "playstate"); confirmed for tempotap/resync via the
-//     addresses already used in configs/campus-forum-stage.json, the rest
+//     addresses already used in configs/show.json, the rest
 //     (playstate, durationtype, loopcount, randomtype, blendmode) follow the
 //     same convention but are not independently OSC-verified here
 //   - when an effect (or a duplicate audio/video track) appears more than

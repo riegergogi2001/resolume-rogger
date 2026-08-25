@@ -1,6 +1,6 @@
 # COLORS page, ColorMorph targets, APC40 mapping visuals — design
 
-Date: 2026-07-26 · Composition: `26autoV_CAMPUSJ_0721.avc` · Mapping: `AkaiXboxMaion.xml` (APC40 mkII)
+Date: 2026-07-26 · Composition: `show.avc` · Mapping: `AkaiXboxMaion.xml` (APC40 mkII)
 
 ## Why
 

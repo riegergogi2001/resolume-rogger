@@ -22,7 +22,7 @@ function payloadTarball(version, extra = {}) {
     { name: 'payload.json', data: JSON.stringify({ version, ...extra }) },
     { name: 'src/main/main.js', data: 'module.exports = { start(){} };' },
     { name: 'src/renderer/index.html', data: '<!doctype html><title>ROGGER</title>' },
-    { name: 'configs/campus-forum-stage.json', data: '{}' },
+    { name: 'configs/show.json', data: '{}' },
   ]);
 }
 

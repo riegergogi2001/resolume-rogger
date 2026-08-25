@@ -11,8 +11,8 @@ const layer = (name, names, id) => ({ id, name: { value: name }, clips: names.ma
 /** A composition shaped like the real one: a name plate layer grouped with
  *  a per-artist video layer and a static backplate. */
 function composition({ names, dj, extra, wing } = {}) {
-  const nameLayer = layer('TC/PB NAME SOURCE', names ?? ['OFF', 'KOLLAR', 'COOKY'], 100);
-  const djLayer = layer('TC/PB DJ', dj ?? ['OFF', 'pult_kollar', 'pult_cooky'], 101);
+  const nameLayer = layer('TC/PB NAME SOURCE', names ?? ['OFF', 'ALPHA', 'BRAVO'], 100);
+  const djLayer = layer('TC/PB DJ', dj ?? ['OFF', 'booth_alpha', 'booth_bravo'], 101);
   const backplate = layer('TC/PB EXTRA', extra ?? ['plate_01', 'plate_01', 'plate_01'], 102);
   const wingLayer = layer('TC/PB WING', wing ?? ['OFF', '', ''], 103);
   return {
@@ -30,22 +30,22 @@ const slots = n => Array.from({ length: n }, (_, i) => ({
 }));
 
 test('normalise strips authoring conventions down to the name', () => {
-  assert.equal(normalise('radio_1_egyeni_dj_pult_kollar'), 'radio1egyenidjpultkollar');
-  assert.equal(normalise('LOVING ARMS'), 'lovingarms');
+  assert.equal(normalise('stage_dj_booth_alpha'), 'stagedjboothalpha');
+  assert.equal(normalise('TWO WORDS'), 'twowords');
   assert.equal(normalise(null), '');
 });
 
 test('namesAgree matches a short name inside a long clip filename', () => {
-  assert.ok(namesAgree('KOLLAR', 'radio_1_egyeni_dj_pult_kollar'));
-  assert.ok(namesAgree('REGAN', 'radio_1_egyeni_dj_pult_reganlili'), 'a fuller name still counts');
+  assert.ok(namesAgree('ALPHA', 'stage_dj_booth_alpha'));
+  assert.ok(namesAgree('DELTA', 'stage_dj_booth_deltaecho'), 'a fuller name still counts');
   assert.ok(namesAgree('OFF', 'OFF'));
   assert.ok(namesAgree('ANYTHING', ''), 'an empty slot cannot disagree');
-  assert.equal(namesAgree('COOKY', 'radio_1_egyeni_dj_pult_newik'), false);
-  assert.equal(namesAgree('SATIUMX', 'radio_1_egyeni_dj_pult_stadiumx'), false, 'a typo must not be waved through');
+  assert.equal(namesAgree('BRAVO', 'stage_dj_booth_charlie'), false);
+  assert.equal(namesAgree('DELTTA', 'stage_dj_booth_delta'), false, 'a typo must not be waved through');
 });
 
 test('isColumnKeyed tells a per-artist layer from a static backplate', () => {
-  assert.ok(isColumnKeyed(layer('DJ', ['OFF', 'a_kollar', 'b_cooky', 'c_newik'])));
+  assert.ok(isColumnKeyed(layer('DJ', ['OFF', 'a_alpha', 'b_bravo', 'c_charlie'])));
   assert.equal(isColumnKeyed(layer('PLATE', ['p_01', 'p_01', 'p_01', 'p_01'])), false);
   assert.equal(isColumnKeyed(layer('WING', ['OFF'])), false, 'too few clips to judge');
 });
@@ -57,7 +57,7 @@ test('buildDjButtons targets the group column, not the bare layer clip', () => {
   // group index 1 in layergroups -> /composition/groups/2/...
   assert.equal(buttons[0].address, '/composition/groups/2/columns/1/connect');
   assert.equal(buttons[2].address, '/composition/groups/2/columns/3/connect');
-  assert.deepEqual(buttons.map(b => b.label), ['OFF', 'KOLLAR', 'COOKY']);
+  assert.deepEqual(buttons.map(b => b.label), ['OFF', 'ALPHA', 'BRAVO']);
   assert.equal(report.synced, 3);
 });
 
@@ -78,25 +78,25 @@ test('falls back to the layer clip when the layer is not in a group', () => {
 });
 
 test('swapped columns are reported instead of silently copied', () => {
-  // The name plate says COOKY at column 3, but the DJ layer plays newik there.
+  // The name plate says BRAVO at column 3, but the DJ layer plays charlie there.
   const comp = composition({
-    names: ['OFF', 'KOLLAR', 'COOKY', 'NEWIK'],
-    dj: ['OFF', 'pult_kollar', 'pult_newik', 'pult_cooky'],
+    names: ['OFF', 'ALPHA', 'BRAVO', 'CHARLIE'],
+    dj: ['OFF', 'booth_alpha', 'booth_charlie', 'booth_bravo'],
     extra: ['plate', 'plate', 'plate', 'plate'],
     wing: ['OFF', '', '', ''],
   });
   const { report } = buildDjButtons(comp, slots(4));
   assert.equal(report.mismatches.length, 2);
   assert.deepEqual(report.mismatches.map(m => m.column), [3, 4]);
-  assert.equal(report.mismatches[0].expected, 'COOKY');
-  assert.match(report.mismatches[0].actual, /newik/);
+  assert.equal(report.mismatches[0].expected, 'BRAVO');
+  assert.match(report.mismatches[0].actual, /charlie/);
   assert.equal(report.mismatches[0].layer, 'TC/PB DJ');
 });
 
 test('a static backplate never raises a mismatch', () => {
   const comp = composition({
-    names: ['OFF', 'KOLLAR', 'COOKY'],
-    dj: ['OFF', 'pult_kollar', 'pult_cooky'],
+    names: ['OFF', 'ALPHA', 'BRAVO'],
+    dj: ['OFF', 'booth_alpha', 'booth_bravo'],
     extra: ['plate_01', 'plate_01', 'plate_01'],
   });
   assert.deepEqual(buildDjButtons(comp, slots(3)).report.mismatches, [],
@@ -105,8 +105,8 @@ test('a static backplate never raises a mismatch', () => {
 
 test('an empty slot on a sibling layer is not a disagreement', () => {
   const comp = composition({
-    names: ['OFF', 'KOLLAR', 'COOKY'],
-    dj: ['OFF', 'pult_kollar', 'pult_cooky'],
+    names: ['OFF', 'ALPHA', 'BRAVO'],
+    dj: ['OFF', 'booth_alpha', 'booth_bravo'],
     wing: ['OFF', '', ''],
   });
   assert.deepEqual(buildDjButtons(comp, slots(3)).report.mismatches, []);
@@ -114,12 +114,12 @@ test('an empty slot on a sibling layer is not a disagreement', () => {
 
 test('slots past the named clips are cleared instead of keeping a stale name', () => {
   // First sync fills three slots...
-  const first = buildDjButtons(composition({ names: ['OFF', 'KOLLAR', 'COOKY'] }), slots(3));
-  assert.deepEqual(first.buttons.map(b => b.label), ['OFF', 'KOLLAR', 'COOKY']);
+  const first = buildDjButtons(composition({ names: ['OFF', 'ALPHA', 'BRAVO'] }), slots(3));
+  assert.deepEqual(first.buttons.map(b => b.label), ['OFF', 'ALPHA', 'BRAVO']);
   // ...then the show loses a DJ. The old name must not linger on a button that
   // now fires an empty column.
-  const second = buildDjButtons(composition({ names: ['OFF', 'KOLLAR'] }), first.buttons);
-  assert.deepEqual(second.buttons.map(b => b.label), ['OFF', 'KOLLAR', '#3']);
+  const second = buildDjButtons(composition({ names: ['OFF', 'ALPHA'] }), first.buttons);
+  assert.deepEqual(second.buttons.map(b => b.label), ['OFF', 'ALPHA', '#3']);
   assert.equal(second.buttons[2].icon, '·');
   assert.equal(second.report.cleared, 1);
   assert.equal(second.report.synced, 2);
@@ -128,15 +128,15 @@ test('slots past the named clips are cleared instead of keeping a stale name', (
 test('a hand-made button that was never synced survives a sync', () => {
   const custom = slots(3);
   custom[2] = { ...custom[2], label: 'LOGO OFF', address: '/composition/layers/9/clips/1/connect', icon: '⊘' };
-  const { buttons, report } = buildDjButtons(composition({ names: ['OFF', 'KOLLAR'] }), custom);
+  const { buttons, report } = buildDjButtons(composition({ names: ['OFF', 'ALPHA'] }), custom);
   assert.equal(buttons[2].label, 'LOGO OFF', 'a custom button is not collateral damage');
   assert.equal(buttons[2].address, '/composition/layers/9/clips/1/connect');
   assert.equal(report.cleared, 0);
 });
 
 test('more buttons than named clips leaves the extras as placeholders', () => {
-  const { buttons, report } = buildDjButtons(composition({ names: ['OFF', 'KOLLAR'] }), slots(6));
-  assert.deepEqual(buttons.map(b => b.label), ['OFF', 'KOLLAR', '#3', '#4', '#5', '#6']);
+  const { buttons, report } = buildDjButtons(composition({ names: ['OFF', 'ALPHA'] }), slots(6));
+  assert.deepEqual(buttons.map(b => b.label), ['OFF', 'ALPHA', '#3', '#4', '#5', '#6']);
   assert.equal(report.synced, 2);
   assert.equal(report.slots, 6);
 });
@@ -157,15 +157,15 @@ test('findGroup resolves sibling layers through their ids', () => {
 });
 
 test('crossCheck reports every disagreeing layer for a column', () => {
-  const nameLayer = layer('NAME', ['OFF', 'KOLLAR'], 1);
-  const a = layer('DJ A', ['OFF', 'pult_newik'], 2);
-  const b = layer('DJ B', ['OFF', 'pult_cooky'], 3);
+  const nameLayer = layer('NAME', ['OFF', 'ALPHA'], 1);
+  const a = layer('DJ A', ['OFF', 'booth_charlie'], 2);
+  const b = layer('DJ B', ['OFF', 'booth_bravo'], 3);
   const problems = crossCheck({ nameLayer, members: [nameLayer, a, b], columns: 2 });
   // both siblings are static two-clip layers, so nothing is column-keyed yet
   assert.deepEqual(problems, []);
 
-  const a3 = layer('DJ A', ['OFF', 'pult_newik', 'pult_x', 'pult_y'], 2);
-  const n3 = layer('NAME', ['OFF', 'KOLLAR', 'X', 'Y'], 1);
+  const a3 = layer('DJ A', ['OFF', 'booth_charlie', 'pult_x', 'pult_y'], 2);
+  const n3 = layer('NAME', ['OFF', 'ALPHA', 'X', 'Y'], 1);
   const found = crossCheck({ nameLayer: n3, members: [n3, a3], columns: 4 });
   assert.equal(found.length, 1);
   assert.equal(found[0].column, 2);

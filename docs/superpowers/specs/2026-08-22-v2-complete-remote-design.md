@@ -50,7 +50,7 @@ Date: 2026-08-22. Decisions taken autonomously under a `/goal` directive
   f`, `/rogger/color/{index}`, `/rogger/page {n}`, `/rogger/tap`,
   `/rogger/resync`. Documented in README.
 - MA3 handoff: `tools/dmx_map.py` (single source of truth, built from
-  `configs/campus-forum-stage.json`), `tools/gen-ma3-gdtf.py`,
+  `configs/show.json`), `tools/gen-ma3-gdtf.py`,
   `tools/gen-resolume-dmx-preset.py`, `tools/artnet-send.js`,
   `tools/install-resolume-preset.sh`, `docs/ma3-handoff.html`.
 
@@ -86,7 +86,7 @@ Date: 2026-08-22. Decisions taken autonomously under a `/goal` directive
 | 63–64 | FX | ZOOM RST / ACUA RST | event | infinitezoom / acuarela effect/reset | 0 |
 | 65 | Logo | LOGO ON | event | layers/9/clips/2/connect + layers/8/clear | 0 |
 | 66 | Logo | LOGO OFF | event | layers/8/clear + layers/9/clear | 0 |
-| 67 | Logo | PULLMAXX (alt logo) | event | layers/8/clips/17/connect | 0 |
+| 67 | Logo | ALT LOGO | event | layers/8/clips/17/connect | 0 |
 | 68 | Logo | CLR LOGO | event | layers/9/clear | 0 |
 | 69–92 | DJ | labels from config fxButtons3 | event | their addresses (layers/17/clips/{1..24}/connect) | 0 |
 | 93–94 | Tempo | TAP TEMPO / RESYNC | event | tempocontroller/tempotap, resync | 0 |

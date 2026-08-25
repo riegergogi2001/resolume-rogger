@@ -18,7 +18,7 @@
  *
  * Examples:
  *   node tools/artnet-send.js --host 127.0.0.1 --universe 0 --set 1=255,15=255 --seconds 2 --fps 30
- *   node tools/artnet-send.js --host 192.168.20.157 --universe 0 --pulse 15
+ *   node tools/artnet-send.js --host 192.168.1.100 --universe 0 --pulse 15
  *   node tools/artnet-send.js --host 127.0.0.1 --universe 0 --set 1=255 --hold
  *   node tools/artnet-send.js --broadcast --universe 0 --set 36=64
  */

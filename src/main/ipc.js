@@ -20,7 +20,12 @@ function registerIpc({ ipcMain, engine, store, configPath, seedPath, getWindow, 
     : null;
 
   ipcMain.handle('config:reset', async () => {
-    config = (seedPath && fs.existsSync(seedPath)) ? store.load(seedPath) : store.defaults();
+    // "Reload default mapping" is about the mapping. The network settings are
+    // this machine's, not the show's (the seed only carries a placeholder
+    // address), so they survive the reset — nobody should have to retype
+    // Resolume's IP after reloading the buttons.
+    const seed = (seedPath && fs.existsSync(seedPath)) ? store.load(seedPath) : store.defaults();
+    config = { ...seed, network: config.network, updates: config.updates };
     store.save(configPath, config);
     engine.configure(config.network);
     if (config.network.autoConnect) await engine.open();

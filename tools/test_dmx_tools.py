@@ -21,7 +21,7 @@ TOOLS_DIR = os.path.dirname(os.path.abspath(__file__))
 REPO_ROOT = os.path.dirname(TOOLS_DIR)
 sys.path.insert(0, TOOLS_DIR)
 
-from dmx_map import DEFAULT_CONFIG_PATH, PULLMAXX_LOGO_ADDRESS, build_map  # noqa: E402
+from dmx_map import DEFAULT_CONFIG_PATH, ALT_LOGO_ADDRESS, build_map  # noqa: E402
 
 
 def load_hyphenated(name, filename):
@@ -81,12 +81,12 @@ def main():
     ch67 = rows[66]
     assert ch67['ch'] == 67 and ch67['kind'] == 'event', f'ch 67 must be an event channel, got {ch67}'
     assert ch67['targets'] == ['/composition/layers/8/clips/17/connect'], (
-        f"ch 67 (PULLMAXX) must target the layer-8 clip-17 connect path, got {ch67['targets']}"
+        f"ch 67 (ALT LOGO) must target the layer-8 clip-17 connect path, got {ch67['targets']}"
     )
-    assert PULLMAXX_LOGO_ADDRESS == ch67['targets'][0]
+    assert ALT_LOGO_ADDRESS == ch67['targets'][0]
     assert not any('/opacity' in t for t in ch67['targets']), 'ch 67 must not be bound to an opacity path'
     checks += 1
-    print(f"[ok] ch 67 PULLMAXX -> {ch67['targets'][0]} (event)")
+    print(f"[ok] ch 67 ALT LOGO -> {ch67['targets'][0]} (event)")
 
     # ---- 2. GDTF fixture ----------------------------------------------------
     run_generator('gen-ma3-gdtf.py')

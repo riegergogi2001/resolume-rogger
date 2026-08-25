@@ -7,7 +7,7 @@ Resolume OSC target(s), so the same universe an MA3 fixture (see
 tools/gen-ma3-gdtf.py) sends can drive Resolume directly.
 
 Key formula and per-kind paramNodeName/behaviour (reverse-engineered from
-the user's own installed presets — VEGMA3.xml, PHOTON2.xml, campus.xml —
+the user's own installed presets —
 under ~/Documents/Resolume Arena/Shortcuts/DMX/):
 
     key = (5 << 56) + universe * 512 + (channel - 1)   # decimal string

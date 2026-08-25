@@ -178,11 +178,11 @@ const { rankAddresses } = require('../src/main/diagnostics.js');
 
 test('rankAddresses puts the adapter on Resolume\'s subnet first and link-local last', () => {
   const ranked = rankAddresses([
-    { name: 'ZeroTier One', address: '10.147.20.5', netmask: '255.255.255.0' },
+    { name: 'ZeroTier One', address: '10.200.0.5', netmask: '255.255.255.0' },
     { name: 'Ethernet', address: '169.254.12.7', netmask: '255.255.0.0' },   // dock with no DHCP lease
     { name: 'Wi-Fi', address: '192.168.50.23', netmask: '255.255.255.0' },
   ], '192.168.50.10');
-  assert.deepEqual(ranked.map(a => a.address), ['192.168.50.23', '10.147.20.5', '169.254.12.7']);
+  assert.deepEqual(ranked.map(a => a.address), ['192.168.50.23', '10.200.0.5', '169.254.12.7']);
 });
 
 test('the FIX line leads with the address Resolume can actually reach', async () => {
@@ -192,7 +192,7 @@ test('the FIX line leads with the address Resolume can actually reach', async ()
     engine, network: { targetIp: '192.168.50.10', targetPort: 7432, listenPort: 7001 },
     sleep: noSleep, fetchImpl: fakeFetch(engine, comp),
     addresses: [
-      { name: 'ZeroTier One', address: '10.147.20.5', netmask: '255.255.255.0' },
+      { name: 'ZeroTier One', address: '10.200.0.5', netmask: '255.255.255.0' },
       { name: 'Wi-Fi', address: '192.168.50.23', netmask: '255.255.255.0' },
     ],
   });

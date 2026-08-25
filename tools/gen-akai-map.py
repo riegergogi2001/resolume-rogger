@@ -3,7 +3,7 @@
 
 Reads (read-only):
   ~/Documents/Resolume Arena/Shortcuts/MIDI/AkaiXboxMaion.xml
-  ~/Documents/Resolume Arena/Compositions/26autoV_CAMPUSJ_0721.avc
+  ~/Documents/Resolume Arena/Compositions/<your show>.avc (pass the path as the first argument)
 
 Writes:
   docs/apc40-mapping.html                    (refreshes the /*DATA:START*/ block)
@@ -20,7 +20,7 @@ import xml.etree.ElementTree as ET
 
 HOME = os.path.expanduser('~')
 MAP_SRC = os.path.join(HOME, 'Documents/Resolume Arena/Shortcuts/MIDI/AkaiXboxMaion.xml')
-AVC_SRC = os.path.join(HOME, 'Documents/Resolume Arena/Compositions/26autoV_CAMPUSJ_0721.avc')
+AVC_SRC = sys.argv[1] if len(sys.argv) > 1 else os.path.join(HOME, 'Documents/Resolume Arena/Compositions/show.avc')
 REPO = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 HTML_OUT = os.path.join(REPO, 'docs/apc40-mapping.html')
 
