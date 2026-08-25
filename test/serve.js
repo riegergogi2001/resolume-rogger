@@ -16,7 +16,12 @@ const port = Number(process.env.PORT || 5199);
 http.createServer((req, res) => {
   if (req.url === '/__defaults') {
     res.setHeader('content-type', 'application/json');
-    res.end(JSON.stringify(store.defaults()));
+    // ROGGER_CONFIG points the mock bridge at a real show config, so the
+    // layout can be audited against the labels that will actually be on the
+    // surface rather than the built-in defaults.
+    const override = process.env.ROGGER_CONFIG;
+    const config = override && fs.existsSync(override) ? store.load(override) : store.defaults();
+    res.end(JSON.stringify(config));
     return;
   }
   const urlPath = req.url === '/' ? '/index.html' : req.url.split('?')[0];

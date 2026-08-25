@@ -272,15 +272,30 @@ The price is a hard floor: **1704 x 979**, declared in `src/window-size.js` and
 enforced as the Electron window's `minWidth`/`minHeight`. The ASUS ROG Ally X
 runs 1920x1080, comfortably above it.
 
-Two guards keep that honest, because the floor moves whenever a fixed label
+Three guards keep that honest, because the floor moves whenever a fixed label
 gets longer:
 
 ```bash
-node tools/measure-min-window.js   # what the surface actually needs right now
+npm run audit:layout               # the authority: inside the real app
+node tools/measure-min-window.js   # what the surface needs, measured in a browser
 node test/ui/min-window.spec.mjs   # every page and overlay at the floor and at 1920x1080
 ```
 
-If a new label pushes the natural minimum past the declared floor, both fail —
+**`npm run audit:layout` is the one that decides.** It walks every page and
+settings tab inside the running Electron app and reports any text that does not
+fit its box. The two browser-based checks are fast pre-flights, but they cannot
+see two things that decide whether a label fits: Electron resolves a different
+font than headless Chromium, and font metrics are what make text fit or not;
+and the window frame eats into the content box. Both bit at once — every browser
+check said the layout was clean while the Page 2 FX labels were clipped by 4px
+in the real app, because a 1000px window was giving the surface 968px.
+
+That second one is fixed for good: the window is created with
+`useContentSize: true`, so `minWidth`/`minHeight` mean the surface, not the
+frame around it. The window cannot be dragged below the floor, so the layout
+can never be squeezed at all.
+
+If a new label pushes the natural minimum past the declared floor, these fail —
 raise the numbers in `src/window-size.js` on purpose rather than letting the
 layout quietly start truncating.
 
@@ -302,6 +317,7 @@ node test/ui/updates.spec.mjs         #   test/serve.js to be running)
 node test/ui/min-window.spec.mjs
 node test/ui/bpm-page.spec.mjs
 python3 tools/test_dmx_tools.py       # DMX map / GDTF / Resolume preset checks
+npm run audit:layout # layout check inside the real app (the authority)
 npm run payload     # build the OTA payload bundle + manifest into dist-payload/
 npm run ma3         # regenerate the grandMA3 GDTF, Resolume preset and LD sheet
 ```

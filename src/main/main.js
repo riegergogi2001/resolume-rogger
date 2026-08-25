@@ -44,6 +44,10 @@ function start(ctx = {}) {
       minWidth: MIN_WIDTH,
       minHeight: MIN_HEIGHT,
       backgroundColor: '#0a0b0d',
+      // Size the CONTENT, not the frame. Without this the title bar eats into
+      // the surface: a 1000px window gave the layout 968px and the FX labels
+      // on Page 2 were clipped by 4px, below the floor this app declares.
+      useContentSize: true,
       // Kiosk-style on the Ally X; windowed during development.
       fullscreen: app.isPackaged && process.platform === 'win32',
       autoHideMenuBar: true,
@@ -61,6 +65,17 @@ function start(ctx = {}) {
       if (process.env.ROGGER_SMOKE) {
         console.log(`SMOKE_OK payload=${ctx.payloadVersion ?? 'dev'} source=${ctx.source ?? 'dev'}`);
         app.quit();
+      }
+      // Layout audit in the real app: real fonts, real window size, the
+      // operator's own config. A browser check cannot see any of those, and
+      // font fallback alone changes every text measurement.
+      if (process.env.ROGGER_LAYOUT_AUDIT) {
+        const forced = /^(\d+)x(\d+)$/.exec(process.env.ROGGER_LAYOUT_AUDIT);
+        if (forced) win.setContentSize(Number(forced[1]), Number(forced[2]));
+        runLayoutAudit(win).then(() => app.quit()).catch(err => {
+          console.error('LAYOUT_AUDIT_ERROR', err?.message ?? err);
+          app.quit();
+        });
       }
     });
     win.on('closed', () => { win = null; });
@@ -106,6 +121,79 @@ function start(ctx = {}) {
     engine.close();
     app.quit();
   });
+}
+
+
+// Walks every page and overlay in the live window and reports any text that
+// does not fit its box. Driven by tools/audit-layout.js.
+async function runLayoutAudit(win) {
+  const wait = ms => new Promise(r => setTimeout(r, ms));
+  const scan = label => win.webContents.executeJavaScript(`(() => {
+    const out = [];
+    for (const el of document.querySelectorAll('body *')) {
+      const cs = getComputedStyle(el);
+      if (cs.display === 'none' || cs.visibility === 'hidden') continue;
+      const r = el.getBoundingClientRect();
+      if (r.width < 1 || r.height < 1) continue;
+      const text = (el.textContent || '').trim();
+      if (!text) continue;
+      if ([...el.children].some(c => (c.textContent || '').trim() === text)) continue;
+      const dx = el.scrollWidth - el.clientWidth;
+      const dy = el.scrollHeight - el.clientHeight;
+      const cutX = dx > 1 && cs.overflowX !== 'visible';
+      const cutY = dy > 1 && cs.overflowY !== 'visible' && !/auto|scroll/.test(cs.overflowY);
+      if (!cutX && !cutY) continue;
+      const cls = typeof el.className === 'string' && el.className
+        ? '.' + el.className.trim().split(/\\s+/).slice(0, 2).join('.') : '';
+      out.push({
+        text: text.slice(0, 40),
+        sel: el.tagName.toLowerCase() + cls,
+        dx, dy,
+        box: Math.round(r.width) + 'x' + Math.round(r.height),
+        font: cs.fontFamily.split(',')[0] + ' ' + cs.fontSize,
+      });
+    }
+    const body = document.body;
+    return { out, wide: body.scrollWidth - window.innerWidth, tall: body.scrollHeight - window.innerHeight };
+  })()`).then(res => {
+    for (const f of res.out) {
+      console.log(`LAYOUT_CUT [${label}] "${f.text}" ${f.sel} box=${f.box} cutX=${f.dx} cutY=${f.dy} font=${f.font}`);
+    }
+    if (res.wide > 1) console.log(`LAYOUT_CUT [${label}] page scrolls horizontally by ${res.wide}px`);
+    if (res.tall > 1) console.log(`LAYOUT_CUT [${label}] page scrolls vertically by ${res.tall}px`);
+    return res.out.length + (res.wide > 1 ? 1 : 0) + (res.tall > 1 ? 1 : 0);
+  });
+
+  const [w, h] = win.getContentSize();
+  const resolved = await win.webContents.executeJavaScript(
+    "getComputedStyle(document.body).fontFamily + ' -> ' + (document.fonts.check('12px Inter') ? 'Inter available' : 'Inter MISSING, falling back')");
+  console.log(`LAYOUT_AUDIT window=${w}x${h} font=${resolved}`);
+
+  let total = 0;
+  const tabs = await win.webContents.executeJavaScript(
+    "[...document.querySelectorAll('#fx-grid .page-tab')].map(t => t.textContent.trim())");
+  for (let i = 0; i < tabs.length; i += 1) {
+    await win.webContents.executeJavaScript(
+      `document.querySelectorAll('#fx-grid .page-tab')[${i}].dispatchEvent(new PointerEvent('pointerdown', { bubbles: true }))`);
+    await wait(300);
+    total += await scan(tabs[i]);
+  }
+  await win.webContents.executeJavaScript(
+    "document.querySelectorAll('#fx-grid .page-tab')[0].dispatchEvent(new PointerEvent('pointerdown', { bubbles: true }))");
+  await wait(200);
+
+  await win.webContents.executeJavaScript(
+    "document.getElementById('settings-open').dispatchEvent(new PointerEvent('pointerdown', { bubbles: true }))");
+  await wait(400);
+  const stabs = await win.webContents.executeJavaScript(
+    "[...document.querySelectorAll('#settings-overlay .settings-tab')].map(t => t.textContent.trim())");
+  for (let i = 0; i < stabs.length; i += 1) {
+    await win.webContents.executeJavaScript(
+      `document.querySelectorAll('#settings-overlay .settings-tab')[${i}].dispatchEvent(new PointerEvent('pointerdown', { bubbles: true }))`);
+    await wait(400);
+    total += await scan('settings ' + stabs[i]);
+  }
+  console.log(`LAYOUT_AUDIT_DONE ${total} problem(s)`);
 }
 
 module.exports = { start };
