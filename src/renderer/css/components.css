@@ -666,6 +666,42 @@ body.edit-mode .color-btn {
   overflow-x: auto;
 }
 
+/* ---- List picker rows (audio devices and anything else a native <select>
+       would mangle) ---- */
+.overlay--pick .panel { width: min(720px, 92vw); }
+.pick-row {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 4px;
+  min-height: 64px;
+  padding: 12px 16px;
+  border: 1px solid var(--line);
+  border-left: 5px solid transparent;
+  border-radius: 8px;
+  background: var(--panel-2);
+  text-align: left;
+}
+.pick-row:active { background: var(--panel-3); }
+.pick-row.on {
+  border-color: var(--accent);
+  border-left-color: var(--accent);
+  color: var(--accent);
+}
+.pick-row-label {
+  font-size: 15px;
+  font-weight: 700;
+  /* Device names are system text and can be long: show them all, wrapped. */
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+.pick-row-detail {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  color: var(--text-dim);
+}
+
 /* ---- Update download progress ---- */
 .update-progress {
   height: 10px;
@@ -912,7 +948,9 @@ body.edit-mode .color-btn {
 
 .bpm-main {
   display: grid;
-  grid-template-columns: 300px 1fr;
+  /* controls sized by their own longest label, then the meter, then the
+     readout takes whatever is left */
+  grid-template-columns: max-content max-content 1fr;
   gap: 14px;
   min-height: 0;
 }
@@ -924,15 +962,41 @@ body.edit-mode .color-btn {
   min-height: 0;
 }
 
-.bpm-select {
-  height: 64px;
-  padding: 0 14px;
+/* The input picker. Its caption is fixed chrome and sets the column width;
+   the device name underneath is system text, so it wraps to two lines and
+   ellipsizes rather than dragging the whole column wider. */
+.bpm-device {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: center;
+  gap: 4px;
+  min-height: 64px;
+  padding: 10px 14px;
   border: 1px solid var(--line);
+  border-left: 5px solid var(--accent);
   border-radius: var(--radius);
   background: var(--panel);
-  color: var(--text);
+  text-align: left;
+}
+.bpm-device:active { background: var(--panel-3); }
+.bpm-device-caption {
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  color: var(--text-dim);
+  white-space: nowrap;
+}
+.bpm-device-name {
+  max-width: 100%;
   font-size: 14px;
   font-weight: 700;
+  line-height: 1.25;
+  overflow-wrap: anywhere;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  overflow: hidden;
 }
 
 .bpm-btn {
@@ -964,15 +1028,18 @@ body.edit-mode .color-btn {
 }
 .bpm-btn-row .bpm-btn { flex: 1; }
 
-.bpm-meter-row {
+.bpm-meter-col {
   display: flex;
+  flex-direction: column;
   align-items: center;
-  gap: 10px;
+  gap: 8px;
+  min-height: 0;
 }
 .bpm-meter-wrap {
   position: relative;
-  width: 40px;
-  height: 120px;
+  flex: 1;
+  width: 44px;
+  min-height: 0;
   border: 1px solid var(--line-bright);
   border-radius: 8px;
   background: var(--panel);
@@ -994,13 +1061,23 @@ body.edit-mode .color-btn {
   color: var(--text-dim);
 }
 
+/* right-hand column: readout band on top, envelope filling the rest */
+.bpm-readout-col {
+  display: grid;
+  grid-template-rows: auto 1fr;
+  gap: 12px;
+  min-height: 0;
+  min-width: 0;
+}
 .bpm-centre {
   display: flex;
-  flex-direction: column;
   align-items: center;
-  justify-content: center;
-  gap: 14px;
-  min-height: 0;
+  gap: 20px;
+  padding: 10px 20px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--panel);
+  min-width: 0;
 }
 .bpm-dot {
   width: 28px;
@@ -1013,14 +1090,19 @@ body.edit-mode .color-btn {
   animation: beat-pulse 300ms ease-out;
 }
 .bpm-value {
-  font-size: clamp(56px, 9vw, 128px);
+  font-size: 84px;
   font-weight: 800;
   letter-spacing: 0.01em;
   line-height: 1;
   color: var(--text);
+  /* fixed box so the band does not jump between "—" and "128.5" */
+  min-width: 4.6ch;
+  text-align: right;
+  white-space: nowrap;
 }
 .bpm-conf-bar {
-  width: min(320px, 80%);
+  flex: 1;
+  min-width: 120px;
   height: 12px;
   border: 1px solid var(--line);
   border-radius: 6px;
@@ -1037,7 +1119,10 @@ body.edit-mode .color-btn {
   font-size: 13px;
   font-weight: 700;
   color: var(--text-dim);
+  white-space: nowrap;
+  min-width: max-content;
 }
+.bpm-dot { flex: 0 0 auto; }
 
 .bpm-canvas-wrap {
   min-height: 0;

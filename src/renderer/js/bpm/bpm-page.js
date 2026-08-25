@@ -7,6 +7,7 @@ import * as state from '../state.js';
 import { showToast } from '../toast.js';
 import * as beat from '../beat-clock.js';
 import { createBpmAnalyser } from './bpm-analyser.js';
+import { pickFromList } from '../dom.js';
 
 const SEND_MIN_INTERVAL_MS = 1000;
 const SEND_MIN_CONFIDENCE = 0.6;
@@ -32,17 +33,30 @@ export function renderBpmPage(el) {
   const controls = document.createElement('div');
   controls.className = 'bpm-controls';
 
-  const deviceSelect = document.createElement('select');
-  deviceSelect.className = 'bpm-select';
-  deviceSelect.id = 'bpm-device';
+  // A native <select> put system text inside a fixed-width control and cut it
+  // off ("Default - MacBook Pro mikrofon (Built-i…"), and looked nothing like
+  // the rest of the console. This is a normal control that opens the app's own
+  // list panel, where a long device name has room to be read in full.
+  const deviceBtn = document.createElement('button');
+  deviceBtn.className = 'bpm-device';
+  deviceBtn.id = 'bpm-device';
+  const deviceCaption = document.createElement('span');
+  deviceCaption.className = 'bpm-device-caption u-caps';
+  deviceCaption.textContent = 'Input';
+  const deviceName = document.createElement('span');
+  deviceName.className = 'bpm-device-name';
+  deviceName.textContent = 'Loading…';
+  deviceBtn.append(deviceCaption, deviceName);
 
   const runBtn = document.createElement('button');
   runBtn.className = 'bpm-btn bpm-run u-caps';
   runBtn.id = 'bpm-run';
   runBtn.textContent = 'Start';
 
-  const meterRow = document.createElement('div');
-  meterRow.className = 'bpm-meter-row';
+  // Full-height meter beside the controls rather than a stub wedged between
+  // two buttons — input level is what you actually watch while setting up.
+  const meterCol = document.createElement('div');
+  meterCol.className = 'bpm-meter-col';
   const meterWrap = document.createElement('div');
   meterWrap.className = 'bpm-meter-wrap';
   const meterFill = document.createElement('div');
@@ -51,7 +65,7 @@ export function renderBpmPage(el) {
   const meterLabel = document.createElement('div');
   meterLabel.className = 'bpm-meter-label u-caps';
   meterLabel.textContent = 'Level';
-  meterRow.append(meterWrap, meterLabel);
+  meterCol.append(meterWrap, meterLabel);
 
   const lockBtn = document.createElement('button');
   lockBtn.className = 'bpm-btn bpm-lock u-caps';
@@ -80,7 +94,7 @@ export function renderBpmPage(el) {
   resyncBtn.id = 'bpm-resync';
   resyncBtn.textContent = 'Resync on Next Beat';
 
-  controls.append(deviceSelect, runBtn, meterRow, lockBtn, scaleRow, sendBtn, resyncBtn);
+  controls.append(deviceBtn, runBtn, lockBtn, scaleRow, sendBtn, resyncBtn);
 
   // ---- centre: big readout ----
   const centre = document.createElement('div');
@@ -106,8 +120,11 @@ export function renderBpmPage(el) {
   raw.id = 'bpm-raw';
   raw.textContent = 'raw —';
 
+  // Readout as a band across the top of the right-hand column, with the onset
+  // envelope filling everything below it. The previous split — a centred
+  // cluster floating in a tall empty column and a separate full-width strip at
+  // the very bottom — left most of the page doing nothing.
   centre.append(dot, value, confBar, raw);
-  main.append(controls, centre);
 
   const canvasWrap = document.createElement('div');
   canvasWrap.className = 'bpm-canvas-wrap';
@@ -116,7 +133,12 @@ export function renderBpmPage(el) {
   canvas.id = 'bpm-canvas';
   canvasWrap.appendChild(canvas);
 
-  el.append(title, status, main, canvasWrap);
+  const readoutCol = document.createElement('div');
+  readoutCol.className = 'bpm-readout-col';
+  readoutCol.append(centre, canvasWrap);
+
+  main.append(controls, meterCol, readoutCol);
+  el.append(title, status, main);
 
   // ---- wiring ----
   const cfg = () => state.get().beat ?? {};
@@ -181,9 +203,9 @@ export function renderBpmPage(el) {
       dot.classList.add('flash');
     }
 
-    if (s.running) {
-      status.textContent = s.deviceLabel ? `Listening: ${s.deviceLabel}` : 'Listening…';
-    }
+    // The device name lives on its own button; repeating it here only made a
+    // line long enough to run out of the page.
+    if (s.running) status.textContent = 'Listening';
 
     beat.setMicBpm(s.bpm);
 
@@ -202,34 +224,61 @@ export function renderBpmPage(el) {
 
   const analyser = createBpmAnalyser({ onUpdate: handleUpdate });
 
+  let devices = [];
+  let deviceId = cfg().micDeviceId || '';
+
+  const deviceLabelFor = id => {
+    const found = devices.find(d => d.deviceId === id);
+    if (found) return found.label || 'Unnamed input';
+    if (!devices.length) return 'No input devices';
+    return 'System default';
+  };
+  function paintDevice() {
+    deviceName.textContent = deviceLabelFor(deviceId);
+  }
+
   async function refreshDevices() {
     try {
-      const devices = await analyser.listDevices();
-      const want = cfg().micDeviceId;
-      deviceSelect.innerHTML = '';
-      devices.forEach((d, i) => {
-        const opt = document.createElement('option');
-        opt.value = d.deviceId;
-        opt.textContent = d.label || `Microphone ${i + 1}`;
-        deviceSelect.appendChild(opt);
-      });
-      if (want && devices.some(d => d.deviceId === want)) deviceSelect.value = want;
+      devices = await analyser.listDevices();
+      // A remembered device that has since been unplugged falls back to the
+      // system default rather than silently failing at Start.
+      if (deviceId && !devices.some(d => d.deviceId === deviceId)) deviceId = '';
+      paintDevice();
     } catch {
+      devices = [];
+      paintDevice();
       showToast('Could not list audio input devices', { error: true });
       status.textContent = 'Error: could not list audio devices';
     }
   }
   refreshDevices();
 
-  deviceSelect.addEventListener('change', () => {
-    if (state.get().beat) state.get().beat.micDeviceId = deviceSelect.value;
+  deviceBtn.addEventListener('pointerdown', async () => {
+    await refreshDevices();
+    const items = devices.map((d, i) => ({
+      value: d.deviceId,
+      label: d.label || `Input ${i + 1}`,
+      detail: d.deviceId === 'default' ? 'System default' : undefined,
+    }));
+    const picked = await pickFromList({
+      title: 'Audio input',
+      items,
+      current: deviceId,
+      empty: 'No audio inputs found. Check the OS sound settings and try again.',
+    });
+    if (picked == null) return;
+    deviceId = picked;
+    paintDevice();
+    if (state.get().beat) state.get().beat.micDeviceId = deviceId;
     state.persist();
+    // Switching input mid-listen should take effect now, not at the next Start.
+    if (analyser.isRunning()) { doStop(); await doStart(); }
   });
 
   async function doStart() {
     if (analyser.isRunning()) return;
     try {
-      await analyser.start(deviceSelect.value || undefined);
+      await analyser.start(deviceId || undefined);
       runBtn.textContent = 'Stop';
       runBtn.classList.add('latched');
       status.textContent = 'Listening…';
