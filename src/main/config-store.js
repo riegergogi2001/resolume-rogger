@@ -260,14 +260,27 @@ function defaults() {
           onSteps: [{ address: '/composition/groups/1/video/effects/colorize/bypassed', values: [0] }],
           offSteps: [{ address: '/composition/groups/1/video/effects/colorize/bypassed', values: [1] }],
         },
+        // Every colour on both logo layers (LOGO DJ = 8, LOGO MAIN = 9),
+        // linked: Colorize is what actually tints the logos, OutlineHaze is
+        // the optional glow the HAZE toggle switches on. Before this the
+        // target only reached the haze, which is bypassed by default, so a
+        // pick changed nothing on the screens and the two Colorize colours
+        // could drift apart.
         {
           id: 'logo', label: 'LOGO', swatch: '#eaeef5',
           colorBases: [
+            '/composition/layers/8/video/effects/colorize/effect/color',
+            '/composition/layers/9/video/effects/colorize/effect/color',
             '/composition/layers/8/video/effects/outlinehaze/effect/color',
             '/composition/layers/9/video/effects/outlinehaze/effect/color',
           ],
-          onSteps: [],
+          onSteps: [
+            { address: '/composition/layers/8/video/effects/colorize/bypassed', values: [0] },
+            { address: '/composition/layers/9/video/effects/colorize/bypassed', values: [0] },
+          ],
           offSteps: [
+            { address: '/composition/layers/8/video/effects/colorize/bypassed', values: [1] },
+            { address: '/composition/layers/9/video/effects/colorize/bypassed', values: [1] },
             { address: '/composition/layers/8/video/effects/outlinehaze/bypassed', values: [1] },
             { address: '/composition/layers/9/video/effects/outlinehaze/bypassed', values: [1] },
           ],
@@ -342,29 +355,69 @@ function mergeControls(defaultsArr, patchArr, grow = false) {
   return merged;
 }
 
-// Saved items merge by id onto the defaults, so configs saved before a new
-// entry existed (e.g. ColorMorph targets) don't erase it.
-function mergeById(defaultsArr, patchArr) {
-  return defaultsArr.map(d => {
-    const saved = Array.isArray(patchArr) ? patchArr.find(x => x?.id === d.id) : null;
-    return saved ? deepMerge(d, saved) : d;
+// Earlier wirings of the built-in targets, exactly as older app versions
+// saved them. A saved target that still matches one of these was never
+// touched by the operator, so it follows the shipped default; anything else
+// is theirs and is left alone. Only the wiring is compared — label and
+// swatch are cosmetic and always kept.
+const LEGACY_TARGET_WIRINGS = {
+  logo: [
+    {
+      colorBases: [
+        '/composition/layers/8/video/effects/outlinehaze/effect/color',
+        '/composition/layers/9/video/effects/outlinehaze/effect/color',
+      ],
+      onSteps: [],
+      offSteps: [
+        { address: '/composition/layers/8/video/effects/outlinehaze/bypassed', values: [1] },
+        { address: '/composition/layers/9/video/effects/outlinehaze/bypassed', values: [1] },
+      ],
+    },
+  ],
+};
+
+function wiringKey(t) {
+  const step = s => `${s?.address ?? ''}=${Array.isArray(s?.values) ? s.values.join(',') : ''}`;
+  return JSON.stringify({
+    bases: Array.isArray(t?.colorBases) ? t.colorBases : [],
+    on: (Array.isArray(t?.onSteps) ? t.onSteps : []).map(step),
+    off: (Array.isArray(t?.offSteps) ? t.offSteps : []).map(step),
   });
 }
 
+function withoutLegacyWiring(saved) {
+  const legacy = LEGACY_TARGET_WIRINGS[saved.id];
+  if (!legacy || !legacy.some(w => wiringKey(w) === wiringKey(saved))) return saved;
+  const { colorBases, onSteps, offSteps, ...rest } = saved;
+  return rest; // the default of that id fills the wiring back in
+}
+
+// A target the operator adds by hand starts blank: the editor opens on an
+// empty form, not on a copy of another target's addresses.
+function blankTarget() {
+  return { id: '', label: '', swatch: '#8e9299', colorBases: [], onSteps: [], offSteps: [] };
+}
+
+// The saved list is the list. Built-ins the operator deleted in the editor
+// stay deleted, the ones they kept are filled in from the default of that
+// id (so a field added later is never missing), and hand-added ones are
+// kept as they are. Earlier versions unioned the defaults back in on every
+// load, which made deleting MORPH 1 / MORPH 2 impossible — they returned on
+// the next launch. A missing or empty list means the defaults: the picker
+// always needs somewhere to send.
 function mergeColorTargets(base, patch) {
-  if (!isPlainObject(patch)) return base;
-  const items = mergeById(base.items, patch.items);
-  // Targets the config adds beyond the built-in five are kept: the picker is
-  // meant to grow as more of the show gets colour-controlled, and dropping
-  // them on load made that impossible without editing code.
-  const known = new Set(items.map(x => x.id));
-  const template = base.items[base.items.length - 1];
-  for (const extra of patch.items ?? []) {
-    if (!isPlainObject(extra) || !extra.id || known.has(extra.id)) continue;
-    known.add(extra.id);
-    items.push(deepMerge(template, extra));
+  if (!isPlainObject(patch) || !Array.isArray(patch.items)) return base;
+  const byId = new Map(base.items.map(d => [d.id, d]));
+  const items = [];
+  const seen = new Set();
+  for (const saved of patch.items) {
+    if (!isPlainObject(saved) || !saved.id || seen.has(saved.id)) continue;
+    seen.add(saved.id);
+    const def = byId.get(saved.id);
+    items.push(def ? deepMerge(def, withoutLegacyWiring(saved)) : deepMerge(blankTarget(), saved));
   }
-  const active = items.some(x => x.id === patch.active) ? patch.active : base.active;
+  if (!items.length) return base;
+  const active = items.some(x => x.id === patch.active) ? patch.active : items[0].id;
   return { active, items };
 }
 

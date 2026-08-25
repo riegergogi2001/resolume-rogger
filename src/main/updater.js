@@ -124,6 +124,16 @@ class Updater {
         signal: AbortSignal.timeout(CHECK_TIMEOUT_MS),
       });
       if (res.status === 404) return this._stamp({ status: 'up-to-date', current: this.currentVersion, latest: null });
+      if ((res.status === 403 || res.status === 429) && res.headers?.get?.('x-ratelimit-remaining') === '0') {
+        // 60 unauthenticated calls an hour per public IP — a venue NAT shared
+        // with other devices burns through that, and it is not a fault.
+        const reset = Number(res.headers.get('x-ratelimit-reset')) * 1000;
+        const mins = reset > 0 ? Math.max(1, Math.ceil((reset - this.now()) / 60000)) : null;
+        return {
+          status: 'error',
+          message: `GitHub's rate limit for this network is used up — try again ${mins ? `in about ${mins} minute${mins === 1 ? '' : 's'}` : 'later'}.`,
+        };
+      }
       if (!res.ok) return { status: 'error', message: `GitHub answered ${res.status}.` };
       release = await res.json();
     } catch (err) {

@@ -11,6 +11,9 @@
 //      still fires PUSH WHT; RT held + A fires FE STR instead; releasing
 //      A (while RT stays held) releases FE STR, not PUSH WHT; the plain
 //      A binding is provably untouched by the steal-on-save logic.
+//   4. Stuck-state safety: a held button, engaged trigger and deflected
+//      stick all release when the pad vanishes or the window blurs, and a
+//      pad + touch press on the same button leaves no orphaned repeat chain.
 import { spawn } from 'node:child_process';
 import path from 'node:path';
 import fs from 'node:fs';
@@ -160,6 +163,178 @@ async function main() {
     log = await readLog();
     assert(!hasAddr(log, pushWhtAddr), 'releasing RT does not refire the plain address');
     assert(!hasAddr(log, feStrAddr), 'releasing RT does not refire the combo address');
+
+    // --- pad disconnect mid-hold: everything the pad was driving lets go ---
+    // The Ally's pad vanishes from navigator.getGamepads() on an Armoury
+    // Crate mode switch / firmware reconnect. A hold button, an engaged
+    // trigger and a deflected stick must all release at that moment, not
+    // stay latched until the pad happens to come back.
+    const trig = defaults.triggers.rt;
+    const stickX = defaults.sticks.ls.x;
+    assert(trig.enabled && trig.engageAddress && trig.analogAddress, 'defaults: RT trigger enabled with engage + analog addresses');
+    assert(defaults.sticks.ls.enabled && stickX.address, 'defaults: LS stick enabled with an X address');
+    function argOf(log, addr) {
+      const m = [...log].reverse().find(x => x.address === addr);
+      return m?.args?.[0]?.value;
+    }
+
+    const flashM2 = defaults.fxButtons[2];
+    assert(flashM2.gamepadButton === 2 && flashM2.mode === 'hold' && flashM2.address !== trig.engageAddress,
+      'defaults: fxButtons[2] is a hold binding on X, separate from the RT engage clip');
+    console.log('\n[pad] hold X + engage RT + deflect LS, then the pad disconnects');
+    await setPad(idleButtons());
+    await clearLog();
+    await page.evaluate(() => {
+      window.__gamepadOverride = {
+        buttons: Array.from({ length: 16 }, (_, i) => (
+          i === 2 ? { pressed: true, value: 1 } : i === 7 ? { pressed: true, value: 0.6 } : { pressed: false, value: 0 })),
+        axes: [0.5, 0, 0, 0],
+      };
+    });
+    await page.evaluate(() => new Promise(res => requestAnimationFrame(() => requestAnimationFrame(res))));
+    await page.waitForTimeout(30);
+    log = await readLog();
+    assert(argOf(log, flashM2.address) === flashM2.value, 'X held: press message sent');
+    assert(argOf(log, trig.engageAddress) === trig.engageValue, 'RT engaged: engage message sent');
+    assert(typeof argOf(log, stickX.address) === 'number' && argOf(log, stickX.address) !== stickX.center, 'LS deflected: axis message sent');
+
+    await clearLog();
+    await page.evaluate(() => { window.__gamepadOverride = null; }); // pad gone
+    await page.evaluate(() => new Promise(res => requestAnimationFrame(() => requestAnimationFrame(res))));
+    await page.waitForTimeout(30);
+    log = await readLog();
+    assert(argOf(log, flashM2.address) === flashM2.releaseValue, 'pad disconnect releases the held X binding');
+    assert(argOf(log, trig.engageAddress) === trig.engageReleaseValue, 'pad disconnect disengages RT (engage release message)');
+    assert(argOf(log, trig.analogAddress) === trig.releaseValue, 'pad disconnect snaps the RT analog param back');
+    assert(argOf(log, stickX.address) === stickX.center, 'pad disconnect re-centers the deflected stick axis');
+
+    console.log('\n[pad] hold A (repeating PUSH WHT), then the pad disconnects');
+    await setPad(idleButtons());
+    await setPad(withButtons([[0, { pressed: true, value: 1 }]]));
+    await clearLog();
+    await page.evaluate(() => { window.__gamepadOverride = null; }); // pad gone
+    await page.evaluate(() => new Promise(res => requestAnimationFrame(() => requestAnimationFrame(res))));
+    await page.waitForTimeout(30);
+    log = await readLog();
+    assert(argOf(log, pushWhtAddr) === pushWht.releaseValue, 'pad disconnect releases the held A binding');
+    await clearLog();
+    await page.waitForTimeout(700); // PUSH WHT repeats every 200ms while held
+    log = await readLog();
+    assert(!hasAddr(log, pushWhtAddr), 'no repeat messages keep flowing after the pad disconnected');
+
+    console.log('\n[pad] pad comes back with nothing held -> quiet');
+    await clearLog();
+    await setPad(idleButtons());
+    log = await readLog();
+    assert(log.length === 0, `reconnect with nothing held sends nothing (got ${log.length} messages)`);
+
+    // --- window blur mid-hold: release, and stay quiet afterwards ----------
+    const flashM = defaults.fxButtons[1];
+    assert(flashM.gamepadButton === 1 && flashM.mode === 'hold', 'defaults: fxButtons[1] is a hold binding on B');
+    console.log('\n[pad] hold B, then the window loses focus');
+    await clearLog();
+    await setPad(withButtons([[1, { pressed: true, value: 1 }]]));
+    log = await readLog();
+    assert(argOf(log, flashM.address) === flashM.value, 'B held: press message sent');
+    await clearLog();
+    await page.evaluate(() => window.dispatchEvent(new Event('blur')));
+    await page.waitForTimeout(30);
+    log = await readLog();
+    assert(argOf(log, flashM.address) === flashM.releaseValue, 'window blur releases the held B binding');
+    await clearLog();
+    await setPad(idleButtons()); // physical release after the blur
+    log = await readLog();
+    assert(!hasAddr(log, flashM.address), 'releasing B after the blur does not send a second release');
+
+    // --- window blur while RT is physically held: one release pair, then
+    // stay released until the trigger idles once ---------------------------
+    // Focus theft (Armoury Crate overlay, a confirm() from settings, an OS
+    // popup) fires releaseAll() while the operator is still standing on RT.
+    // The engine must send exactly one engage-release + analog-release pair
+    // and then ignore the still-down trigger: re-engaging on the next tick
+    // would be an unrequested OFF/ON blip of the strobe clip. Like a held
+    // button, RT only goes live again after it has read idle once.
+    const rtDown = depth => withButtons([[7, { pressed: true, value: depth }]]);
+    const rtDepth = depth => trig.from + (trig.to - trig.from) * depth;
+    function countAddr(log, addr) { return log.filter(m => m.address === addr).length; }
+    console.log('\n[pad] engage RT, then the window loses focus while RT stays down');
+    await setPad(idleButtons());
+    await clearLog();
+    await setPad(rtDown(0.6));
+    log = await readLog();
+    assert(argOf(log, trig.engageAddress) === trig.engageValue, 'RT engaged: engage message sent');
+    assert(argOf(log, trig.analogAddress) === rtDepth(0.6), 'RT engaged: analog depth sent');
+
+    await clearLog();
+    await page.evaluate(() => window.dispatchEvent(new Event('blur')));
+    await setPad(rtDown(0.6)); // the pad keeps reporting RT down on the frames after the blur
+    await setPad(rtDown(0.6));
+    log = await readLog();
+    assert(countAddr(log, trig.engageAddress) === 1 && argOf(log, trig.engageAddress) === trig.engageReleaseValue,
+      `blur sends exactly one engage-release and no re-engage while RT stays down (got ${countAddr(log, trig.engageAddress)} engage messages)`);
+    assert(countAddr(log, trig.analogAddress) === 1 && argOf(log, trig.analogAddress) === trig.releaseValue,
+      `blur sends exactly one analog release and no re-applied depth while RT stays down (got ${countAddr(log, trig.analogAddress)} analog messages)`);
+
+    await clearLog();
+    await setPad(rtDown(0.9)); // depth changes without ever idling -> still quiet
+    log = await readLog();
+    assert(!hasAddr(log, trig.engageAddress) && !hasAddr(log, trig.analogAddress),
+      'changing RT depth after the blur (never idled) sends nothing');
+
+    await clearLog();
+    await setPad(idleButtons()); // physical release after the blur
+    log = await readLog();
+    assert(!hasAddr(log, trig.engageAddress) && !hasAddr(log, trig.analogAddress),
+      'releasing RT after the blur does not send a second release pair');
+
+    await clearLog();
+    await setPad(rtDown(0.6)); // fresh press -> normal behaviour resumes
+    log = await readLog();
+    assert(argOf(log, trig.engageAddress) === trig.engageValue, 'pressing RT again after it idled re-engages normally');
+    assert(argOf(log, trig.analogAddress) === rtDepth(0.6), 'pressing RT again after it idled sends its depth again');
+    await setPad(idleButtons());
+
+    // Same guarantee on the pad-loss path (Armoury Crate mode switch): the
+    // pad vanishes and comes back while RT is still down.
+    console.log('\n[pad] engage RT, the pad vanishes, then returns with RT still down');
+    await clearLog();
+    await setPad(rtDown(0.6));
+    await clearLog();
+    await page.evaluate(() => { window.__gamepadOverride = null; }); // pad gone
+    await page.evaluate(() => new Promise(res => requestAnimationFrame(() => requestAnimationFrame(res))));
+    await setPad(rtDown(0.6)); // pad is back, RT never idled
+    await setPad(rtDown(0.6));
+    log = await readLog();
+    assert(countAddr(log, trig.engageAddress) === 1 && argOf(log, trig.engageAddress) === trig.engageReleaseValue,
+      `pad loss + return with RT still down: one engage-release, no re-engage (got ${countAddr(log, trig.engageAddress)} engage messages)`);
+    assert(countAddr(log, trig.analogAddress) === 1 && argOf(log, trig.analogAddress) === trig.releaseValue,
+      `pad loss + return with RT still down: one analog release, no re-applied depth (got ${countAddr(log, trig.analogAddress)} analog messages)`);
+    await clearLog();
+    await setPad(idleButtons());
+    await setPad(rtDown(0.6));
+    log = await readLog();
+    assert(argOf(log, trig.engageAddress) === trig.engageValue, 'RT idles then presses again after the reconnect -> engages normally');
+    await setPad(idleButtons());
+
+    // --- pad + touch on the same button: one repeat chain, not two ---------
+    // Two press() calls without a matching pair of releases used to leave a
+    // self-rescheduling repeat timer running forever.
+    console.log('\n[pad+touch] press A on the pad and touch PUSH WHT at the same time');
+    const pushWhtBtn = page.locator('.fx-btn[data-kind="fxButtons"][data-index="14"]');
+    await pushWhtBtn.scrollIntoViewIfNeeded();
+    const box = await pushWhtBtn.boundingBox();
+    assert(box, 'PUSH WHT button is on screen');
+    await setPad(withButtons([[0, { pressed: true, value: 1 }]]));
+    await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2);
+    await page.mouse.down();
+    await page.waitForTimeout(30);
+    await setPad(idleButtons());
+    await page.mouse.up();
+    await page.waitForTimeout(30);
+    await clearLog();
+    await page.waitForTimeout(700);
+    log = await readLog();
+    assert(!hasAddr(log, pushWhtAddr), `no orphaned repeat chain after pad+touch double press (got ${log.filter(m => m.address === pushWhtAddr).length} extra messages)`);
 
     // --- screenshot -------------------------------------------------------
     const outDir = path.join(ROOT, 'test-artifacts');

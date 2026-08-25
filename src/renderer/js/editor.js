@@ -32,7 +32,7 @@ function pickRow(items, cls, current, decorate, onpick) {
     const b = h('button', cls);
     decorate(b, item);
     b.classList.toggle('on', item === current);
-    b.addEventListener('pointerdown', () => {
+    b.addEventListener('click', () => {
       r.querySelectorAll('.on').forEach(x => x.classList.remove('on'));
       b.classList.add('on');
       onpick(item);
@@ -63,7 +63,7 @@ function stepRow(step, onDelete) {
   vals.placeholder = 'values, comma separated';
   const del = h('button', 'macro-del', '✕');
   del.setAttribute('aria-label', 'Remove this step');
-  del.addEventListener('pointerdown', onDelete);
+  del.addEventListener('click', onDelete);
   row.append(addr, vals, del);
   return row;
 }
@@ -79,7 +79,7 @@ function macroSection(body, draft) {
       macroBox.appendChild(row);
     });
     const add = h('button', 'big-btn u-caps', '+ Add macro step');
-    add.addEventListener('pointerdown', () => {
+    add.addEventListener('click', () => {
       draft.macro = draft.macro ?? [];
       draft.macro.push({ address: '/', values: [1] });
       renderMacro();
@@ -120,7 +120,7 @@ export function openEditor(kind, index) {
 
   function learnButton(applyMsg) {
     const b = h('button', 'big-btn learn-btn u-caps', 'Learn');
-    b.addEventListener('pointerdown', () => {
+    b.addEventListener('click', () => {
       if (b.classList.contains('listening')) {
         cleanupLearn();
         b.textContent = 'LEARN';
@@ -142,7 +142,7 @@ export function openEditor(kind, index) {
   function libraryView(onPick, opts = {}) {
     body.innerHTML = '';
     const back = h('button', 'big-btn u-caps', '← Back');
-    back.addEventListener('pointerdown', () => buildBody());
+    back.addEventListener('click', () => buildBody());
     body.appendChild(back);
 
     const searchWrap = h('div', 'field');
@@ -153,6 +153,11 @@ export function openEditor(kind, index) {
 
     const list = h('div', 'lib-list');
     body.appendChild(list);
+
+    // The Library button is far down the FX form, so the body arrives here
+    // scrolled; without this the list opened 700px in, with the search
+    // field and Back out of sight above.
+    body.scrollTop = 0;
 
     function renderList() {
       list.innerHTML = '';
@@ -170,9 +175,13 @@ export function openEditor(kind, index) {
         if (entry.hint) box.append(h('div', 'lib-hint', entry.hint));
         e.appendChild(box);
         list.appendChild(e);
-        e.addEventListener('pointerdown', () => {
+        e.addEventListener('click', () => {
           const keys = placeholders(entry.address);
           if (!keys.length) { onPick(entry.address, entry); return; }
+          // Once expanded, a tap on one of its number inputs bubbles up here;
+          // rebuilding would throw away what was just typed.
+          if (e.dataset.expanded) return;
+          e.dataset.expanded = '1';
           // inline placeholder substitution
           e.replaceChildren();
           const subs = {};
@@ -185,7 +194,7 @@ export function openEditor(kind, index) {
           }
           const apply = h('button', 'big-btn primary', 'APPLY');
           apply.style.maxWidth = '120px';
-          apply.addEventListener('pointerdown', ev => {
+          apply.addEventListener('click', ev => {
             ev.stopPropagation();
             onPick(expand(entry.address, subs), entry);
           });
@@ -205,7 +214,7 @@ export function openEditor(kind, index) {
     wrap.appendChild(input);
     const row = h('div', 'row');
     const lib = h('button', 'big-btn u-caps', 'Library');
-    lib.addEventListener('pointerdown', () => libraryView((address, entry) => {
+    lib.addEventListener('click', () => libraryView((address, entry) => {
       draft.address = address;
       opts.onPickEntry?.(entry);
       buildBody();
@@ -276,7 +285,7 @@ export function openEditor(kind, index) {
     function padBtn(labelText, val) {
       const pb = h('button', 'pad-pick', labelText);
       pb.classList.toggle('on', draft.gamepadButton === val);
-      pb.addEventListener('pointerdown', () => {
+      pb.addEventListener('click', () => {
         draft.gamepadButton = val;
         padRow.querySelectorAll('.on').forEach(x => x.classList.remove('on'));
         pb.classList.add('on');
@@ -294,7 +303,7 @@ export function openEditor(kind, index) {
     function modBtn(labelText, val) {
       const mb = h('button', 'pad-pick', labelText);
       mb.classList.toggle('on', (draft.gamepadModifier ?? -1) === val);
-      mb.addEventListener('pointerdown', () => {
+      mb.addEventListener('click', () => {
         draft.gamepadModifier = val;
         modRow.querySelectorAll('.on').forEach(x => x.classList.remove('on'));
         mb.classList.add('on');
@@ -308,7 +317,7 @@ export function openEditor(kind, index) {
       'A modifier held alone still fires its own binding; only the second button changes.'));
 
     const padLearn = h('button', 'big-btn learn-btn u-caps', 'Gamepad learn');
-    padLearn.addEventListener('pointerdown', () => {
+    padLearn.addEventListener('click', () => {
       if (padLearn.classList.contains('listening')) {
         disarmGamepadLearn();
         padLearn.classList.remove('listening');
@@ -385,7 +394,7 @@ export function openEditor(kind, index) {
 
     if (Array.isArray(draft.rgb)) {
       const useSwatch = h('button', 'big-btn u-caps', 'Use swatch color');
-      useSwatch.addEventListener('pointerdown', () => {
+      useSwatch.addEventListener('click', () => {
         draft.rgb = hexToRgb01(draft.color);
         buildBody();
       });
@@ -431,7 +440,7 @@ export function openEditor(kind, index) {
           box.appendChild(stepRow(step, () => { draft[key].splice(si, 1); renderSteps(); }));
         });
         const add = h('button', 'big-btn u-caps', `+ Add step`);
-        add.addEventListener('pointerdown', () => {
+        add.addEventListener('click', () => {
           draft[key] = draft[key] ?? [];
           draft[key].push({ address: '/', values: [1] });
           renderSteps();
@@ -448,9 +457,10 @@ export function openEditor(kind, index) {
     if ((state.get().colorTargets?.items ?? []).length > 1) {
       const del = h('button', 'big-btn danger u-caps', 'Delete this target');
       del.id = 'set-target-delete';
-      del.addEventListener('pointerdown', () => {
+      del.addEventListener('click', () => {
         if (!state.removeColorTarget(index)) return;
-        state.requestRerender();
+        // The chip rows rebuild themselves on notify; the rest of the surface
+        // is untouched (a full rebuild would restart the BPM page's mic).
         close();
       });
       body.append(h('div', 'lib-group-title u-caps', 'Danger zone'));
@@ -480,6 +490,9 @@ export function openEditor(kind, index) {
       stealBinding(state.get(), kind, index, draft.gamepadButton, draft.gamepadModifier ?? -1);
     }
     if (kind === 'colorTargets') {
+      // The target chips (footer switch, COLORS page row) repaint from the
+      // config on notify — no surface rebuild, which would restart the BPM
+      // page's microphone and drop its lock.
       state.replaceColorTarget(index, draft);
     } else {
       state.replaceControl(kind, index, draft);

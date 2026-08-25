@@ -31,7 +31,12 @@ export function startGamepad(handles) {
   // modifier changes mid-press, so remember which handle each button's
   // press actually resolved to and release *that* one, not a re-resolve.
   const active = {};
-  const trigState = { lt: { engaged: false, last: null }, rt: { engaged: false, last: null } };
+  // suppressed: releaseAll() let go of the trigger while it was still
+  // physically held; it stays released until the axis reads idle once.
+  const trigState = {
+    lt: { engaged: false, last: null, suppressed: false },
+    rt: { engaged: false, last: null, suppressed: false },
+  };
   const stickLast = {};
   let activePad = null;
   let lastRumbleAt = 0;
@@ -64,10 +69,56 @@ export function startGamepad(handles) {
     return Number(btn) || 0;
   }
 
+  // Snap an engaged analog trigger back to rest (the pad's release path and
+  // the lost-pad path share this so both send the same two messages).
+  function disengageTrigger(key, t) {
+    const st = trigState[key];
+    if (!st.engaged) return;
+    st.engaged = false;
+    st.last = null;
+    if (t?.analogAddress) {
+      rogger.sendTyped(t.analogAddress, [{ type: 'f', value: t.releaseValue ?? t.from }]);
+    }
+    if (t?.engageAddress) {
+      rogger.sendTyped(t.engageAddress, [{ type: 'i', value: Math.trunc(t.engageReleaseValue ?? 0) }]);
+    }
+  }
+
+  // The pad stopped reporting (unplugged, Armoury Crate mode switch, window
+  // hidden or unfocused): let go of everything it was driving, or a hold FX
+  // stays on and its repeat timer keeps firing until the pad comes back.
+  function releaseAll() {
+    for (const bi of Object.keys(active)) {
+      const hi = active[bi];
+      delete active[bi];
+      if (hi !== undefined && handles[hi]) handles[hi].release();
+    }
+    const tcfg = state.get()?.triggers ?? {};
+    for (const [key] of ANALOG_TRIGGERS) {
+      // Mirror held buttons (prev keeps them "down"): if the operator is
+      // still standing on the trigger when focus is stolen, the next tick
+      // must not re-engage it -- that would blip the strobe clip OFF/ON.
+      if (trigState[key].engaged) trigState[key].suppressed = true;
+      disengageTrigger(key, tcfg[key]);
+    }
+    const scfg = state.get()?.sticks ?? {};
+    for (const [key, xi, yi] of STICK_AXES) {
+      const s = scfg[key];
+      for (const [axIdx, a] of [[xi, s?.x], [yi, s?.y]]) {
+        const id = key + axIdx;
+        if (stickLast[id] === undefined) continue;
+        stickLast[id] = undefined;
+        if (a?.address) rogger.sendTyped(a.address, [{ type: 'f', value: a.center }]);
+      }
+    }
+  }
+  window.addEventListener('blur', releaseAll);
+  document.addEventListener('visibilitychange', () => { if (document.hidden) releaseAll(); });
+
   function tick() {
     requestAnimationFrame(tick);
     const pad = pads().find(p => p && p.buttons?.length);
-    if (!pad) { prev = []; activePad = null; return; }
+    if (!pad) { releaseAll(); prev = []; activePad = null; return; }
     activePad = pad;
     const haptics = state.get()?.haptics ?? {};
     const tcfg = state.get()?.triggers ?? {};
@@ -80,6 +131,10 @@ export function startGamepad(handles) {
       const v = Math.min(1, axisValue(pad.buttons[idx]));
       const st = trigState[key];
       const engaged = v > 0.03;
+      if (st.suppressed) {
+        if (engaged) continue; // released by releaseAll(), never let go since
+        st.suppressed = false; // idle once -> live again on the next press
+      }
       if (engaged && !st.engaged) {
         st.engaged = true;
         if (t.engageAddress) {
@@ -101,16 +156,7 @@ export function startGamepad(handles) {
           rumble(v * 0.7, v * 0.4, 110);
         }
       }
-      if (!engaged && st.engaged) {
-        st.engaged = false;
-        st.last = null;
-        if (t.analogAddress) {
-          rogger.sendTyped(t.analogAddress, [{ type: 'f', value: t.releaseValue ?? t.from }]);
-        }
-        if (t.engageAddress) {
-          rogger.sendTyped(t.engageAddress, [{ type: 'i', value: Math.trunc(t.engageReleaseValue ?? 0) }]);
-        }
-      }
+      if (!engaged && st.engaged) disengageTrigger(key, t);
     }
 
     // stick axes: deflection drives a param, spring-back re-centers it

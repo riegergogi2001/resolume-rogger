@@ -193,6 +193,17 @@ async function main() {
     const page2On = await page.locator('#fx-grid .page-tab', { hasText: 'Page 2' }).evaluate(el => el.classList.contains('on'));
     assert(page2On, '/rogger/page 2 switches to Page 2 (tab .on)');
 
+    console.log('\n[remote] /rogger/page past the last tab is ignored');
+    const tabCount = await page.locator('#fx-grid .page-tab').count();
+    const pageBefore = await page.evaluate(() => document.body.dataset.page);
+    const activeBefore = await page.locator('.fx-page.active').count();
+    await page.evaluate(n => window.__emitOscIn({ address: '/rogger/page', args: [{ type: 'i', value: n }] }), tabCount + 1);
+    await page.waitForTimeout(30);
+    assert(await page.evaluate(() => document.body.dataset.page) === pageBefore,
+      `/rogger/page ${tabCount + 1} (beyond ${tabCount} tabs) leaves body.dataset.page at ${pageBefore}`);
+    assert(await page.locator('.fx-page.active').count() === activeBefore,
+      `/rogger/page ${tabCount + 1} leaves the .fx-page.active count at ${activeBefore}`);
+
     console.log('\n[remote] /rogger/fader/1 sets the MASTER fader value');
     await clearLog();
     await page.evaluate(() => window.__emitOscIn({ address: '/rogger/fader/1', args: [{ type: 'f', value: 0.5 }] }));
@@ -281,6 +292,264 @@ async function main() {
       'delete puts the row back where it was');
     await page.click('#edit-toggle');
     await page.waitForTimeout(150);
+
+    // ---------------------------------------------------------------
+    // Each colour target is on the page exactly once. The ColorMorph strip
+    // used to repeat MORPH 1 / MORPH 2 as "Color 1" / "Color 3" wells.
+    // ---------------------------------------------------------------
+    console.log('\n[colours] every target appears once; the morph strip is speed + on/off only');
+    // Back to COLORS: the delete above re-rendered the surface.
+    await page.locator('#fx-grid .page-tab').nth(3).click();
+    await page.waitForTimeout(250);
+    const targetIds = defaults.colorTargets.items.map(t => t.id);
+    const chipIds = await page.locator('.lab-chips .target-pick[data-target]').evaluateAll(
+      els => els.map(e => e.dataset.target));
+    assert(JSON.stringify(chipIds) === JSON.stringify(targetIds),
+      `chip row lists each configured target once (${chipIds.join(', ')})`);
+    assert(await page.locator('.morph-well').count() === 0, 'no duplicate morph wells');
+    // The footer target switch exists on every page but is hidden on COLORS
+    // (the lab has its own chip row), so count what is actually on screen.
+    assert(await page.locator('[data-target="morph1"]:visible').count() === 1 &&
+      await page.locator('[data-target="morph2"]:visible').count() === 1,
+      'the morph colours are reachable through exactly one visible control each');
+    assert(await page.locator('.lab-morph').isVisible(), 'the morph strip is shown while the config has a ColorMorph');
+    assert(await page.locator('.lab-morph .speed-track').count() === 1 &&
+      await page.locator('.lab-morph .morph-toggle').count() === 1,
+      'the strip carries the speed slider and the on/off toggle');
+    const stripBox = await page.locator('.lab-morph').boundingBox();
+    const labBox = await page.locator('.color-lab').boundingBox();
+    assert(stripBox && labBox && stripBox.x + stripBox.width <= labBox.x + labBox.width + 1,
+      'the strip fits inside the lab');
+
+    // ---------------------------------------------------------------
+    // A busy listen port must be visible for the whole show, not for the
+    // 2.6 s of a toast: commands still land, feedback does not.
+    // ---------------------------------------------------------------
+    console.log('\n[topbar] a busy listen port stays announced on the surface');
+    const warn = page.locator('#listen-warn');
+    assert(!await warn.isVisible(), 'no warning while the configured port is bound');
+    await page.evaluate(() => window.__emitListen({ port: 54321, configured: 7001, fallback: true }));
+    await page.waitForTimeout(60);
+    assert(await warn.isVisible() && /7001/.test(await warn.textContent()),
+      `the badge names the busy port (${await warn.textContent()})`);
+    // Measured at the window floor (src/window-size.js), the smallest surface
+    // the app allows; this spec's default viewport is narrower than that.
+    const before = page.viewportSize();
+    await page.setViewportSize({ width: 1704, height: 1035 });
+    await page.waitForTimeout(60);
+    const topbarFits = await page.evaluate(() => {
+      const t = document.getElementById('topbar');
+      const r = t.getBoundingClientRect();
+      const last = t.lastElementChild.getBoundingClientRect();
+      return t.scrollWidth <= t.clientWidth + 1 && last.right <= r.right + 1;
+    });
+    assert(topbarFits, 'the topbar still fits at the window floor with the badge shown');
+    await page.setViewportSize(before);
+    await page.evaluate(() => window.__emitListen({ port: 7001, configured: 7001, fallback: false }));
+    await page.waitForTimeout(60);
+    assert(!await warn.isVisible(), 'and it clears once the port is bound again');
+
+    // ---------------------------------------------------------------
+    // A rebuild of the surface keeps the operator where they were. The whole
+    // surface is re-rendered after a fader orientation edit, a colour target
+    // edit/add/delete, a hidden page and an import; that must not drop them
+    // back on Page 1, leave edit mode, or show a latched toggle as off while
+    // the effect it switched on is still running.
+    // ---------------------------------------------------------------
+    console.log('\n[rerender] page, edit mode and latched toggles survive a rebuild');
+    const pageNow = () => page.evaluate(() => document.body.dataset.page);
+    const latchedUtil = () => page.locator('#util-strip .fx-btn[data-index="1"]').evaluate(el => el.classList.contains('latched'));
+    const util1 = defaults.utilButtons[1];
+    await page.click('#util-strip .fx-btn[data-index="1"]');
+    await page.waitForTimeout(50);
+    assert(await latchedUtil(), `utility toggle "${util1.label}" latches on a tap`);
+    await page.locator('#fx-grid .page-tab').nth(1).click(); // Page 2
+    await page.waitForTimeout(150);
+    await page.click('#edit-toggle');
+    await page.waitForTimeout(100);
+    const orientationSeg = () => page.locator('#editor-overlay .field')
+      .filter({ has: page.locator('label', { hasText: /^Orientation$/ }) }).locator('.seg button');
+    async function flipGroupFader(to) {
+      await page.click('.fx-page.active .page-fader-zone .fader[data-index="0"] .fader-track');
+      await page.waitForSelector('#editor-overlay');
+      await orientationSeg().filter({ hasText: to }).click();
+      await page.click('#ed-save');
+      await page.waitForSelector('#editor-overlay', { state: 'detached' });
+      await page.waitForTimeout(150);
+    }
+    await flipGroupFader('V');
+    assert(await pageNow() === 'page-2', `saving a group fader on Page 2 keeps Page 2 up (got "${await pageNow()}")`);
+    assert(await page.evaluate(() => document.body.classList.contains('edit-mode')), 'edit mode is still on after the rebuild');
+    assert(await page.locator('#edit-toggle').evaluate(el => el.classList.contains('latched')), 'and the EDIT button still shows it');
+    assert(await latchedUtil(), `"${util1.label}" is still shown on after the rebuild`);
+    await flipGroupFader('H'); // put it back
+    await page.click('#edit-toggle');
+    await page.waitForTimeout(100);
+    await clearLog();
+    await page.click('#util-strip .fx-btn[data-index="1"]');
+    await page.waitForTimeout(50);
+    log = await readLog();
+    assert(has(log, util1.address, util1.offValue) && !has(log, util1.address, util1.value),
+      'tapping the still-on toggle sends its OFF value, not ON again');
+
+    console.log('\n[rerender] hiding another page keeps the current one up');
+    await page.evaluate(() => document.querySelector('#settings-overlay')?.remove());
+    await page.click('#settings-open');
+    await page.waitForSelector('#settings-overlay');
+    await page.getByRole('button', { name: 'Pages', exact: true }).click();
+    const bpmToggle = page.locator('#settings-overlay .check-row', { hasText: 'Show BPM' }).locator('.toggle');
+    await bpmToggle.click();
+    await page.waitForTimeout(100);
+    assert(await pageNow() === 'page-2', `hiding BPM while on Page 2 keeps Page 2 up (got "${await pageNow()}")`);
+    await bpmToggle.click();
+    await page.waitForTimeout(100);
+    assert(await pageNow() === 'page-2' && await page.locator('#fx-grid .page-tab', { hasText: 'BPM' }).count() === 1,
+      'showing it again brings the tab back without moving');
+
+    // ---------------------------------------------------------------
+    // Destructive buttons ask first. Reload sits next to Import and Exit next
+    // to Close; one mis-tap used to wipe every edit or take the show down.
+    // ---------------------------------------------------------------
+    console.log('\n[settings] destructive buttons ask first, and there are no dead toggles');
+    const dialogs = [];
+    page.on('dialog', d => { dialogs.push(d.message()); d.dismiss(); });
+    await page.getByRole('button', { name: 'Backup', exact: true }).click();
+    const labelBeforeReset = await page.locator('.fx-btn[data-kind="fxButtons"][data-index="0"] .fx-label').textContent();
+    await page.click('#set-reset');
+    await page.waitForTimeout(200);
+    assert(dialogs.length === 1 && /default/i.test(dialogs[0]), 'Reload default mapping asks for confirmation');
+    assert(await page.locator('.fx-btn[data-kind="fxButtons"][data-index="0"] .fx-label').textContent() === labelBeforeReset,
+      'declining leaves the surface as it was');
+    await page.click('#set-exit');
+    await page.waitForTimeout(200);
+    assert(dialogs.length === 2, 'Exit app asks for confirmation');
+    assert(!(await page.evaluate(() => window.__quitCalled)), 'declining does not quit');
+    page.removeAllListeners('dialog');
+    await page.getByRole('button', { name: 'Network', exact: true }).click();
+    assert(await page.locator('#settings-overlay .check-row', { hasText: 'Dark theme' }).count() === 0,
+      'no Dark theme toggle (nothing reads it — it flipped and did nothing)');
+    await page.click('#set-close');
+    await page.waitForSelector('#settings-overlay', { state: 'detached' });
+
+    // ---------------------------------------------------------------
+    // Colour target edits reach every chip row. The chips only track which
+    // target is active, so a saved label or a new target needs a rebuild.
+    // ---------------------------------------------------------------
+    console.log('\n[edit] colour target edits show up on every chip row, without leaving the page');
+    await page.click('#edit-toggle');
+    await page.waitForTimeout(100);
+    await page.click('#color-row .target-pick >> nth=1');
+    await page.waitForSelector('#editor-overlay');
+    await page.locator('#editor-overlay .field').filter({ has: page.locator('label', { hasText: /^Label$/ }) })
+      .first().locator('input').fill('LOGO X');
+    await page.click('#ed-save');
+    await page.waitForSelector('#editor-overlay', { state: 'detached' });
+    await page.waitForTimeout(150);
+    assert(await page.locator('#color-row .target-pick').nth(1).textContent() === 'LOGO X',
+      'the footer chip shows the saved label');
+    assert(await page.locator('.lab-chips .target-pick[data-target]').nth(1).textContent() === 'LOGO X',
+      'the COLORS page chip shows the saved label');
+    await page.locator('#fx-grid .page-tab').nth(3).click(); // COLORS
+    await page.waitForTimeout(150);
+    await page.click('#lab-add-target');
+    await page.waitForSelector('#editor-overlay');
+    await page.click('#ed-save');
+    await page.waitForSelector('#editor-overlay', { state: 'detached' });
+    await page.waitForTimeout(150);
+    assert(await pageNow() === 'colors', `saving a new target keeps COLORS up (got "${await pageNow()}")`);
+    const labCount = await page.locator('.lab-chips .target-pick[data-target]').count();
+    const footerCount = await page.locator('#color-row .target-pick').count();
+    assert(footerCount === labCount, `the footer switch carries the new target too (${footerCount} of ${labCount})`);
+    await page.locator('.lab-chips .target-pick[data-target]').last().click();
+    await page.waitForSelector('#editor-overlay');
+    await page.click('#set-target-delete');
+    await page.waitForTimeout(300);
+    assert(await pageNow() === 'colors', `deleting a target keeps COLORS up (got "${await pageNow()}")`);
+    assert(await page.evaluate(() => document.body.classList.contains('edit-mode')), 'and edit mode stays on');
+    assert(await page.locator('#color-row .target-pick').count() === labCount - 1, 'the footer switch shrank with it');
+
+    // ---------------------------------------------------------------
+    // Every button in a panel is finger-sized. A big-btn dropped straight into
+    // the column-flex panel body used to collapse to its 20px text line.
+    // ---------------------------------------------------------------
+    console.log('\n[edit] buttons placed straight into a panel body keep their height');
+    await page.locator('#fx-grid .page-tab').nth(0).click();
+    await page.waitForTimeout(150);
+    await page.click('.fx-btn[data-kind="fxButtons"][data-index="0"]');
+    await page.waitForSelector('#editor-overlay');
+    const learnBox = await page.locator('#editor-overlay .learn-btn', { hasText: /gamepad learn/i }).boundingBox();
+    assert(learnBox && learnBox.height >= 44, `Gamepad learn is finger-sized (${Math.round(learnBox?.height ?? 0)}px tall)`);
+    await page.locator('#editor-overlay .field').filter({ has: page.locator('label', { hasText: /^OSC address$/ }) })
+      .locator('button', { hasText: 'Library' }).click();
+    const backBox = await page.locator('#editor-overlay .big-btn', { hasText: 'Back' }).boundingBox();
+    assert(backBox && backBox.height >= 44, `the library's Back is finger-sized (${Math.round(backBox?.height ?? 0)}px tall)`);
+    await page.click('#ed-cancel');
+    await page.waitForSelector('#editor-overlay', { state: 'detached' });
+    await page.click('#edit-toggle');
+
+    // ---------------------------------------------------------------
+    // Touch: a finger that lands on a control and scrolls the panel must not
+    // press it. The surface reacts on pointerdown for latency (nothing scrolls
+    // there); inside a scrolling panel that fired before the browser knew it
+    // was a scroll, flipping toggles and picking library entries.
+    // ---------------------------------------------------------------
+    console.log('\n[touch] a scroll gesture does not press the control it started on');
+    const touch = await browser.newPage({ hasTouch: true, viewport: { width: 1920, height: 1080 } });
+    await touch.goto(URL);
+    await touch.waitForFunction(() => document.body.dataset.ready === '1');
+    const cdp = await touch.context().newCDPSession(touch);
+    async function swipeUp(locator) {
+      const b = await locator.boundingBox();
+      await cdp.send('Input.synthesizeScrollGesture', {
+        x: Math.round(b.x + b.width / 2), y: Math.round(b.y + b.height / 2),
+        yDistance: -400, gestureSourceType: 'touch', speed: 1200,
+      });
+      await touch.waitForTimeout(300);
+    }
+    await touch.tap('#settings-open');
+    await touch.waitForSelector('#settings-overlay');
+    await touch.getByRole('button', { name: 'Controller', exact: true }).tap();
+    const firstToggle = touch.locator('#settings-overlay .check-row .toggle').first();
+    const wasOn = await firstToggle.evaluate(el => el.classList.contains('on'));
+    await swipeUp(firstToggle);
+    const scrolledBy = await touch.evaluate(() => document.querySelector('#settings-overlay .panel-body').scrollTop);
+    assert(scrolledBy > 0, `the panel scrolled under the finger (${scrolledBy}px)`);
+    assert(await firstToggle.evaluate(el => el.classList.contains('on')) === wasOn,
+      'the toggle the finger landed on did not flip');
+    await touch.evaluate(() => { document.querySelector('#settings-overlay .panel-body').scrollTop = 0; });
+    await firstToggle.tap();
+    assert(await firstToggle.evaluate(el => el.classList.contains('on')) === !wasOn, 'a plain tap still flips it');
+    await touch.tap('#set-close');
+    await touch.waitForSelector('#settings-overlay', { state: 'detached' });
+    await touch.tap('#edit-toggle');
+    await touch.locator('.fx-btn[data-kind="fxButtons"][data-index="2"]').tap();
+    await touch.waitForSelector('#editor-overlay');
+    await touch.locator('#editor-overlay .field').filter({ has: touch.locator('label', { hasText: /^OSC address$/ }) })
+      .locator('button', { hasText: 'Library' }).tap();
+    await touch.waitForSelector('#editor-overlay .lib-entry');
+    // The Library button sits far down the FX form, so the body arrives here
+    // scrolled; the library must open at its top, not at whatever entry
+    // happens to be 700px down, with the search field and Back out of sight.
+    const searchBox = await touch.locator('#editor-overlay .field input[type="text"]').boundingBox();
+    const bodyBox = await touch.locator('#editor-overlay .panel-body').boundingBox();
+    assert(searchBox && searchBox.y >= bodyBox.y && searchBox.y + searchBox.height <= bodyBox.y + bodyBox.height,
+      'the library opens with its search field in view');
+    const entriesBefore = await touch.locator('#editor-overlay .lib-entry').count();
+    await swipeUp(touch.locator('#editor-overlay .lib-entry').first());
+    assert(await touch.locator('#editor-overlay .lib-entry').count() === entriesBefore,
+      'scrolling the library did not pick the entry under the finger');
+    await touch.fill('#editor-overlay .field input[type="text"]', 'tempo tap');
+    await touch.locator('#editor-overlay .lib-entry').first().tap();
+    await touch.waitForSelector('#ed-address');
+    assert(await touch.locator('#ed-address').inputValue() === '/composition/tempocontroller/tempotap',
+      'a plain tap on an entry still picks it');
+    const longPressRefused = await touch.evaluate(() => {
+      const ev = new MouseEvent('contextmenu', { bubbles: true, cancelable: true });
+      document.querySelector('.fx-btn').dispatchEvent(ev);
+      return ev.defaultPrevented;
+    });
+    assert(longPressRefused, 'a long-press context menu is refused (it would cancel a held button)');
+    await touch.close();
 
     await browser.close();
     console.log('\nALL EDITOR/SETTINGS/REMOTE-API UI CHECKS PASSED');

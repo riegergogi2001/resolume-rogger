@@ -1,6 +1,6 @@
 // COLORS page: advanced picker driving the switchable color targets.
 // Hue strip + saturation/value pad (throttled OSC), quick swatch bank, and a
-// ColorMorph strip (Color 1 / Color 3 wells, speed slider, on/off toggle).
+// ColorMorph strip (speed slider + on/off toggle for the comp-level effect).
 import { rogger } from './bridge.js';
 import * as state from './state.js';
 import * as colorMemory from './color-memory.js';
@@ -72,14 +72,18 @@ export function renderColorLab(el, { isEditMode, onEdit } = {}) {
   // ---- target chips ----
   const chips = document.createElement('div');
   chips.className = 'lab-chips';
+  // Same contract as the footer switch in color-row.js: the row follows the
+  // config by itself — label/swatch repaint in place, a changed set of ids
+  // rebuilds the row — so editing a target never rebuilds the surface.
+  const idsOf = () => (targetsCfg()?.items ?? []).map(x => x.id).join('\n');
+  let builtIds = null;
   function buildChips() {
     chips.innerHTML = '';
+    builtIds = idsOf();
     (targetsCfg()?.items ?? []).forEach((item, ti) => {
       const c = document.createElement('button');
       c.className = 'target-pick u-caps';
       c.dataset.target = item.id;
-      c.textContent = item.label;
-      c.style.setProperty('--sw', item.swatch);
       c.addEventListener('pointerdown', () => {
         if (isEditMode?.()) { onEdit?.('colorTargets', ti); return; }
         state.setColorTarget(item.id);
@@ -113,9 +117,16 @@ export function renderColorLab(el, { isEditMode, onEdit } = {}) {
     refreshChips();
   }
   function refreshChips() {
-    const active = targetsCfg()?.active;
-    chips.querySelectorAll('.target-pick[data-target]').forEach(x =>
-      x.classList.toggle('on', x.dataset.target === active));
+    if (idsOf() !== builtIds) { buildChips(); return; }
+    const t = targetsCfg();
+    chips.querySelectorAll('.target-pick[data-target]').forEach(x => {
+      const item = t?.items?.find(i => i.id === x.dataset.target);
+      if (item) {
+        x.textContent = item.label;
+        x.style.setProperty('--sw', item.swatch);
+      }
+      x.classList.toggle('on', x.dataset.target === t?.active);
+    });
   }
   buildChips();
   state.subscribe(refreshChips);
@@ -252,21 +263,16 @@ export function renderColorLab(el, { isEditMode, onEdit } = {}) {
     bank.appendChild(b);
   });
 
-  // ---- ColorMorph strip ----
+  // ---- ColorMorph strip: speed + on/off for the comp-level effect ----
+  // The two morph colours are ordinary targets in the chip row above
+  // (MORPH 1 / MORPH 2), edited and deleted like any other. This strip used
+  // to repeat them as "Color 1" / "Color 3" wells, so each morph colour was
+  // on the page twice — and the wells' swatches could never light, because
+  // Resolume does not echo colours (see color-memory.js).
   const morph = document.createElement('div');
   morph.className = 'lab-morph';
   const morphCfg = () => state.get().colorMorph ?? {};
-
-  function morphWell(id, label) {
-    const w = document.createElement('button');
-    w.className = 'morph-well';
-    w.dataset.target = id;
-    w.innerHTML = `<span class="well-swatch"></span><span class="u-caps">${label}</span>`;
-    w.addEventListener('pointerdown', () => state.setColorTarget(id));
-    return w;
-  }
-  const well1 = morphWell('morph1', 'Color 1');
-  const well2 = morphWell('morph2', 'Color 3');
+  const hasMorph = () => Boolean(morphCfg().speedAddress || morphCfg().bypassAddress);
 
   const morphToggle = document.createElement('button');
   morphToggle.className = 'morph-toggle u-caps';
@@ -284,7 +290,7 @@ export function renderColorLab(el, { isEditMode, onEdit } = {}) {
 
   const speedWrap = document.createElement('div');
   speedWrap.className = 'morph-speed';
-  speedWrap.innerHTML = '<span class="u-caps">Speed</span>';
+  speedWrap.innerHTML = '<span class="u-caps">Morph speed</span>';
   const speedTrack = document.createElement('div');
   speedTrack.className = 'speed-track';
   const speedFill = document.createElement('div');
@@ -316,38 +322,19 @@ export function renderColorLab(el, { isEditMode, onEdit } = {}) {
     speedTrack.addEventListener('pointercancel', up);
   });
 
-  morph.append(well1, well2, speedWrap, morphToggle);
+  morph.append(speedWrap, morphToggle);
 
-  // ---- OSC feedback: morph wells + on/off + speed ----
-  const wellVals = { morph1: {}, morph2: {} };
+  // ---- OSC feedback: on/off + speed (Resolume does echo these) ----
   rogger.onMessage(msg => {
     const a = msg.args?.[0];
     if (!a || typeof a.value !== 'number') return;
-    const t = targetsCfg();
-    for (const id of ['morph1', 'morph2']) {
-      const item = t?.items?.find(x => x.id === id);
-      const base = item?.colorBases?.[0];
-      if (base && msg.address.startsWith(base + '/')) {
-        const ch = msg.address.slice(base.length + 1);
-        if (['red', 'green', 'blue'].includes(ch)) {
-          wellVals[id][ch] = a.value;
-          const v = wellVals[id];
-          const w = id === 'morph1' ? well1 : well2;
-          w.querySelector('.well-swatch').style.background =
-            rgbHex(v.red ?? 0, v.green ?? 0, v.blue ?? 0);
-        }
-      }
-    }
     if (msg.address === morphCfg().bypassAddress) setMorphOn(a.value === 0, false);
     if (msg.address === morphCfg().speedAddress) speedFill.style.width = `${a.value * 100}%`;
   });
 
-  function refreshWells() {
-    const active = targetsCfg()?.active;
-    [well1, well2].forEach(w => w.classList.toggle('on', w.dataset.target === active));
-  }
-  refreshWells();
-  state.subscribe(refreshWells);
+  function refreshMorph() { morph.hidden = !hasMorph(); }
+  refreshMorph();
+  state.subscribe(refreshMorph);
 
   const title = document.createElement('div');
   title.className = 'bank-title';

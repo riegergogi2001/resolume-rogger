@@ -149,24 +149,39 @@ export function renderColorRow(el, { isEditMode, onEdit }) {
     const sw = document.createElement('div');
     sw.className = 'color-target-switch';
     el.appendChild(sw);
-    targetsCfg().items.forEach((item, ti) => {
-      const tb = document.createElement('button');
-      tb.className = 'target-pick u-caps';
-      tb.dataset.target = item.id;
-      tb.textContent = item.label;
-      tb.style.setProperty('--sw', item.swatch);
-      tb.addEventListener('pointerdown', () => {
-        if (isEditMode()) { onEdit('colorTargets', ti); return; }
-        state.setColorTarget(item.id);
-        lastVals.clear();
-        evaluateSelection();
+    // The switch follows the config on its own: a renamed target repaints its
+    // chip, an added or deleted one rebuilds the row. Nothing else on the
+    // surface needs to be torn down for a colour-target edit (a full rebuild
+    // used to restart the BPM page's microphone and drop its lock).
+    const idsOf = () => (targetsCfg()?.items ?? []).map(x => x.id).join('\n');
+    let builtIds = null;
+    function buildSwitch() {
+      sw.innerHTML = '';
+      builtIds = idsOf();
+      (targetsCfg()?.items ?? []).forEach((item, ti) => {
+        const tb = document.createElement('button');
+        tb.className = 'target-pick u-caps';
+        tb.dataset.target = item.id;
+        tb.addEventListener('pointerdown', () => {
+          if (isEditMode()) { onEdit('colorTargets', ti); return; }
+          state.setColorTarget(item.id);
+          lastVals.clear();
+          evaluateSelection();
+        });
+        sw.appendChild(tb);
       });
-      sw.appendChild(tb);
-    });
+    }
     function refreshSwitch() {
-      const active = targetsCfg()?.active;
-      sw.querySelectorAll('.target-pick').forEach(x =>
-        x.classList.toggle('on', x.dataset.target === active));
+      if (idsOf() !== builtIds) buildSwitch();
+      const t = targetsCfg();
+      sw.querySelectorAll('.target-pick').forEach(x => {
+        const item = t?.items?.find(i => i.id === x.dataset.target);
+        if (item) {
+          x.textContent = item.label;
+          x.style.setProperty('--sw', item.swatch);
+        }
+        x.classList.toggle('on', x.dataset.target === t?.active);
+      });
     }
     refreshSwitch();
     state.subscribe(refreshSwitch);

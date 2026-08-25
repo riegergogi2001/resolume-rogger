@@ -20,6 +20,11 @@ class OscEngine extends EventEmitter {
     this._reconnectTimer = null;
     this._reconnectAttempt = 0;
     this._learnArmed = false;
+    this._pending = null;     // { socket, resolve } while a bind is in flight
+    // True when the configured listen port could not be bound and the engine
+    // is sending from an ephemeral port instead: commands still land, but
+    // feedback aimed at the configured port will not arrive.
+    this.listenFallback = false;
   }
 
   configure(network) {
@@ -39,21 +44,60 @@ class OscEngine extends EventEmitter {
         this._setStatus('offline');
         return resolve(false);
       }
-      const socket = dgram.createSocket('udp4');
-      socket.on('error', err => {
+      this._bind(this.network.listenPort ?? 0, resolve, true);
+    });
+  }
+
+  // Bind one socket. A bind that fails on the configured port (EADDRINUSE from
+  // another app, EACCES from a Windows excluded port range) falls back to an
+  // ephemeral port once, so a busy listen port never takes sending down with
+  // it. Every path settles the promise: the Settings save awaits this.
+  _bind(port, resolve, allowFallback) {
+    const socket = dgram.createSocket('udp4');
+    const pending = { socket, resolve };
+    this._pending = pending;
+    let bound = false;
+    socket.on('error', err => {
+      if (bound) {
+        // A receive error on a live socket (Windows reports an ICMP
+        // port-unreachable this way) is worth a toast, never a teardown.
         this.emit('error', err);
-        this._setStatus('offline');
-        socket.close();
-        if (this.socket === socket) this.socket = null;
-        this._scheduleReconnect();
-      });
-      socket.on('message', buf => this._onInbound(buf));
-      socket.bind(this.network.listenPort ?? 0, () => {
-        this.socket = socket;
-        this._reconnectAttempt = 0;
-        this._setStatus('ready');
-        resolve(true);
-      });
+        return;
+      }
+      if (this._pending === pending) this._pending = null;
+      try { socket.close(); } catch { /* never bound */ }
+      this.emit('error', err);
+      if (allowFallback && port !== 0) {
+        this.emit('error', new Error(
+          `Listen port ${port} is not available (${err?.code ?? err?.message ?? err}) — ` +
+          'sending still works, but feedback and the remote API will not arrive until ' +
+          'the port is freed or changed in Settings → Network.'));
+        this._bind(0, resolve, false);
+        return;
+      }
+      this._setStatus('offline');
+      this._scheduleReconnect();
+      resolve(false);
+    });
+    socket.on('message', buf => this._onInbound(buf));
+    socket.bind(port, () => {
+      bound = true;
+      if (this._pending !== pending) {
+        // close() or a newer open() superseded this bind while it was in flight
+        try { socket.close(); } catch { /* already closed */ }
+        resolve(false);
+        return;
+      }
+      this._pending = null;
+      this.socket = socket;
+      this.listenFallback = port === 0 && (this.network?.listenPort ?? 0) !== 0;
+      this._reconnectAttempt = 0;
+      this._setStatus('ready');
+      // Where feedback can actually arrive. The surface shows a persistent
+      // warning when this is not the configured port, because 'ready' alone
+      // would hide a dead feedback leg behind a healthy-looking lamp.
+      this.emit('listen', this.listenInfo());
+      resolve(true);
     });
   }
 
@@ -62,11 +106,30 @@ class OscEngine extends EventEmitter {
     clearTimeout(this._reconnectTimer);
     this._liveTimer = null;
     this._reconnectTimer = null;
+    if (this._pending) {
+      const pending = this._pending;
+      this._pending = null;
+      try { pending.socket.close(); } catch { /* never bound */ }
+      pending.resolve(false);
+    }
     if (this.socket) {
       try { this.socket.close(); } catch { /* already closed */ }
       this.socket = null;
     }
+    this.listenFallback = false;
     this._setStatus('offline');
+    this.emit('listen', this.listenInfo());
+  }
+
+  // { port, configured, fallback }: the port feedback must be sent to, the
+  // one Settings asked for, and whether they differ.
+  listenInfo() {
+    const addr = this.listenAddress();
+    return {
+      port: addr?.port ?? null,
+      configured: this.network?.listenPort ?? 0,
+      fallback: Boolean(this.listenFallback),
+    };
   }
 
   listenAddress() {
@@ -98,8 +161,15 @@ class OscEngine extends EventEmitter {
       }, this.liveWindowMs);
     }
     for (const msg of messages) {
-      this.emit('message', msg);
-      if (this._learnArmed) this.emit('learn', msg);
+      // A listener that throws (a window torn down mid-send, say) must not
+      // propagate out of the socket's message handler — that would be an
+      // uncaught exception in the main process, i.e. the app going down.
+      try {
+        this.emit('message', msg);
+        if (this._learnArmed) this.emit('learn', msg);
+      } catch (err) {
+        this.emit('error', err);
+      }
     }
   }
 

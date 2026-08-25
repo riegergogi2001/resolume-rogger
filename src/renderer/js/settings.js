@@ -72,7 +72,6 @@ export function openSettings() {
       field('Listen port (learn / feedback)', numInput(netDraft.listenPort, v => { netDraft.listenPort = v || 7001; }, '1'))));
     body.append(checkRow('Auto connect on launch', netDraft.autoConnect, v => { netDraft.autoConnect = v; }));
     body.append(checkRow('Auto reconnect', netDraft.autoReconnect, v => { netDraft.autoReconnect = v; }));
-    body.append(checkRow('Dark theme', true, () => {}));
 
     // The link has three independent legs and each fails on its own, so the
     // test reports them separately. Feedback is the one that dies quietly.
@@ -80,7 +79,7 @@ export function openSettings() {
     testResult.id = 'set-test-result';
     const testBtn = h('button', 'big-btn u-caps', 'Test connection');
     testBtn.id = 'set-test';
-    testBtn.addEventListener('pointerdown', async () => {
+    testBtn.addEventListener('click', async () => {
       if (testBtn.disabled) return;
       testBtn.disabled = true;
       testResult.innerHTML = '';
@@ -108,7 +107,7 @@ export function openSettings() {
 
     const saveBtn = h('button', 'big-btn primary u-caps', 'Save network settings');
     saveBtn.id = 'set-net-save';
-    saveBtn.addEventListener('pointerdown', async () => {
+    saveBtn.addEventListener('click', async () => {
       const patch = { ...netDraft };
       state.updateNetwork(patch);
       await rogger.applyNetwork(patch);
@@ -162,7 +161,7 @@ export function openSettings() {
 
     const saveBtn = h('button', 'big-btn primary u-caps', 'Save');
     saveBtn.id = 'set-ctrl-save';
-    saveBtn.addEventListener('pointerdown', () => {
+    saveBtn.addEventListener('click', () => {
       state.updateSection('triggers', triggersDraft);
       state.updateSection('sticks', sticksDraft);
       state.updateSection('haptics', hapticsDraft);
@@ -189,7 +188,7 @@ export function openSettings() {
   function renderBackup() {
     const exportBtn = h('button', 'big-btn u-caps', 'Export config…');
     exportBtn.id = 'set-export';
-    exportBtn.addEventListener('pointerdown', async () => {
+    exportBtn.addEventListener('click', async () => {
       const res = await rogger.exportConfig();
       if (res?.ok) showToast(`Config exported${res.path ? ' to ' + res.path : ''}`);
       else showToast('Export canceled', { error: true });
@@ -198,7 +197,7 @@ export function openSettings() {
 
     const importBtn = h('button', 'big-btn u-caps', 'Import config…');
     importBtn.id = 'set-import';
-    importBtn.addEventListener('pointerdown', async () => {
+    importBtn.addEventListener('click', async () => {
       const cfg = await rogger.importConfig();
       if (cfg) {
         state.setAll(cfg);
@@ -214,7 +213,9 @@ export function openSettings() {
 
     const resetBtn = h('button', 'big-btn danger u-caps', 'Reload default mapping');
     resetBtn.id = 'set-reset';
-    resetBtn.addEventListener('pointerdown', async () => {
+    resetBtn.addEventListener('click', async () => {
+      // One tap next to Import used to wipe every edit on the surface.
+      if (!confirm('Reload the default mapping? Every edit made on this surface will be lost.')) return;
       const cfg = await rogger.resetConfig();
       state.setAll(cfg);
       state.requestRerender();
@@ -258,7 +259,14 @@ export function openSettings() {
   closeBtn.addEventListener('pointerdown', close);
   const exitBtn = h('button', 'big-btn danger u-caps', 'Exit app');
   exitBtn.id = 'set-exit';
-  exitBtn.addEventListener('pointerdown', () => rogger.quit());
+  exitBtn.addEventListener('pointerdown', async () => {
+    // Sits right next to Close. A mis-tap must not take the show down, and
+    // an edit made in the last 300 ms is still waiting in persist()'s
+    // debounce — write it before the window goes.
+    if (!confirm('Exit ROGGER?')) return;
+    await rogger.saveConfig(state.get());
+    rogger.quit();
+  });
   foot.append(closeBtn, exitBtn);
 
   renderTabBar();

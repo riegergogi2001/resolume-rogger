@@ -51,8 +51,16 @@ export function createBpmAnalyser({ onUpdate } = {}) {
   // `const analyser = createBpmAnalyser(...)` has finished assigning (an
   // onUpdate that reads the returned object synchronously would otherwise
   // hit its temporal dead zone).
-  setInterval(emitState, UPDATE_MS);
+  const refreshTimer = setInterval(emitState, UPDATE_MS);
   setTimeout(emitState, 0);
+
+  // Final: stops the capture and the refresh loop. A page that was rebuilt
+  // calls this on its old analyser, otherwise every rebuild leaves one more
+  // 12 Hz estimator running for the life of the session.
+  function dispose() {
+    clearInterval(refreshTimer);
+    if (running) stop();
+  }
 
   function handleChunk(chunk) {
     const hops = tracker.pushFrame(chunk);
@@ -142,6 +150,7 @@ export function createBpmAnalyser({ onUpdate } = {}) {
     lock: bool => tracker.lock(bool),
     scale: factor => tracker.scale(factor),
     isRunning: () => running,
+    dispose,
     get tracker() { return tracker; },
   };
 }

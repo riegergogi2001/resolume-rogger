@@ -13,7 +13,15 @@ const SEND_MIN_INTERVAL_MS = 1000;
 const SEND_MIN_CONFIDENCE = 0.6;
 const SEND_MIN_DELTA = 0.5;
 
+// The page is rebuilt with the rest of the surface (see app.js renderAll).
+// Each build creates its own analyser, and the previous one kept its 12 Hz
+// update loop — and the microphone, if it was listening — alive behind the
+// new page: two streams open, two estimates fighting over the beat clock.
+let teardown = null;
+
 export function renderBpmPage(el) {
+  teardown?.();
+  teardown = null;
   el.classList.add('bpm-page');
   el.innerHTML = '';
 
@@ -191,7 +199,9 @@ export function renderBpmPage(el) {
     }
   }
 
+  let disposed = false;
   function handleUpdate(s) {
+    if (disposed) return;
     value.textContent = s.bpm != null ? s.bpm.toFixed(1) : '—';
     raw.textContent = s.rawBpm != null ? `raw ${s.rawBpm.toFixed(1)}` : 'raw —';
     confFill.style.width = `${Math.round((s.confidence ?? 0) * 100)}%`;
@@ -223,6 +233,14 @@ export function renderBpmPage(el) {
   }
 
   const analyser = createBpmAnalyser({ onUpdate: handleUpdate });
+  teardown = () => {
+    disposed = true;
+    // Stop the capture without touching micAutoStart: the replacement page
+    // reads it and starts listening again on the new analyser. A start()
+    // still waiting on getUserMedia is not running yet and has nothing to
+    // stop; doStart handles that one when it resolves and sees `disposed`.
+    analyser.dispose();
+  };
 
   let devices = [];
   let deviceId = cfg().micDeviceId || '';
@@ -275,19 +293,30 @@ export function renderBpmPage(el) {
     if (analyser.isRunning()) { doStop(); await doStart(); }
   });
 
+  // isRunning() only turns true once getUserMedia and the worklet load have
+  // finished, so a second Start (or a page rebuild) inside that window would
+  // otherwise open a second stream; the in-flight start() is tracked here.
+  let starting = null;
   async function doStart() {
-    if (analyser.isRunning()) return;
+    if (analyser.isRunning() || starting) return;
     try {
-      await analyser.start(deviceId || undefined);
+      starting = analyser.start(deviceId || undefined);
+      await starting;
+      // The page was rebuilt while the mic was still being opened: teardown
+      // found nothing running then, so this analyser has to let go now.
+      if (disposed) { analyser.stop(); return; }
       runBtn.textContent = 'Stop';
       runBtn.classList.add('latched');
       status.textContent = 'Listening…';
       if (state.get().beat) state.get().beat.micAutoStart = true;
       state.persist();
     } catch (err) {
+      if (disposed) return;
       const msg = err?.message || 'Microphone permission denied';
       showToast(msg, { error: true });
       status.textContent = `Error: ${msg}`;
+    } finally {
+      starting = null;
     }
   }
   function doStop() {

@@ -299,3 +299,15 @@ test('info() reports what the Settings page needs before any network call', () =
   assert.equal(info.staged, null);
   assert.equal(info.busy, false);
 });
+
+test('a used-up GitHub rate limit is explained, not reported as a bare 403', async () => {
+  const fetchImpl = async () => new Response('{"message":"API rate limit exceeded"}', {
+    status: 403,
+    headers: { 'x-ratelimit-remaining': '0', 'x-ratelimit-reset': String(Math.floor(Date.now() / 1000) + 1800) },
+  });
+  const u = new Updater({ repo: REPO, payloadsDir: dir, currentVersion: '2.1.0', shellVersion: '2.1.0', fetchImpl });
+  const r = await u.check();
+  assert.equal(r.status, 'error');
+  assert.match(r.message, /rate limit/i);
+  assert.match(r.message, /minute|later/i, 'says when to try again');
+});

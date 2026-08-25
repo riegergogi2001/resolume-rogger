@@ -2374,11 +2374,38 @@
         "label": "LOGO",
         "swatch": "#eaeef5",
         "colorBases": [
+          "/composition/layers/8/video/effects/colorize/effect/color",
+          "/composition/layers/9/video/effects/colorize/effect/color",
           "/composition/layers/8/video/effects/outlinehaze/effect/color",
           "/composition/layers/9/video/effects/outlinehaze/effect/color"
         ],
-        "onSteps": [],
+        "onSteps": [
+          {
+            "address": "/composition/layers/8/video/effects/colorize/bypassed",
+            "values": [
+              0
+            ]
+          },
+          {
+            "address": "/composition/layers/9/video/effects/colorize/bypassed",
+            "values": [
+              0
+            ]
+          }
+        ],
         "offSteps": [
+          {
+            "address": "/composition/layers/8/video/effects/colorize/bypassed",
+            "values": [
+              1
+            ]
+          },
+          {
+            "address": "/composition/layers/9/video/effects/colorize/bypassed",
+            "values": [
+              1
+            ]
+          },
           {
             "address": "/composition/layers/8/video/effects/outlinehaze/bypassed",
             "values": [
@@ -2459,7 +2486,59 @@
             ]
           }
         ]
+      },
+      {
+        "id": "morph1",
+        "label": "MORPH 1",
+        "swatch": "#ff3b30",
+        "colorBases": [
+          "/composition/video/effects/colormorph/effect/color1"
+        ],
+        "onSteps": [
+          {
+            "address": "/composition/video/effects/colormorph/bypassed",
+            "values": [
+              0
+            ]
+          }
+        ],
+        "offSteps": [
+          {
+            "address": "/composition/video/effects/colormorph/bypassed",
+            "values": [
+              1
+            ]
+          }
+        ]
+      },
+      {
+        "id": "morph2",
+        "label": "MORPH 2",
+        "swatch": "#ff3df0",
+        "colorBases": [
+          "/composition/video/effects/colormorph/effect/color3"
+        ],
+        "onSteps": [
+          {
+            "address": "/composition/video/effects/colormorph/bypassed",
+            "values": [
+              0
+            ]
+          }
+        ],
+        "offSteps": [
+          {
+            "address": "/composition/video/effects/colormorph/bypassed",
+            "values": [
+              1
+            ]
+          }
+        ]
       }
     ]
+  },
+  "colorMorph": {
+    "speedAddress": "/composition/video/effects/colormorph/effect/speed",
+    "bypassAddress": "/composition/video/effects/colormorph/bypassed"
   }
 }
