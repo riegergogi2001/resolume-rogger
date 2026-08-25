@@ -2,6 +2,7 @@
 // Wires renderer IPC to the OSC engine and config store.
 const fs = require('node:fs');
 const { Updater } = require('./updater.js');
+const { buildDjButtons } = require('./dj-sync.js');
 
 function registerIpc({ ipcMain, engine, store, configPath, seedPath, getWindow, app, dialog, shell, ctx = {} }) {
   let config = store.load(configPath);
@@ -138,40 +139,20 @@ function registerIpc({ ipcMain, engine, store, configPath, seedPath, getWindow, 
     return comp.tempocontroller?.tempo?.value ?? null;
   });
 
-  // Rebuild the DJ intro page from the live composition (read-only REST GET):
-  // clip names come from the name-source layer, triggers hit its group column.
+  // Rebuild the DJ intro page from the live composition (read-only REST GET).
+  // Returns a report alongside the config so the surface can say what changed
+  // and, more importantly, which columns the group's layers disagree about.
   ipcMain.handle('dj:sync', async () => {
     const base = `http://${config.network.targetIp}:9292/api/v1`;
     const res = await fetch(`${base}/composition`, { signal: AbortSignal.timeout(5000) });
     if (!res.ok) throw new Error(`Resolume webserver answered ${res.status}`);
     const comp = await res.json();
-    const layers = comp.layers ?? [];
-    const li = layers.findIndex(L => ((L.name?.value) ?? '').toUpperCase().includes('NAME'));
-    if (li === -1) throw new Error('No layer with NAME in its title');
-    const layer = layers[li];
-    const gi = (comp.layergroups ?? []).findIndex(g =>
-      (g.layers ?? []).some(l => (l?.id ?? l) === layer.id));
-    const clips = layer.clips ?? [];
-    const SW = ['#00e0ff', '#ffd93d', '#2ee66b', '#b46bff', '#ff7a1a', '#3aa0ff', '#ff3df0', '#eaeef5'];
-    config.fxButtons3 = config.fxButtons3.map((b, i) => {
-      const cn = clips[i]?.name?.value ?? null;
-      // unnamed clip slot: never clobber a customized button (e.g. LOGO OFF)
-      const isPlaceholder = b.label.startsWith('#') || b.label.startsWith('3·FX');
-      if (!cn && !isPlaceholder) return b;
-      return {
-        ...b,
-        label: cn ?? `#${i + 1}`,
-        icon: cn ? (cn === 'OFF' ? '✕' : '♪') : '·',
-        color: cn ? (cn === 'OFF' ? '#ff4757' : SW[i % SW.length]) : '#3a3f47',
-        mode: 'hold', type: 'int', value: 1, releaseValue: 0, releaseAddress: '',
-        address: gi >= 0
-          ? `/composition/groups/${gi + 1}/columns/${i + 1}/connect`
-          : `/composition/layers/${li + 1}/clips/${i + 1}/connect`,
-      };
-    });
+    const { buttons, report } = buildDjButtons(comp, config.fxButtons3);
+    config = { ...config, fxButtons3: buttons };
     store.save(configPath, config);
-    return config;
+    return { config, report };
   });
+
   ipcMain.on('learn:arm', () => engine.armLearn());
   ipcMain.on('learn:disarm', () => engine.disarmLearn());
 

@@ -103,7 +103,11 @@ function mockBridge() {
     },
     openReleases: url => { window.__releasesOpened = url ?? true; },
     onUpdateProgress: cb => { window.__emitUpdateProgress = cb; return () => { window.__emitUpdateProgress = null; }; },
-    syncDjPage: async () => { window.__djSynced = true; return config ?? loadConfig(); },
+    syncDjPage: async () => {
+      window.__djSynced = true;
+      const cfg = config ?? await loadConfig();
+      return { config: cfg, report: window.__djReport ?? { layer: 'MOCK NAME', group: 'MOCK', synced: 0, cleared: 0, slots: 24, named: 0, mismatches: [] } };
+    },
     seedBpm: async () => 128,
     send: (address, values = []) => window.__oscLog.push({ address, values }),
     sendTyped: (address, args = []) => window.__oscLog.push({ address, args }),

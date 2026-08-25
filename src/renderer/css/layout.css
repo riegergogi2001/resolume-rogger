@@ -1,6 +1,11 @@
 /* Fixed landscape performance layout: topbar / (fx | faders) / color strip. */
 body {
   display: grid;
+  /* minmax(0, 1fr), not the default auto: an auto column floors at the widest
+     child's min-content, so one crowded row (the topbar) would otherwise
+     stretch the whole surface past the screen and push the LOGO fader and the
+     settings button off the right edge. */
+  grid-template-columns: minmax(0, 1fr);
   grid-template-rows: 64px 1fr 128px;
   gap: 10px;
   padding: 10px;
@@ -11,7 +16,13 @@ body {
   align-items: center;
   gap: 14px;
   padding: 0 8px;
+  min-width: 0;
+  overflow: hidden;
 }
+/* Nothing in the topbar shrinks: every item keeps the width its own label
+   needs, and the window minimum is sized to hold them all. */
+#topbar > * { flex: 0 0 auto; }
+#topbar > .topbar-spacer { flex: 1 1 auto; }
 
 #main {
   display: grid;
