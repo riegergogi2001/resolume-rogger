@@ -325,7 +325,7 @@ export function openEditor(kind, index) {
         return;
       }
       padLearn.classList.add('listening');
-      padLearn.textContent = 'PRESS A CONTROLLER BUTTON…';
+      padLearn.textContent = 'PRESS A BUTTON · OR HOLD ONE + PRESS ANOTHER…';
       armGamepadLearn((bi, modifier) => {
         draft.gamepadButton = bi;
         draft.gamepadModifier = modifier ?? -1;

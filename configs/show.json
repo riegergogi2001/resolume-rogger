@@ -206,7 +206,8 @@
         "durationMs": 1500
       },
       "macro": [],
-      "gamepadButton": 5
+      "gamepadButton": 10,
+      "gamepadModifier": -1
     },
     {
       "id": "fx6",

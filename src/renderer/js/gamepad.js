@@ -11,8 +11,15 @@ export const BUTTON_NAMES = ['A', 'B', 'X', 'Y', 'LB', 'RB', 'LT', 'RT',
   'VIEW', 'MENU', 'LS', 'RS', 'D-UP', 'D-DN', 'D-LT', 'D-RT'];
 
 let learnCb = null;
-export function armGamepadLearn(cb) { learnCb = cb; }
-export function disarmGamepadLearn() { learnCb = null; }
+// While learning, the first digital button pressed is held back until it is
+// either released alone (plain binding) or a second button arrives while it
+// is still down (it becomes the modifier). Without this the first press
+// completed the learn on its own, so a combo with a digital modifier such as
+// LB or RB could never be captured — only LT/RT worked, because analog
+// triggers never produce a button edge.
+let learnPending = -1;
+export function armGamepadLearn(cb) { learnCb = cb; learnPending = -1; }
+export function disarmGamepadLearn() { learnCb = null; learnPending = -1; }
 
 function pads() {
   if (window.__gamepadOverride !== undefined && window.__gamepadOverride !== null) {
@@ -196,7 +203,26 @@ export function startGamepad(handles) {
       const down = curr[bi];
       if (down === (prev[bi] ?? false)) continue;
       if (analogIdx.has(bi)) continue; // analog triggers never act as buttons
-      if (down && learnCb) { learnCb(bi, pickModifier(bi, heldSet)); continue; } // learn consumes the press
+      if (learnCb) {
+        if (down) { // learn consumes every press
+          // A digital button deliberately held for the combo wins over a
+          // finger resting on a trigger far enough for XInput to report it.
+          const modifier = (learnPending >= 0 && learnPending !== bi && heldSet.has(learnPending))
+            ? learnPending
+            : pickModifier(bi, heldSet);
+          if (modifier >= 0) { learnPending = -1; learnCb(bi, modifier); }
+          else learnPending = bi;
+          continue;
+        }
+        if (bi === learnPending) { // released alone: a plain binding
+          learnPending = -1;
+          learnCb(bi, -1);
+          continue;
+        }
+        // An up-edge of a button held since BEFORE learn was armed falls
+        // through: its hold FX (and repeat chain) must still be released,
+        // or arming learn mid-hold leaves the effect stuck on.
+      }
       if (down) {
         const res = resolveBinding(state.get(), bi, heldSet);
         if (res && handles[res.handle]) {
