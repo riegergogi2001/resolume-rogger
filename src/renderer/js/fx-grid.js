@@ -284,20 +284,11 @@ export function renderFxGrid(el, { isEditMode, onEdit }) {
       bumpBank.className = 'fx-bank';
       pageEl.append(bankTitle('Flash'), flashBank, bankTitle('Bump'), bumpBank);
       pageEl.classList.add('fx-page--banks');
-      const utils = state.get().utilButtons ?? [];
-      buttons.forEach((_, i) => {
-        if (i < 8) {
-          makeButton(kind, i, flashBank, false);
-        } else if (i === 8 && utils.length) {
-          // one big slot becomes a 2x2 grid of small utility buttons
-          const quad = document.createElement('div');
-          quad.className = 'fx-quad';
-          bumpBank.appendChild(quad);
-          utils.forEach((__, u) => makeButton('utilButtons', u, quad, true));
-        } else {
-          makeButton(kind, i, bumpBank, false);
-        }
-      });
+      // The utility toggles used to be a 2x2 quad wedged into the first bump
+      // slot. They are a strip along the bottom of the column now (see
+      // renderUtilStrip): it holds any number of them and stops them competing
+      // for space with the big triggers.
+      buttons.forEach((_, i) => makeButton(kind, i, i < 8 ? flashBank : bumpBank, false));
     } else if (layout === 'mix') {
       const flashBank = document.createElement('div');
       flashBank.className = 'fx-bank';
@@ -360,6 +351,22 @@ export function renderFxGrid(el, { isEditMode, onEdit }) {
       buttons.forEach((_, i) => makeButton(kind, i, grid, false));
     }
   });
+
+  // The utility strip: small latching buttons along the bottom of the FX
+  // column, on every page. They are ordinary configurable controls — the same
+  // `utilButtons` the remote API, the gamepad handles and the grandMA3 DMX map
+  // already address — so whatever sits on them today can be re-pointed at
+  // something else tomorrow from the editor, without touching any code, and
+  // the row simply gets longer if more are added.
+  // Full width under the surface rather than inside the FX column: nine of
+  // them wrapped to two rows in the narrower column, which cost more height
+  // than the Ally X has to give.
+  const strip = document.getElementById('util-strip');
+  if (strip) {
+    strip.replaceChildren();
+    strip.className = 'util-strip';
+    (state.get().utilButtons ?? []).forEach((_, u) => makeButton('utilButtons', u, strip, true));
+  }
 
   showPage(0);
 }

@@ -15,8 +15,7 @@ Zero runtime dependencies (vanilla JS/CSS + Electron) and a hand-rolled OSC
 
 - **Five pages** with tabs:
   - **Page 1** — FLASH bank (8 momentary punch buttons) and BUMP bank
-    (a 2x2 utility quad — small toggles like keep-greys / haze / CO2 /
-    auto-VJ — plus 7 one-shot punches).
+    (8 one-shot punches, two of them left free for whatever comes up).
   - **Page 2** — 8 ramp buttons (hold to sweep an effect in, release to drop
     it), big Tap Tempo / Resync buttons, and 6 horizontal group-master faders.
   - **DJ Intro** — a 24-slot clip grid built dynamically from the live
@@ -47,6 +46,13 @@ Zero runtime dependencies (vanilla JS/CSS + Electron) and a hand-rolled OSC
   - The APC40 mkII mapping cheat sheet ships as a standalone shareable page,
     `docs/apc40-mapping.html` (regenerate after remapping with
     `python3 tools/gen-akai-map.py`) — send it along with the composition.
+- **Utility strip** — a row of small latching toggles across the bottom of the
+  surface, on every page: keep-greys, haze, distortion, auto-VJ, and the SLICE
+  STROBE parameters (mode, edge, symmetric, slice-o-rama, visual). They are
+  ordinary configurable controls, so anything on them can be re-pointed from the
+  editor, and the row simply gets longer if you add more — the config may hold
+  more of them than the defaults do. The remote API (`/rogger/util/{index}`),
+  the gamepad bindings and the grandMA3 DMX map all address the same list.
 - **8 main faders** — vertical MASTER + layer masters + logo, horizontal
   utility strips (multi-target fan-out, e.g. both pushers' fade-out from one
   fader). Double-tap resets; invert/sensitivity/min/max per fader; ♪ beat
@@ -268,7 +274,7 @@ and fader labels are sized to their longest label and keep that size, font and
 decoration at every window size — a control that renames, shrinks or drops its
 glyph under your thumb mid-show is worse than one that needs a bigger window.
 
-The price is a hard floor: **1704 x 979**, declared in `src/window-size.js` and
+The price is a hard floor: **1704 x 1035**, declared in `src/window-size.js` and
 enforced as the Electron window's `minWidth`/`minHeight`. The ASUS ROG Ally X
 runs 1920x1080, comfortably above it.
 

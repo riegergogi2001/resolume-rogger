@@ -275,7 +275,7 @@ const SECTIONS = [
   ['fxButtons', 'Page 1'],
   ['fxButtons2', 'Page 2'],
   ['fxButtons3', 'DJ Intro'],
-  ['utilButtons', 'Page 1 utility quad'],
+  ['utilButtons', 'Utility strip'],
   ['faders', 'Main faders'],
   ['groupFaders', 'Group faders'],
   ['colorButtons', 'Colour presets'],
