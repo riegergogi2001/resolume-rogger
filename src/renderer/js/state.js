@@ -63,6 +63,41 @@ export function setAll(next) {
   notify();
 }
 
+/**
+ * Append a colour target. The picker is meant to grow as more of the show gets
+ * colour-controlled; the new one starts empty so the editor opens on a blank
+ * form rather than a copy of someone else's addresses.
+ * @returns {number} the new target's index
+ */
+export function addColorTarget() {
+  const items = config.colorTargets.items;
+  let n = items.length + 1;
+  while (items.some(t => t.id === `target${n}`)) n += 1;
+  items.push({
+    id: `target${n}`,
+    label: `TARGET ${n}`,
+    swatch: '#8e9299',
+    colorBases: [],
+    onSteps: [],
+    offSteps: [],
+  });
+  notify();
+  persist();
+  return items.length - 1;
+}
+
+/** Remove a colour target. The last one is never removed — the picker needs
+ *  somewhere to send. */
+export function removeColorTarget(index) {
+  const items = config.colorTargets.items;
+  if (items.length <= 1 || index < 0 || index >= items.length) return false;
+  const [gone] = items.splice(index, 1);
+  if (config.colorTargets.active === gone.id) config.colorTargets.active = items[0].id;
+  notify();
+  persist();
+  return true;
+}
+
 export function setColorTarget(id) {
   if (config.colorTargets) config.colorTargets.active = id;
   notify();

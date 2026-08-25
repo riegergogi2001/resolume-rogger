@@ -224,6 +224,64 @@ async function main() {
     const overflow = await page.locator('#set-test-result').evaluate(el => el.scrollWidth - el.clientWidth);
     assert(overflow <= 1, `the diagnostic fits its panel (overflows by ${overflow}px)`);
 
+    // ---------------------------------------------------------------
+    // Colour presets light from what was sent, per target. Resolume never
+    // echoes a colour back, so this is the only feedback there can be.
+    // ---------------------------------------------------------------
+    console.log('\n[colours] preset highlight follows the active target');
+    await page.evaluate(() => document.querySelector('#settings-overlay')?.remove());
+    const selected = () => page.locator('#color-row .color-btn.selected');
+    const selectedLabel = async () => (await selected().locator('.color-label').allInnerTexts()).join(',');
+    assert(await selected().count() === 0, 'nothing is highlighted before anything is sent');
+
+    const targets = page.locator('#color-row .target-pick');
+    await targets.nth(0).click();                       // BG
+    await page.locator('#color-row .color-btn').nth(0).click();   // RED
+    await page.waitForTimeout(150);
+    assert(await selectedLabel() === 'RED', 'the preset just pressed lights up');
+
+    await targets.nth(1).click();                       // LOGO — nothing sent there
+    await page.waitForTimeout(150);
+    assert(await selected().count() === 0, 'switching to an untouched target clears the highlight');
+
+    await page.locator('#color-row .color-btn').nth(4).click();   // CYAN on LOGO
+    await page.waitForTimeout(150);
+    assert(await selectedLabel() === 'CYAN', 'the new target gets its own highlight');
+
+    await targets.nth(0).click();                       // back to BG
+    await page.waitForTimeout(150);
+    assert(await selectedLabel() === 'RED', 'each target remembers its own colour');
+
+    await page.locator('#color-row .color-btn').nth(9).click();   // OFF
+    await page.waitForTimeout(150);
+    assert(await selected().count() === 0, 'OFF clears the highlight');
+
+    // ---------------------------------------------------------------
+    // The picker is not limited to the targets it ships with.
+    // ---------------------------------------------------------------
+    console.log('\n[colours] targets can be added and removed');
+    await page.locator('#fx-grid .page-tab').nth(3).click();       // COLORS
+    await page.waitForTimeout(250);
+    const addChip = page.locator('#lab-add-target');
+    assert(!await addChip.isVisible(), '+ TARGET stays out of the way outside edit mode');
+    await page.click('#edit-toggle');
+    await page.waitForTimeout(200);
+    assert(await addChip.isVisible(), '+ TARGET appears in edit mode');
+
+    const chipsBefore = await page.locator('.lab-chips .target-pick').count();
+    await addChip.click();
+    await page.waitForSelector('.overlay');
+    await page.waitForTimeout(250);
+    assert(/COLOR TARGET 6/.test(await page.locator('.overlay .panel-head').innerText()),
+      'adding one opens its editor straight away');
+    assert(await page.locator('#set-target-delete').count() === 1, 'and it can be deleted again');
+    await page.click('#set-target-delete');
+    await page.waitForTimeout(350);
+    assert(await page.locator('.lab-chips .target-pick').count() === chipsBefore,
+      'delete puts the row back where it was');
+    await page.click('#edit-toggle');
+    await page.waitForTimeout(150);
+
     await browser.close();
     console.log('\nALL EDITOR/SETTINGS/REMOTE-API UI CHECKS PASSED');
   } catch (err) {

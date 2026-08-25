@@ -57,6 +57,16 @@ Zero runtime dependencies (vanilla JS/CSS + Electron) and a hand-rolled OSC
   utility strips (multi-target fan-out, e.g. both pushers' fade-out from one
   fader). Double-tap resets; invert/sensitivity/min/max per fader; ♪ beat
   button and optional auto beat-follow (value = bpm / bpmAt1).
+- **Colour feedback, and its limit.** Resolume does not echo colours. Verified
+  twice against Arena 7.26 with OSC output on: driving a ParamColor's
+  red/green/blue produces no feedback at all, while `bypassed`, `opacity`,
+  transport positions and ordinary float effect parameters all come straight
+  back. So the surface cannot learn a colour from the desk. It remembers what
+  it last sent **per target** instead and lights the matching preset from that,
+  which means the highlight shows what *you* set on that target — switch targets
+  and the other one's colour comes back with it. Anything that does report
+  colour writes into the same store, so a device that behaves lights the presets
+  for the right reason with no other change.
 - **10 color presets + target switch** — the small squares at the row's end
   choose what the picker paints (background colorize / logo outline-haze /
   strobe color / ColorMorph Color 1 / Color 3); OFF fires the target's release

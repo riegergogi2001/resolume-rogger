@@ -4,6 +4,7 @@
 // buttons fire their own address/macro. Feedback lights the matching preset.
 import { rogger } from './bridge.js';
 import * as state from './state.js';
+import * as colorMemory from './color-memory.js';
 
 const EPS = 0.03;
 
@@ -27,16 +28,14 @@ export function renderColorRow(el, { isEditMode, onEdit }) {
   function evaluateSelection() {
     const cfgs = state.get().colorButtons;
     const t = activeTarget();
+    // Resolume never reports a colour back (see color-memory.js), so the
+    // highlight follows what this surface last sent to the active target.
+    const current = t ? colorMemory.getColor(t.id) : null;
     let winner = -1;
     cfgs.forEach((c, i) => {
       if (winner !== -1) return;
-      if (Array.isArray(c.rgb) && t?.colorBases?.length) {
-        const base = t.colorBases[0];
-        const ok = ['red', 'green', 'blue'].every((ch, k) => {
-          const last = lastVals.get(`${base}/${ch}`);
-          return typeof last === 'number' && Math.abs(last - c.rgb[k]) < EPS;
-        });
-        if (ok) winner = i;
+      if (Array.isArray(c.rgb)) {
+        if (current && c.rgb.every((v, k) => Math.abs(current[k] - v) < EPS)) winner = i;
       } else if (c.macro?.length) {
         const ok = c.macro.every(step => {
           const v = step.values?.[0];
@@ -63,8 +62,19 @@ export function renderColorRow(el, { isEditMode, onEdit }) {
       state.get().colorButtons.some(c => c.macro?.some(s => s.address === msg.address));
     if (!watched) return;
     lastVals.set(msg.address, a.value);
+    // A device that does report colour writes into the same store, so the
+    // presets then light for the right reason with no other change.
+    const t2 = activeTarget();
+    const base = t2?.colorBases?.[0];
+    if (base && msg.address.startsWith(`${base}/`)) {
+      const rgb = ['red', 'green', 'blue'].map(ch => lastVals.get(`${base}/${ch}`));
+      if (rgb.every(v => typeof v === 'number')) colorMemory.setColor(t2.id, rgb);
+    }
     evaluateSelection();
   });
+
+  // The picker writes here too; repaint whenever any target's colour moves.
+  colorMemory.subscribe(() => evaluateSelection());
 
   state.get().colorButtons.forEach((_, i) => {
     const b = document.createElement('button');
@@ -90,8 +100,10 @@ export function renderColorRow(el, { isEditMode, onEdit }) {
       // the beat pulse borrows the last picked color
       if (!c.isOff) document.documentElement.style.setProperty('--beat-color', c.color);
       if (c.isOff && t) {
+        colorMemory.clearColor(t.id);
         for (const s of t.offSteps ?? []) rogger.send(s.address, s.values ?? []);
       } else if (Array.isArray(c.rgb) && t) {
+        colorMemory.setColor(t.id, c.rgb);
         for (const s of t.onSteps ?? []) rogger.send(s.address, s.values ?? []);
         for (const base of t.colorBases ?? []) {
           rogger.sendTyped(`${base}/red`, [{ type: 'f', value: c.rgb[0] }]);

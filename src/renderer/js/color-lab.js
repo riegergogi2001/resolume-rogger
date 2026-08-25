@@ -3,6 +3,7 @@
 // ColorMorph strip (Color 1 / Color 3 wells, speed slider, on/off toggle).
 import { rogger } from './bridge.js';
 import * as state from './state.js';
+import * as colorMemory from './color-memory.js';
 
 const SEND_MS = 33; // drag send throttle
 
@@ -58,6 +59,7 @@ export function renderColorLab(el, { isEditMode, onEdit } = {}) {
     }
     lastSend = now;
     const [r, g, b] = hsvToRgb(hue, sat, val);
+    colorMemory.setColor(t.id, [r, g, b]);
     for (const s of t.onSteps ?? []) rogger.send(s.address, s.values ?? []);
     for (const base of t.colorBases ?? []) {
       rogger.sendTyped(`${base}/red`, [{ type: 'f', value: r }]);
@@ -89,9 +91,25 @@ export function renderColorLab(el, { isEditMode, onEdit } = {}) {
     off.textContent = 'OFF';
     off.addEventListener('pointerdown', () => {
       const t = activeTarget();
+      if (t) colorMemory.clearColor(t.id);
       for (const s of t?.offSteps ?? []) rogger.send(s.address, s.values ?? []);
     });
     chips.appendChild(off);
+    // A "+" that only shows in edit mode: the picker is not limited to the five
+    // targets it ships with, and adding one by hand-editing the config was the
+    // only way before. Always rendered and hidden by CSS, because edit mode is
+    // a class on <body> — nothing re-renders when it is toggled.
+    const add = document.createElement('button');
+    add.className = 'target-pick target-add u-caps';
+    add.id = 'lab-add-target';
+    add.textContent = '+ TARGET';
+    add.addEventListener('pointerdown', () => {
+      if (!isEditMode?.()) return;
+      const ti = state.addColorTarget();
+      buildChips();
+      onEdit?.('colorTargets', ti);
+    });
+    chips.appendChild(add);
     refreshChips();
   }
   function refreshChips() {
