@@ -871,13 +871,13 @@
     },
     {
       "id": "fx2-13",
-      "label": "PULLMAXX",
-      "icon": "▩",
-      "color": "#3aa0ff",
-      "mode": "hold",
-      "type": "int",
-      "address": "/composition/layers/8/clips/17/connect",
-      "value": 1,
+      "label": "FX OFF",
+      "icon": "⊘",
+      "color": "#ff4757",
+      "mode": "tap",
+      "type": "float",
+      "address": "/composition/groups/1/video/effects/edgedetection/opacity",
+      "value": 0,
       "offValue": 0,
       "releaseValue": 0,
       "releaseAddress": "",
@@ -893,7 +893,56 @@
         "to": 1,
         "durationMs": 1500
       },
-      "macro": [],
+      "macro": [
+        {
+          "address": "/composition/groups/1/video/effects/edgedetection/opacity",
+          "values": [
+            0
+          ]
+        },
+        {
+          "address": "/composition/groups/1/video/effects/acuarela/opacity",
+          "values": [
+            0
+          ]
+        },
+        {
+          "address": "/composition/groups/1/video/effects/bloom/opacity",
+          "values": [
+            0
+          ]
+        },
+        {
+          "address": "/composition/groups/1/video/effects/goo/opacity",
+          "values": [
+            0
+          ]
+        },
+        {
+          "address": "/composition/groups/1/video/effects/infinitezoom/opacity",
+          "values": [
+            0
+          ]
+        },
+        {
+          "address": "/composition/groups/1/video/effects/metashape/opacity",
+          "values": [
+            0
+          ]
+        },
+        {
+          "address": "/composition/groups/1/video/effects/shiftglitch/opacity",
+          "values": [
+            0
+          ]
+        },
+        {
+          "address": "/composition/groups/1/video/effects/huerotate/effect/huerotate",
+          "values": [
+            0
+          ]
+        }
+      ],
       "gamepadButton": -1
     },
     {

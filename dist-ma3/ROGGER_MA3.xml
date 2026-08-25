@@ -398,7 +398,7 @@
 			<RawInputMessage key="360287970189639745" value="0" numSteps="256" 9bit="1"/>
 		</Shortcut>
 		<Shortcut name="Shortcut" uniqueId="1755800000086" paramNodeName="ParamEvent" behaviour="1046">
-			<ShortcutPath name="InputPath" path="/composition/layers/8/clips/17/connect" translationType="1" allowedTranslationTypes="1"/>
+			<ShortcutPath name="InputPath" path="/composition/groups/1/video/effects/edgedetection/opacity" translationType="1" allowedTranslationTypes="1"/>
 			<RawInputMessage key="360287970189639746" value="0" numSteps="256" 9bit="1"/>
 		</Shortcut>
 		<Shortcut name="Shortcut" uniqueId="1755800000087" paramNodeName="ParamEvent" behaviour="1046">
