@@ -105,6 +105,14 @@ async function main() {
         await page.locator('#fx-grid .page-tab').nth(i).click();
         await page.waitForTimeout(200);
         await screen(page, `page "${tabs[i]}"`);
+        // The Colors page carries its own target chips and swatch bank, so the
+        // footer's copy of both is hidden there — and nowhere else.
+        const footerShown = await page.locator('#color-row').isVisible();
+        const isColors = /colors/i.test(tabs[i]);
+        check(footerShown !== isColors,
+          `colour row ${isColors ? 'hidden' : 'shown'} on "${tabs[i]}"`);
+        // The utility strip is not duplicated anywhere, so it stays on every page.
+        check(await page.locator('#util-strip').isVisible(), `utility strip on "${tabs[i]}"`);
       }
       await page.locator('#fx-grid .page-tab').nth(0).click();
       await page.waitForTimeout(150);

@@ -144,6 +144,12 @@ body {
   grid-template-columns: repeat(10, 1fr) auto;
   gap: 10px;
 }
+/* The Colors page has its own target chips and swatch bank at the top, so the
+   footer would be showing both a second time. Hide it there and let the picker
+   have the height. display:none drops it out of the grid entirely, so the row
+   and its gap collapse rather than leaving a hole. */
+body[data-page="colors"] { grid-template-rows: 64px 1fr auto; }
+body[data-page="colors"] #color-row { display: none; }
 
 /* two columns so five targets keep finger-sized rows in the footer strip */
 .color-target-switch {

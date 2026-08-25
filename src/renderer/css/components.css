@@ -411,19 +411,21 @@
 
 /* ---- Utility strip (small latching toggles, every page) ---- */
 .util-strip {
-  display: flex;
-  flex-wrap: wrap;
+  /* One row across the whole surface, every button the same width. Columns
+     are generated from however many buttons there are, so adding one to the
+     config just makes them all a little narrower. */
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: 1fr;
   gap: 6px;
-  align-content: flex-start;
 }
 .util-strip .fx-btn {
-  flex: 0 0 auto;
-  /* sized to its own label like the rest of the fixed chrome */
-  min-width: max-content;
+  min-width: 0;
   height: 46px;
   flex-direction: row;
   align-items: center;
-  padding: 0 12px;
+  justify-content: center;
+  padding: 0 10px;
   gap: 8px;
   border-left-width: 4px;
   border-radius: 8px;
