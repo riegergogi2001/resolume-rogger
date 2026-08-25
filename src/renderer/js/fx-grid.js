@@ -12,6 +12,29 @@ import { renderFaderSet } from './faders.js';
 import { renderColorLab } from './color-lab.js';
 import { renderBpmPage } from './bpm/bpm-page.js';
 
+// ---- DJ sync reporting -------------------------------------------------
+function summariseSync(report) {
+  const bits = [`Synced ${report.synced} name${report.synced === 1 ? '' : 's'} from ${report.layer}`];
+  if (report.cleared) bits.push(`· ${report.cleared} stale slot${report.cleared === 1 ? '' : 's'} cleared`);
+  if (report.mismatches?.length) bits.push(`· ${report.mismatches.length} column${report.mismatches.length === 1 ? '' : 's'} disagree`);
+  return bits.join(' ');
+}
+
+function reportSyncMismatches(mismatches) {
+  // One toast per column, staggered so they stack readably rather than
+  // collapsing into a single unreadable blob.
+  mismatches.slice(0, 6).forEach((m, i) => {
+    setTimeout(() => showToast(
+      `Column ${m.column}: "${m.expected}" but ${m.layer} plays "${m.actual}"`,
+      { error: true, ms: 9000 },
+    ), 400 + i * 250);
+  });
+  if (mismatches.length > 6) {
+    setTimeout(() => showToast(`…and ${mismatches.length - 6} more mismatched columns`, { error: true, ms: 9000 }), 400 + 6 * 250);
+  }
+}
+
+
 function typedArgs(type, value) {
   if (type === 'command') return [];
   if (type === 'float') return [{ type: 'f', value: Number(value) }];
@@ -315,9 +338,16 @@ export function renderFxGrid(el, { isEditMode, onEdit }) {
       sync.textContent = 'Sync from Resolume';
       sync.addEventListener('pointerdown', async () => {
         try {
-          const cfg = await rogger.syncDjPage();
+          const result = await rogger.syncDjPage();
+          // Older bridges returned the config directly; accept both.
+          const cfg = result?.config ?? result;
+          const report = result?.report ?? null;
           state.setAll(cfg);
-          showToast('DJ page synced from Resolume');
+          showToast(report ? summariseSync(report) : 'DJ page synced from Resolume');
+          // A column the group's layers disagree about means a button that
+          // says one name and puts another on the screens. Say so loudly —
+          // this is the failure nobody catches until it is live.
+          if (report?.mismatches?.length) reportSyncMismatches(report.mismatches);
         } catch {
           showToast('Sync failed — enable the Resolume webserver', { error: true });
         }

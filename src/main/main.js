@@ -9,6 +9,7 @@ const path = require('node:path');
 const { OscEngine } = require('./osc-engine.js');
 const store = require('./config-store.js');
 const { registerIpc } = require('./ipc.js');
+const { MIN_WIDTH, MIN_HEIGHT, DEV_WIDTH, DEV_HEIGHT } = require('../window-size.js');
 
 function start(ctx = {}) {
   const root = ctx.root ?? path.join(__dirname, '..', '..');
@@ -36,10 +37,12 @@ function start(ctx = {}) {
 
   function createWindow() {
     win = new BrowserWindow({
-      width: 1280,
-      height: 800,
-      minWidth: 1024,
-      minHeight: 640,
+      width: DEV_WIDTH,
+      height: DEV_HEIGHT,
+      // Hard floor, not a suggestion: below this the chrome would have to
+      // shrink or truncate itself, which this surface never does.
+      minWidth: MIN_WIDTH,
+      minHeight: MIN_HEIGHT,
       backgroundColor: '#0a0b0d',
       // Kiosk-style on the Ally X; windowed during development.
       fullscreen: app.isPackaged && process.platform === 'win32',

@@ -21,7 +21,11 @@ Zero runtime dependencies (vanilla JS/CSS + Electron) and a hand-rolled OSC
     it), big Tap Tempo / Resync buttons, and 6 horizontal group-master faders.
   - **DJ Intro** — a 24-slot clip grid built dynamically from the live
     composition (**Sync from Resolume** reads the name-source layer and
-    targets its group's columns); customized slots survive syncs.
+    targets its group's columns); customized slots survive syncs. The sync
+    **cross-checks the group**: if the name plate says COOKY at column 3 but
+    the DJ booth layer plays a different artist's clip there, it reports the
+    mismatch instead of copying it onto a button, and slots that lost their
+    clip are cleared rather than left showing a stale name.
   - **Colors** — advanced picker (hue strip + saturation/value pad, throttled
     live sends), 16 quick swatches, and a ColorMorph strip: Color 1 / Color 3
     wells, SPEED slider, MORPH on/off with OSC feedback. Drives the same
@@ -187,17 +191,45 @@ something only a newer exe provides.
    on Resolume Arena 7.26+ (no `/effect/` segment — older builds used the
    `.../transform/effect/<param>` form; ROGGER's grandMA3 DMX preset fans out to both).
 
+## Screen size and why nothing adapts
+
+The surface is deliberately **not** responsive. Menus, tabs, readouts, buttons
+and fader labels are sized to their longest label and keep that size, font and
+decoration at every window size — a control that renames, shrinks or drops its
+glyph under your thumb mid-show is worse than one that needs a bigger window.
+
+The price is a hard floor: **1704 x 979**, declared in `src/window-size.js` and
+enforced as the Electron window's `minWidth`/`minHeight`. The ASUS ROG Ally X
+runs 1920x1080, comfortably above it.
+
+Two guards keep that honest, because the floor moves whenever a fixed label
+gets longer:
+
+```bash
+node tools/measure-min-window.js   # what the surface actually needs right now
+node test/ui/min-window.spec.mjs   # every page and overlay at the floor and at 1920x1080
+```
+
+If a new label pushes the natural minimum past the declared floor, both fail —
+raise the numbers in `src/window-size.js` on purpose rather than letting the
+layout quietly start truncating.
+
+Only genuinely dynamic text clamps: FX button labels carry Resolume clip names,
+which can be 40 characters long and cannot be allowed to set the width of a
+24-slot grid. Those wrap to two lines and then ellipsize.
+
 ## Development (any OS)
 
 ```bash
 npm install
 npm test            # codec / config / engine / bpm / combos / library / tarball /
-                    #   payload-resolve / updater unit tests
+                    #   payload-resolve / updater / dj-sync unit tests
 npm start           # run the app under Electron (config.dev.json)
 node test/serve.js  # browser mode with a mock OSC bridge on :5199
 node test/ui/combos.spec.mjs          # Playwright UI checks (spawn their own server
 node test/ui/editor-settings.spec.mjs #   where needed; bpm-page.spec.mjs expects
 node test/ui/updates.spec.mjs         #   test/serve.js to be running)
+node test/ui/min-window.spec.mjs
 node test/ui/bpm-page.spec.mjs
 python3 tools/test_dmx_tools.py       # DMX map / GDTF / Resolume preset checks
 npm run payload     # build the OTA payload bundle + manifest into dist-payload/
@@ -262,6 +294,9 @@ src/payload-store.js    SHELL — payload directory + boot state on disk
   download and staged install.
 - `src/main/tarball.js` — deterministic USTAR tar + gzip (pack and unpack)
   with path-traversal and size guards; shared with `tools/build-payload.js`.
+- `src/main/dj-sync.js` — pure rebuild of the DJ page from a composition,
+  including the group cross-check and stale-slot clearing.
+- `src/window-size.js` — the declared window floor (see above).
 - `src/renderer/` — zero-dependency vanilla JS/CSS; runs in a plain browser
   via a mock bridge for the Playwright checks in `test/ui/`.
   - `js/bpm/` — Web Audio BPM analyser (pure DSP core + worklet + page).
