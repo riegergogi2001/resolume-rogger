@@ -7,7 +7,7 @@ import { showToast } from './toast.js';
 import { placeholders, expand, search } from './osc-library.js';
 import { BUTTON_NAMES, armGamepadLearn, disarmGamepadLearn } from './gamepad.js';
 import { bindingLabel, stealBinding } from './gamepad-resolve.js';
-import { h, field, textInput, numInput, textArea, checkRow, seg } from './dom.js';
+import { h, field, textInput, numInput, textArea, checkRow, seg, btnRow } from './dom.js';
 
 const GLYPHS = ['◆', '●', '▲', '▼', '■', '◉', '✕', '⚡', '⏱', '↻', '⊘', '⏻',
   '★', '♪', '☰', '◐', '▶', '◀', '⏸', '⏹', '✦', '☄', '♦', '▩'];
@@ -442,6 +442,20 @@ export function openEditor(kind, index) {
     }
     stepsSection('On steps (fired by RGB presets)', 'onSteps');
     stepsSection('Off steps (fired by the OFF preset)', 'offSteps');
+
+    // A target that can be added has to be removable, or the picker only ever
+    // grows. The last one stays: the picker needs somewhere to send.
+    if ((state.get().colorTargets?.items ?? []).length > 1) {
+      const del = h('button', 'big-btn danger u-caps', 'Delete this target');
+      del.id = 'set-target-delete';
+      del.addEventListener('pointerdown', () => {
+        if (!state.removeColorTarget(index)) return;
+        state.requestRerender();
+        close();
+      });
+      body.append(h('div', 'lib-group-title u-caps', 'Danger zone'));
+      body.append(btnRow(del));
+    }
   }
 
   function buildBody() {

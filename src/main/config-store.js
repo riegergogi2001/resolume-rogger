@@ -354,6 +354,16 @@ function mergeById(defaultsArr, patchArr) {
 function mergeColorTargets(base, patch) {
   if (!isPlainObject(patch)) return base;
   const items = mergeById(base.items, patch.items);
+  // Targets the config adds beyond the built-in five are kept: the picker is
+  // meant to grow as more of the show gets colour-controlled, and dropping
+  // them on load made that impossible without editing code.
+  const known = new Set(items.map(x => x.id));
+  const template = base.items[base.items.length - 1];
+  for (const extra of patch.items ?? []) {
+    if (!isPlainObject(extra) || !extra.id || known.has(extra.id)) continue;
+    known.add(extra.id);
+    items.push(deepMerge(template, extra));
+  }
   const active = items.some(x => x.id === patch.active) ? patch.active : base.active;
   return { active, items };
 }

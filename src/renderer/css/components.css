@@ -409,6 +409,17 @@
   letter-spacing: 0;
 }
 
+/* "+ TARGET" chip: only in edit mode, so it reads as a tool rather than a
+   destination you might tap by accident during a show. */
+.target-pick.target-add {
+  display: none;
+  border-style: dashed;
+  border-left-color: var(--line-bright);
+  color: var(--text-dim);
+}
+body.edit-mode .target-pick.target-add { display: block; }
+.target-pick.target-add:active { color: var(--accent); border-color: var(--accent); }
+
 /* ---- Utility strip (small latching toggles, every page) ---- */
 .util-strip {
   /* One row across the whole surface, every button the same width. Columns

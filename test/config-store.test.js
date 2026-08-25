@@ -178,3 +178,52 @@ test('merge() round-trips an export()-shaped full config unchanged', () => {
   assert.equal(cfg.network.targetIp, '10.9.9.9');
   assert.equal(cfg.fxButtons[2].label, 'CUSTOM FLASH');
 });
+
+test('the utility strip can grow past the defaults, the fixed banks cannot', () => {
+  // The strip is a row that simply gets longer, so a button added by hand must
+  // survive a load. A bank has a set number of slots — a 17th button rendered
+  // into an 8-slot grid helps nobody.
+  const base = store.defaults();
+  const patch = structuredClone(base);
+  patch.utilButtons.push({ ...patch.utilButtons[0], id: 'util99', label: 'EXTRA', address: '/composition/master' });
+  patch.fxButtons.push({ ...patch.fxButtons[0], id: 'fx99', label: 'OVERFLOW' });
+  const merged = store.merge(patch);
+  assert.equal(merged.utilButtons.length, base.utilButtons.length + 1);
+  assert.equal(merged.utilButtons.at(-1).label, 'EXTRA');
+  assert.equal(merged.utilButtons.at(-1).mode, patch.utilButtons[0].mode, 'inherits the shape of a real control');
+  assert.equal(merged.fxButtons.length, base.fxButtons.length, 'banks stay their declared size');
+});
+
+test('a colour target added by hand survives a load', () => {
+  const base = store.defaults();
+  const patch = structuredClone(base);
+  patch.colorTargets.items.push({
+    id: 'boom', label: 'BOOM', swatch: '#ff7a1a',
+    colorBases: ['/composition/video/effects/boomer/effect/colorizecolor'],
+    onSteps: [], offSteps: [],
+  });
+  const merged = store.merge(patch);
+  assert.equal(merged.colorTargets.items.length, base.colorTargets.items.length + 1);
+  const added = merged.colorTargets.items.at(-1);
+  assert.equal(added.label, 'BOOM');
+  assert.deepEqual(added.colorBases, ['/composition/video/effects/boomer/effect/colorizecolor']);
+});
+
+test('a stray duplicate target id is ignored, not allowed to hijack the real one', () => {
+  const patch = structuredClone(store.defaults());
+  patch.colorTargets.items.push({ id: 'bg', label: 'IMPOSTOR', colorBases: ['/nonsense'] });
+  const merged = store.merge(patch);
+  assert.equal(merged.colorTargets.items.length, 5, 'no sixth target appears');
+  assert.equal(merged.colorTargets.items[0].label, 'BG', 'the first entry with that id wins');
+  assert.ok(!merged.colorTargets.items[0].colorBases.includes('/nonsense'));
+});
+
+test('the colour presets carry no address of their own', () => {
+  // They route through whichever target is active; an address here would only
+  // lie to the editor about what the button does.
+  for (const preset of store.defaults().colorButtons) {
+    assert.equal(preset.address, '', preset.label);
+    assert.deepEqual(preset.args, [], preset.label);
+    assert.ok(Array.isArray(preset.rgb) || preset.isOff, `${preset.label} routes through a target`);
+  }
+});
