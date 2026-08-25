@@ -178,23 +178,25 @@ async function main() {
       return m?.args?.[0]?.value;
     }
 
-    const flashM2 = defaults.fxButtons[2];
-    assert(flashM2.gamepadButton === 2 && flashM2.mode === 'hold' && flashM2.address !== trig.engageAddress,
-      'defaults: fxButtons[2] is a hold binding on X, separate from the RT engage clip');
-    console.log('\n[pad] hold X + engage RT + deflect LS, then the pad disconnects');
+    // RB (PIXELATE): a plain hold with no RT combo, so it still fires while
+    // RT is engaged. (X would resolve to the RT+X content pusher now.)
+    const flashM2 = defaults.fxButtons[4];
+    assert(flashM2.gamepadButton === 5 && flashM2.mode === 'hold' && flashM2.address !== trig.engageAddress,
+      'defaults: fxButtons[4] is a hold binding on RB, separate from the RT engage clip');
+    console.log('\n[pad] hold RB + engage RT + deflect LS, then the pad disconnects');
     await setPad(idleButtons());
     await clearLog();
     await page.evaluate(() => {
       window.__gamepadOverride = {
         buttons: Array.from({ length: 16 }, (_, i) => (
-          i === 2 ? { pressed: true, value: 1 } : i === 7 ? { pressed: true, value: 0.6 } : { pressed: false, value: 0 })),
+          i === 5 ? { pressed: true, value: 1 } : i === 7 ? { pressed: true, value: 0.6 } : { pressed: false, value: 0 })),
         axes: [0.5, 0, 0, 0],
       };
     });
     await page.evaluate(() => new Promise(res => requestAnimationFrame(() => requestAnimationFrame(res))));
     await page.waitForTimeout(30);
     log = await readLog();
-    assert(argOf(log, flashM2.address) === flashM2.value, 'X held: press message sent');
+    assert(argOf(log, flashM2.address) === flashM2.value, 'RB held: press message sent');
     assert(argOf(log, trig.engageAddress) === trig.engageValue, 'RT engaged: engage message sent');
     assert(typeof argOf(log, stickX.address) === 'number' && argOf(log, stickX.address) !== stickX.center, 'LS deflected: axis message sent');
 

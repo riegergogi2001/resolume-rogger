@@ -89,7 +89,12 @@ Zero runtime dependencies (vanilla JS/CSS + Electron) and a hand-rolled OSC
 - **Combos** — any pad button can act as a modifier for another: hold it
   down and press a second button to fire a different binding than that
   second button's plain press (e.g. hold RT and tap A for a different FX
-  than A alone). Badges show combos as `RT+A`. Set a modifier in the editor's
+  than A alone). Badges show combos as `RT+A`. The shipped layout uses **LB as a clean
+  modifier** (nothing is bound to LB alone): `LB+A` PUSH BLK, `LB+B` PUSH X2,
+  `LB+X` BOOM BLOW, `LB+Y` BOOM INV, next to A/B/X/Y = PUSH WHT / FLASH M /
+  FLASH M2 / INVERT; SUCK IT! sits on RS-click. RT keeps its analog INVERT
+  stomp and doubles as a modifier: `RT+A` GLITCH, `RT+B` BLOOM, `RT+X` EDGE FX,
+  `RT+Y` HUE SPIN — the Page 2 content pushers, reachable without leaving Page 1. Set a modifier in the editor's
   "Modifier (hold with)" row below the controller button pick, or arm
   **Gamepad Learn** and press the modifier + target button together — it
   captures both and toasts the combo (e.g. `Bound to RT+A`). A modifier

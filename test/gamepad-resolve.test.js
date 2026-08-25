@@ -156,3 +156,56 @@ test('bindingLabel formatting', () => {
   assert.equal(bindingLabel(NAMES, 0, null), 'A');
   assert.equal(bindingLabel(NAMES, undefined, undefined), '');
 });
+
+// The shipped pad layout: LB is a clean modifier and LB+A/B/X/Y are the bump
+// combos. Checked on both the defaults and the show config, so the two cannot
+// drift apart and a plain binding cannot quietly land on LB again.
+const store = require('../src/main/config-store.js');
+const fs = require('node:fs');
+const path = require('node:path');
+const LB = 4;
+
+function labelOf(cfg, entry) { return entry ? cfg[entry.kind][entry.index].label : null; }
+
+for (const [name, load] of [
+  ['defaults', () => store.defaults()],
+  ['configs/campus-forum-stage.json', () => store.load(path.join(__dirname, '..', 'configs', 'campus-forum-stage.json'))],
+]) {
+  test(`${name}: LB is a clean modifier and LB+A/B/X/Y fire the bump combos`, () => {
+    const cfg = load();
+    assert.equal(resolveBinding(cfg, LB, new Set([LB])), null, 'nothing fires on LB alone');
+    const held = new Set([LB]);
+    assert.deepEqual(
+      [0, 1, 2, 3].map(b => labelOf(cfg, resolveBinding(cfg, b, held))),
+      ['PUSH BLK', 'PUSH X2', 'BOOM BLOW', 'BOOM INV'], 'LB+A/B/X/Y');
+    assert.deepEqual(
+      [0, 1, 2, 3].map(b => labelOf(cfg, resolveBinding(cfg, b, new Set()))),
+      ['PUSH WHT', 'FLASH M', 'FLASH M2', 'INVERT'], 'A/B/X/Y alone are unchanged');
+    assert.equal(labelOf(cfg, resolveBinding(cfg, 11, new Set())), 'SUCK IT!', 'SUCK IT! moved to RS-click');
+    const RT = 7;
+    assert.deepEqual(
+      [0, 1, 2, 3].map(b => labelOf(cfg, resolveBinding(cfg, b, new Set([RT])))),
+      ['GLITCH', 'BLOOM', 'EDGE FX', 'HUE SPIN'], 'RT+A/B/X/Y are the page-2 content pushers');
+    // Both modifiers down is an operator error, not a crash: each button still
+    // resolves to one of its two combos (first in page/index order), never to
+    // the plain binding.
+    for (const b of [0, 1, 2, 3]) {
+      const lb = labelOf(cfg, resolveBinding(cfg, b, new Set([LB])));
+      const rt = labelOf(cfg, resolveBinding(cfg, b, new Set([RT])));
+      const both = labelOf(cfg, resolveBinding(cfg, b, new Set([LB, RT])));
+      assert.ok(both === lb || both === rt, `LB+RT+${NAMES[b]} resolves to a combo (${both})`);
+    }
+    assert.equal(bindingLabel(NAMES, 0, LB), 'LB+A');
+
+    // No (button, modifier) pair is claimed twice anywhere on the surface.
+    const seen = new Map();
+    for (const kind of HANDLE_KINDS) {
+      for (const c of cfg[kind] ?? []) {
+        if (!c || c.gamepadButton < 0) continue;
+        const key = `${c.gamepadButton}/${c.gamepadModifier ?? -1}`;
+        assert.ok(!seen.has(key), `${c.label} and ${seen.get(key)} both claim ${bindingLabel(NAMES, c.gamepadButton, c.gamepadModifier)}`);
+        seen.set(key, c.label);
+      }
+    }
+  });
+}
