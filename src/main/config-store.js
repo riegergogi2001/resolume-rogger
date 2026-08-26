@@ -66,6 +66,13 @@ function colorButton(i, over = {}) {
   };
 }
 
+// The two big tempo buttons on Page 2. Address and label are fixed (the
+// surface draws them itself); what the config holds is their pad binding, so
+// Tap Tempo can live on a controller button or combo like any FX button.
+function tempoButton(id, label, address) {
+  return { id, label, address, gamepadButton: -1, gamepadModifier: -1 };
+}
+
 function defaults() {
   return {
     version: 1,
@@ -187,6 +194,10 @@ function defaults() {
       return fxButton(i, { id: `fx3-${i + 1}`, label: `TC ${i + 1}`, icon: '♪', color: colors[i % colors.length], mode: 'hold', address: `/composition/groups/5/columns/${i + 1}/connect` });
     }),
     // Page-1 utility quad: toggles for the always-on look switches.
+    tempoButtons: [
+      tempoButton('tap', 'TAP TEMPO', '/composition/tempocontroller/tempotap'),
+      tempoButton('resync', 'RESYNC', '/composition/tempocontroller/resync'),
+    ],
     utilButtons: [
       fxButton(0, { id: 'util1', label: 'KEEP GREYS', icon: '◐', color: ACCENTS.white, mode: 'toggle', address: '/composition/groups/1/video/effects/colorize/effect/greyskeep' }),
       fxButton(1, { id: 'util2', label: 'HAZE', icon: '✦', color: ACCENTS.green, mode: 'toggle', address: '/composition/layers/8/video/effects/outlinehaze/bypassed', value: 0, offValue: 1, extraAddress: '/composition/layers/9/video/effects/outlinehaze/bypassed',
@@ -476,6 +487,7 @@ function mergeConfig(base, patch) {
     fxButtons2: mergeControls(base.fxButtons2, patch.fxButtons2),
     fxButtons3: mergeControls(base.fxButtons3, patch.fxButtons3),
     utilButtons: mergeControls(base.utilButtons, patch.utilButtons, true),
+    tempoButtons: mergeControls(base.tempoButtons, patch.tempoButtons),
     faders: mergeControls(base.faders, patch.faders),
     groupFaders: mergeControls(base.groupFaders, patch.groupFaders),
     colorButtons: mergeControls(base.colorButtons, patch.colorButtons),

@@ -344,24 +344,52 @@ export function renderFxGrid(el, { isEditMode, onEdit }) {
       flashBank.className = 'fx-bank';
       const tempoRow = document.createElement('div');
       tempoRow.className = 'tempo-row';
-      function bigTempo(id, lbl, address, onPress) {
+      // The two big tempo buttons are config controls of kind tempoButtons
+      // (fixed address + label, editable pad binding): in edit mode they open
+      // the editor, the badge shows their binding, and the gamepad reaches
+      // them through fxHandles like any FX button.
+      function bigTempo(id, ti, onPress) {
         const btn = document.createElement('button');
         btn.className = 'tempo-big u-caps';
         btn.id = id;
-        btn.textContent = lbl;
-        btn.addEventListener('pointerdown', e => {
-          btn.setPointerCapture(e.pointerId);
-          rogger.sendTyped(address, [{ type: 'i', value: 1 }]);
+        btn.dataset.kind = 'tempoButtons';
+        btn.dataset.index = ti;
+        btn.innerHTML = '<span class="tempo-label"></span><span class="fx-pad u-num"></span>';
+        const cfg = () => state.get().tempoButtons?.[ti];
+        function apply() {
+          const c = cfg();
+          if (!c) return;
+          btn.querySelector('.tempo-label').textContent = c.label;
+          btn.querySelector('.fx-pad').textContent = bindingLabel(BUTTON_NAMES, c.gamepadButton, c.gamepadModifier);
+        }
+        apply();
+        state.subscribe(apply);
+        const down = () => {
+          const c = cfg();
+          if (!c) return;
+          rogger.sendTyped(c.address, [{ type: 'i', value: 1 }]);
           if (onPress) onPress();
+        };
+        const up = () => {
+          const c = cfg();
+          if (c) rogger.sendTyped(c.address, [{ type: 'i', value: 0 }]);
+        };
+        btn.addEventListener('pointerdown', e => {
+          if (isEditMode()) { onEdit('tempoButtons', ti); return; }
+          btn.setPointerCapture(e.pointerId);
+          down();
         });
-        const up = () => rogger.sendTyped(address, [{ type: 'i', value: 0 }]);
         btn.addEventListener('pointerup', up);
         btn.addEventListener('pointercancel', up);
+        if (offsets.tempoButtons !== undefined && cfg()) {
+          fxHandles[offsets.tempoButtons + ti] = {
+            press: () => { if (!isEditMode()) down(); },
+            release: up,
+          };
+        }
         return btn;
       }
-      tempoRow.append(
-        bigTempo('big-tap', 'Tap Tempo', '/composition/tempocontroller/tempotap', beat.tap),
-        bigTempo('big-resync', 'Resync', '/composition/tempocontroller/resync'));
+      tempoRow.append(bigTempo('big-tap', 0, beat.tap), bigTempo('big-resync', 1));
       const bumpBank = document.createElement('div');
       bumpBank.className = 'fx-bank';
       const faderZone = document.createElement('div');

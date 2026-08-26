@@ -194,6 +194,19 @@ test('the page-2 content pushers fade back on release; every other ramp snaps', 
   assert.equal(merged.fxButtons2[1].ramp.releaseMs, 1000);
 });
 
+test('the tempo buttons are config controls with fixed addresses and an editable pad binding', () => {
+  const t = store.defaults().tempoButtons;
+  assert.deepEqual(t.map(x => [x.id, x.address]), [
+    ['tap', '/composition/tempocontroller/tempotap'], ['resync', '/composition/tempocontroller/resync']]);
+  assert.ok(t.every(x => x.gamepadButton === -1 && x.gamepadModifier === -1), 'unbound by default');
+  // A saved binding survives; a config from before the section existed gets the defaults.
+  const saved = store.merge({ tempoButtons: [{ gamepadButton: 10 }] });
+  assert.equal(saved.tempoButtons[0].gamepadButton, 10);
+  assert.equal(saved.tempoButtons[0].address, '/composition/tempocontroller/tempotap', 'address filled from the default');
+  assert.equal(saved.tempoButtons[1].label, 'RESYNC');
+  assert.deepEqual(store.merge({}).tempoButtons, t);
+});
+
 test('the HAZE toggle switches OutlineHaze on all three logo layers', () => {
   const haze = store.defaults().utilButtons.find(b => b.label === 'HAZE');
   const all = [haze.address, haze.extraAddress, ...haze.extraAddresses];

@@ -235,6 +235,38 @@ async function main() {
       const m = [...log].reverse().find(x => x.address === addr);
       return m?.args?.[0]?.value;
     }
+    // --- Tap Tempo on a pad button: the big Page 2 button is bindable -------
+    const tapCfg = defaults.tempoButtons?.[0];
+    assert(tapCfg && tapCfg.address === '/composition/tempocontroller/tempotap' && tapCfg.gamepadButton === -1,
+      'defaults: tempoButtons[0] is Tap Tempo, unbound');
+    console.log('\n[UI] edit mode: the big Tap Tempo button opens the editor, bind it to LS-click');
+    await page.locator('#fx-grid .page-tab', { hasText: 'Page 2' }).click();
+    await page.waitForTimeout(100);
+    await page.click('#edit-toggle');
+    await page.locator('#big-tap').dispatchEvent('pointerdown', { pointerId: 1 });
+    await page.waitForSelector('#editor-overlay');
+    const tempoHead = await page.locator('#editor-overlay .panel-head').textContent();
+    assert(/TEMPO 1/.test(tempoHead), `editor opens on TEMPO 1 (got "${tempoHead}")`);
+    await ctrlField.getByRole('button', { name: 'LS', exact: true }).click();
+    await page.click('#ed-save');
+    await page.waitForSelector('#editor-overlay', { state: 'detached' });
+    await page.click('#edit-toggle');
+    const tapBadge = await page.locator('#big-tap .fx-pad').textContent();
+    assert(tapBadge === 'LS', `Tap Tempo badge reads "LS" (got "${tapBadge}")`);
+
+    console.log('\n[pad] LS-click -> tempotap 1, release -> tempotap 0');
+    await setPad(idleButtons());
+    await clearLog();
+    await setPad(withButtons([[10, { pressed: true, value: 1 }]]));
+    log = await readLog();
+    assert(argOf(log, tapCfg.address) === 1, 'LS-click sends tempotap 1');
+    await clearLog();
+    await setPad(idleButtons());
+    log = await readLog();
+    assert(argOf(log, tapCfg.address) === 0, 'release sends tempotap 0');
+    await page.locator('#fx-grid .page-tab', { hasText: 'Page 1' }).click();
+    await page.waitForTimeout(100);
+
     // --- release fade: a ramped FX sweeps back instead of snapping ----------
     const acua = defaults.fxButtons2.find(b => b.label === 'ACUARELA');
     const acuaIdx = defaults.fxButtons2.indexOf(acua);

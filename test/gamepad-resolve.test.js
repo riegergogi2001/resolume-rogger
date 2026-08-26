@@ -18,7 +18,7 @@ function cfg(over = {}) {
 }
 
 test('HANDLE_KINDS matches the fxHandles page order', () => {
-  assert.deepEqual(HANDLE_KINDS, ['fxButtons', 'fxButtons2', 'fxButtons3', 'utilButtons']);
+  assert.deepEqual(HANDLE_KINDS, ['fxButtons', 'fxButtons2', 'fxButtons3', 'utilButtons', 'tempoButtons']);
 });
 
 test('plain A resolves to the plain binding', () => {
@@ -201,6 +201,14 @@ for (const [name, load] of [
     assert.equal(comboBinding(cfg, RT, new Set()), null, 'RT alone is the stomp, no combo');
     assert.equal(comboBinding(cfg, RT, new Set([RB])), null, 'RB+RT is nothing');
     assert.equal(bindingLabel(NAMES, 0, LB), 'LB+A');
+    assert.deepEqual(cfg.tempoButtons.map(t => [t.label, t.gamepadButton]), [['TAP TEMPO', -1], ['RESYNC', -1]],
+      'the tempo buttons ship unbound — the operator picks where Tap Tempo goes');
+    // A tempo binding resolves through the same handle space, after every FX kind.
+    const bound = structuredClone(cfg);
+    bound.tempoButtons[0].gamepadButton = 10;
+    const entry = resolveBinding(bound, 10, new Set([10]));
+    assert.equal(labelOf(bound, entry), 'TAP TEMPO');
+    assert.equal(entry.handle, HANDLE_KINDS.slice(0, 4).reduce((n, k) => n + bound[k].length, 0), 'tempo handles sit after the four FX kinds');
 
     // No (button, modifier) pair is claimed twice anywhere on the surface.
     const seen = new Map();
