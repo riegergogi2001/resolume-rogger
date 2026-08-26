@@ -86,6 +86,7 @@
       "releaseValue": 0,
       "releaseAddress": "",
       "extraAddress": "",
+      "extraAddresses": [],
       "repeat": {
         "enabled": false,
         "intervalMs": 250,
@@ -113,6 +114,7 @@
       "releaseValue": 0,
       "releaseAddress": "",
       "extraAddress": "",
+      "extraAddresses": [],
       "repeat": {
         "enabled": false,
         "intervalMs": 250,
@@ -141,6 +143,7 @@
       "releaseValue": 0,
       "releaseAddress": "",
       "extraAddress": "",
+      "extraAddresses": [],
       "repeat": {
         "enabled": false,
         "intervalMs": 250,
@@ -169,6 +172,7 @@
       "releaseValue": 0,
       "releaseAddress": "",
       "extraAddress": "",
+      "extraAddresses": [],
       "repeat": {
         "enabled": false,
         "intervalMs": 250,
@@ -197,6 +201,7 @@
       "releaseValue": 0,
       "releaseAddress": "",
       "extraAddress": "",
+      "extraAddresses": [],
       "repeat": {
         "enabled": false,
         "intervalMs": 250,
@@ -225,6 +230,7 @@
       "releaseValue": 0,
       "releaseAddress": "",
       "extraAddress": "",
+      "extraAddresses": [],
       "repeat": {
         "enabled": false,
         "intervalMs": 250,
@@ -252,6 +258,7 @@
       "releaseValue": 0,
       "releaseAddress": "",
       "extraAddress": "",
+      "extraAddresses": [],
       "repeat": {
         "enabled": false,
         "intervalMs": 250,
@@ -280,6 +287,7 @@
       "releaseValue": 0,
       "releaseAddress": "",
       "extraAddress": "",
+      "extraAddresses": [],
       "repeat": {
         "enabled": false,
         "intervalMs": 250,
@@ -308,6 +316,7 @@
       "releaseValue": 0,
       "releaseAddress": "",
       "extraAddress": "",
+      "extraAddresses": [],
       "repeat": {
         "enabled": true,
         "intervalMs": 200,
@@ -336,6 +345,7 @@
       "releaseValue": 0,
       "releaseAddress": "",
       "extraAddress": "",
+      "extraAddresses": [],
       "repeat": {
         "enabled": true,
         "intervalMs": 200,
@@ -364,6 +374,7 @@
       "releaseValue": 0,
       "releaseAddress": "",
       "extraAddress": "",
+      "extraAddresses": [],
       "repeat": {
         "enabled": true,
         "intervalMs": 200,
@@ -392,6 +403,7 @@
       "releaseValue": 0,
       "releaseAddress": "",
       "extraAddress": "",
+      "extraAddresses": [],
       "repeat": {
         "enabled": true,
         "intervalMs": 200,
@@ -420,6 +432,7 @@
       "releaseValue": 0,
       "releaseAddress": "",
       "extraAddress": "",
+      "extraAddresses": [],
       "repeat": {
         "enabled": true,
         "intervalMs": 200,
@@ -448,6 +461,7 @@
       "releaseValue": 0,
       "releaseAddress": "",
       "extraAddress": "",
+      "extraAddresses": [],
       "repeat": {
         "enabled": true,
         "intervalMs": 200,
@@ -476,6 +490,7 @@
       "releaseValue": 0,
       "releaseAddress": "",
       "extraAddress": "",
+      "extraAddresses": [],
       "repeat": {
         "enabled": true,
         "intervalMs": 200,
@@ -504,6 +519,7 @@
       "releaseValue": 0,
       "releaseAddress": "",
       "extraAddress": "",
+      "extraAddresses": [],
       "repeat": {
         "enabled": true,
         "intervalMs": 200,
@@ -534,6 +550,7 @@
       "releaseValue": 0,
       "releaseAddress": "",
       "extraAddress": "",
+      "extraAddresses": [],
       "repeat": {
         "enabled": false,
         "intervalMs": 250,
@@ -546,8 +563,8 @@
         "durationMs": 2000
       },
       "macro": [],
-      "gamepadButton": -1,
-      "gamepadModifier": -1
+      "gamepadButton": 2,
+      "gamepadModifier": 5
     },
     {
       "id": "fx2-2",
@@ -562,6 +579,7 @@
       "releaseValue": 0,
       "releaseAddress": "",
       "extraAddress": "",
+      "extraAddresses": [],
       "repeat": {
         "enabled": false,
         "intervalMs": 250,
@@ -574,7 +592,8 @@
         "durationMs": 2000
       },
       "macro": [],
-      "gamepadButton": -1
+      "gamepadButton": 7,
+      "gamepadModifier": 4
     },
     {
       "id": "fx2-3",
@@ -589,6 +608,7 @@
       "releaseValue": 0,
       "releaseAddress": "",
       "extraAddress": "",
+      "extraAddresses": [],
       "repeat": {
         "enabled": false,
         "intervalMs": 250,
@@ -601,8 +621,8 @@
         "durationMs": 2000
       },
       "macro": [],
-      "gamepadButton": -1,
-      "gamepadModifier": -1
+      "gamepadButton": 1,
+      "gamepadModifier": 5
     },
     {
       "id": "fx2-4",
@@ -617,6 +637,7 @@
       "releaseValue": 0,
       "releaseAddress": "",
       "extraAddress": "",
+      "extraAddresses": [],
       "repeat": {
         "enabled": false,
         "intervalMs": 250,
@@ -644,6 +665,7 @@
       "releaseValue": 0,
       "releaseAddress": "",
       "extraAddress": "",
+      "extraAddresses": [],
       "repeat": {
         "enabled": false,
         "intervalMs": 250,
@@ -671,6 +693,7 @@
       "releaseValue": 0,
       "releaseAddress": "",
       "extraAddress": "",
+      "extraAddresses": [],
       "repeat": {
         "enabled": false,
         "intervalMs": 250,
@@ -698,6 +721,7 @@
       "releaseValue": 0,
       "releaseAddress": "",
       "extraAddress": "",
+      "extraAddresses": [],
       "repeat": {
         "enabled": false,
         "intervalMs": 250,
@@ -710,8 +734,8 @@
         "durationMs": 2000
       },
       "macro": [],
-      "gamepadButton": -1,
-      "gamepadModifier": -1
+      "gamepadButton": 0,
+      "gamepadModifier": 5
     },
     {
       "id": "fx2-8",
@@ -726,6 +750,7 @@
       "releaseValue": 0.57,
       "releaseAddress": "",
       "extraAddress": "",
+      "extraAddresses": [],
       "repeat": {
         "enabled": false,
         "intervalMs": 250,
@@ -738,8 +763,8 @@
         "durationMs": 2000
       },
       "macro": [],
-      "gamepadButton": -1,
-      "gamepadModifier": -1
+      "gamepadButton": 3,
+      "gamepadModifier": 5
     },
     {
       "id": "fx2-9",
@@ -754,6 +779,7 @@
       "releaseValue": 0,
       "releaseAddress": "",
       "extraAddress": "",
+      "extraAddresses": [],
       "repeat": {
         "enabled": false,
         "intervalMs": 250,
@@ -781,6 +807,7 @@
       "releaseValue": 0,
       "releaseAddress": "",
       "extraAddress": "",
+      "extraAddresses": [],
       "repeat": {
         "enabled": false,
         "intervalMs": 250,
@@ -808,6 +835,7 @@
       "releaseValue": 0,
       "releaseAddress": "",
       "extraAddress": "",
+      "extraAddresses": [],
       "repeat": {
         "enabled": true,
         "intervalMs": 250,
@@ -836,6 +864,7 @@
       "releaseValue": 0,
       "releaseAddress": "",
       "extraAddress": "",
+      "extraAddresses": [],
       "repeat": {
         "enabled": true,
         "intervalMs": 250,
@@ -877,6 +906,7 @@
       "releaseValue": 0,
       "releaseAddress": "",
       "extraAddress": "",
+      "extraAddresses": [],
       "repeat": {
         "enabled": false,
         "intervalMs": 250,
@@ -953,6 +983,7 @@
       "releaseValue": 0,
       "releaseAddress": "",
       "extraAddress": "",
+      "extraAddresses": [],
       "repeat": {
         "enabled": false,
         "intervalMs": 250,
@@ -980,6 +1011,7 @@
       "releaseValue": 0,
       "releaseAddress": "",
       "extraAddress": "",
+      "extraAddresses": [],
       "repeat": {
         "enabled": false,
         "intervalMs": 250,
@@ -1007,6 +1039,7 @@
       "releaseValue": 0,
       "releaseAddress": "",
       "extraAddress": "",
+      "extraAddresses": [],
       "repeat": {
         "enabled": false,
         "intervalMs": 250,
@@ -1036,6 +1069,7 @@
       "releaseValue": 0,
       "releaseAddress": "",
       "extraAddress": "",
+      "extraAddresses": [],
       "repeat": {
         "enabled": false,
         "intervalMs": 250,
@@ -1063,6 +1097,7 @@
       "releaseValue": 0,
       "releaseAddress": "",
       "extraAddress": "",
+      "extraAddresses": [],
       "repeat": {
         "enabled": false,
         "intervalMs": 250,
@@ -1090,6 +1125,7 @@
       "releaseValue": 0,
       "releaseAddress": "",
       "extraAddress": "",
+      "extraAddresses": [],
       "repeat": {
         "enabled": false,
         "intervalMs": 250,
@@ -1117,6 +1153,7 @@
       "releaseValue": 0,
       "releaseAddress": "",
       "extraAddress": "",
+      "extraAddresses": [],
       "repeat": {
         "enabled": false,
         "intervalMs": 250,
@@ -1144,6 +1181,7 @@
       "releaseValue": 0,
       "releaseAddress": "",
       "extraAddress": "",
+      "extraAddresses": [],
       "repeat": {
         "enabled": false,
         "intervalMs": 250,
@@ -1171,6 +1209,7 @@
       "releaseValue": 0,
       "releaseAddress": "",
       "extraAddress": "",
+      "extraAddresses": [],
       "repeat": {
         "enabled": false,
         "intervalMs": 250,
@@ -1198,6 +1237,7 @@
       "releaseValue": 0,
       "releaseAddress": "",
       "extraAddress": "",
+      "extraAddresses": [],
       "repeat": {
         "enabled": false,
         "intervalMs": 250,
@@ -1225,6 +1265,7 @@
       "releaseValue": 0,
       "releaseAddress": "",
       "extraAddress": "",
+      "extraAddresses": [],
       "repeat": {
         "enabled": false,
         "intervalMs": 250,
@@ -1252,6 +1293,7 @@
       "releaseValue": 0,
       "releaseAddress": "",
       "extraAddress": "",
+      "extraAddresses": [],
       "repeat": {
         "enabled": false,
         "intervalMs": 250,
@@ -1279,6 +1321,7 @@
       "releaseValue": 0,
       "releaseAddress": "",
       "extraAddress": "",
+      "extraAddresses": [],
       "repeat": {
         "enabled": false,
         "intervalMs": 250,
@@ -1306,6 +1349,7 @@
       "releaseValue": 0,
       "releaseAddress": "",
       "extraAddress": "",
+      "extraAddresses": [],
       "repeat": {
         "enabled": false,
         "intervalMs": 250,
@@ -1333,6 +1377,7 @@
       "releaseValue": 0,
       "releaseAddress": "",
       "extraAddress": "",
+      "extraAddresses": [],
       "repeat": {
         "enabled": false,
         "intervalMs": 250,
@@ -1360,6 +1405,7 @@
       "releaseValue": 0,
       "releaseAddress": "",
       "extraAddress": "",
+      "extraAddresses": [],
       "repeat": {
         "enabled": false,
         "intervalMs": 250,
@@ -1387,6 +1433,7 @@
       "releaseValue": 0,
       "releaseAddress": "",
       "extraAddress": "",
+      "extraAddresses": [],
       "repeat": {
         "enabled": false,
         "intervalMs": 250,
@@ -1414,6 +1461,7 @@
       "releaseValue": 0,
       "releaseAddress": "",
       "extraAddress": "",
+      "extraAddresses": [],
       "repeat": {
         "enabled": false,
         "intervalMs": 250,
@@ -1441,6 +1489,7 @@
       "releaseValue": 0,
       "releaseAddress": "",
       "extraAddress": "",
+      "extraAddresses": [],
       "repeat": {
         "enabled": false,
         "intervalMs": 250,
@@ -1468,6 +1517,7 @@
       "releaseValue": 0,
       "releaseAddress": "",
       "extraAddress": "",
+      "extraAddresses": [],
       "repeat": {
         "enabled": false,
         "intervalMs": 250,
@@ -1495,6 +1545,7 @@
       "releaseValue": 0,
       "releaseAddress": "",
       "extraAddress": "",
+      "extraAddresses": [],
       "repeat": {
         "enabled": false,
         "intervalMs": 250,
@@ -1522,6 +1573,7 @@
       "releaseValue": 0,
       "releaseAddress": "",
       "extraAddress": "",
+      "extraAddresses": [],
       "repeat": {
         "enabled": false,
         "intervalMs": 250,
@@ -1549,6 +1601,7 @@
       "releaseValue": 0,
       "releaseAddress": "",
       "extraAddress": "",
+      "extraAddresses": [],
       "repeat": {
         "enabled": false,
         "intervalMs": 250,
@@ -1576,6 +1629,7 @@
       "releaseValue": 0,
       "releaseAddress": "",
       "extraAddress": "",
+      "extraAddresses": [],
       "repeat": {
         "enabled": false,
         "intervalMs": 250,
@@ -1603,6 +1657,7 @@
       "releaseValue": 0,
       "releaseAddress": "",
       "extraAddress": "",
+      "extraAddresses": [],
       "repeat": {
         "enabled": false,
         "intervalMs": 250,
@@ -1630,6 +1685,7 @@
       "releaseValue": 0,
       "releaseAddress": "",
       "extraAddress": "",
+      "extraAddresses": [],
       "repeat": {
         "enabled": false,
         "intervalMs": 250,
@@ -1670,6 +1726,7 @@
       "releaseValue": 0,
       "releaseAddress": "",
       "extraAddress": "",
+      "extraAddresses": [],
       "repeat": {
         "enabled": false,
         "intervalMs": 250,
@@ -1712,6 +1769,7 @@
       "releaseValue": 0,
       "releaseAddress": "",
       "extraAddress": "",
+      "extraAddresses": [],
       "repeat": {
         "enabled": false,
         "intervalMs": 250,
@@ -1739,6 +1797,9 @@
       "releaseValue": 0,
       "releaseAddress": "",
       "extraAddress": "/composition/layers/9/video/effects/outlinehaze/bypassed",
+      "extraAddresses": [
+        "/composition/layers/10/video/effects/outlinehaze/bypassed"
+      ],
       "repeat": {
         "enabled": false,
         "intervalMs": 250,
@@ -1766,6 +1827,7 @@
       "releaseValue": 0,
       "releaseAddress": "",
       "extraAddress": "",
+      "extraAddresses": [],
       "repeat": {
         "enabled": false,
         "intervalMs": 250,
@@ -1793,6 +1855,7 @@
       "releaseValue": 0,
       "releaseAddress": "",
       "extraAddress": "",
+      "extraAddresses": [],
       "repeat": {
         "enabled": false,
         "intervalMs": 250,
@@ -1820,6 +1883,7 @@
       "releaseValue": 0,
       "releaseAddress": "",
       "extraAddress": "",
+      "extraAddresses": [],
       "repeat": {
         "enabled": false,
         "intervalMs": 250,
@@ -1848,6 +1912,7 @@
       "releaseValue": 0,
       "releaseAddress": "",
       "extraAddress": "",
+      "extraAddresses": [],
       "repeat": {
         "enabled": false,
         "intervalMs": 250,
@@ -1876,6 +1941,7 @@
       "releaseValue": 0,
       "releaseAddress": "",
       "extraAddress": "",
+      "extraAddresses": [],
       "repeat": {
         "enabled": false,
         "intervalMs": 250,
@@ -1904,6 +1970,7 @@
       "releaseValue": 0,
       "releaseAddress": "",
       "extraAddress": "",
+      "extraAddresses": [],
       "repeat": {
         "enabled": false,
         "intervalMs": 250,
@@ -1932,6 +1999,7 @@
       "releaseValue": 0,
       "releaseAddress": "",
       "extraAddress": "",
+      "extraAddresses": [],
       "repeat": {
         "enabled": false,
         "intervalMs": 250,

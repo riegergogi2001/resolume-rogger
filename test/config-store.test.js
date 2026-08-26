@@ -181,6 +181,17 @@ test('the LOGO target drives every colour on all three logo layers, linked', () 
   ], 'OFF returns all three logos to their own colours and drops the haze');
 });
 
+test('the HAZE toggle switches OutlineHaze on all three logo layers', () => {
+  const haze = store.defaults().utilButtons.find(b => b.label === 'HAZE');
+  const all = [haze.address, haze.extraAddress, ...haze.extraAddresses];
+  assert.deepEqual(all, [8, 9, 10].map(n => `/composition/layers/${n}/video/effects/outlinehaze/bypassed`));
+  assert.equal(haze.mode, 'toggle');
+  assert.deepEqual([haze.value, haze.offValue], [0, 1], 'on = un-bypass, off = bypass');
+  // A 2.2.5 config saved HAZE without the new field: the default fills it in.
+  const merged = store.merge({ utilButtons: [null, { label: 'HAZE', address: haze.address, extraAddress: haze.extraAddress }] });
+  assert.deepEqual(merged.utilButtons[1].extraAddresses, haze.extraAddresses, 'layer 10 joins the saved HAZE on load');
+});
+
 test('an untouched 2.2.0–2.2.5 LOGO target (layers 8 + 9) is upgraded to include LOGO OPT1 on load', () => {
   // Exactly what every config saved by 2.2.0 – 2.2.5 holds for LOGO.
   const bypass = (n, fx, v) => ({ address: `/composition/layers/${n}/video/effects/${fx}/bypassed`, values: [v] });

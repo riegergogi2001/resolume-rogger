@@ -23,6 +23,7 @@ function fxButton(i, over = {}) {
     releaseValue: 0,        // hold release
     releaseAddress: '',     // hold release target; empty = same as address
     extraAddress: '',       // optional second target mirrored on every send
+    extraAddresses: [],     // any further targets mirrored the same way
     repeat: { enabled: false, intervalMs: 250, sync: false }, // sync = follow tapped beat
     ramp: { enabled: false, from: 0, to: 1, durationMs: 1500 }, // hold: sweep value while pressed
     macro: [],              // [{address, values:[...]}] — sent in order instead of single message
@@ -128,8 +129,11 @@ function defaults() {
     // combo layout did not work out on stage): A/B/X/Y = PUSH WHT / FLASH M /
     // FLASH M2 / INVERT, LB = SUCK IT!, RB = PIXELATE, RS-click = PUSH BLK,
     // D-pad = SLICE STR + BOOM BLUR/EXPO/EDGE, LT master duck, RT INVERT
-    // stomp. No combos ship by default; the operator adds their own with
-    // Gamepad Learn (hold a modifier + press). LS-click stays free.
+    // stomp. Combos (2.2.6): RB+A/B/X/Y = the page-2 content pushers GLITCH /
+    // BLOOM / EDGE FX / HUE SPIN, LB+RT = ACUARELA (a trigger as a combo's
+    // target: the pull fires the combo, not the stomp). A modifier's own
+    // plain binding still fires while it is held (RB = PIXELATE, LB = SUCK
+    // IT!) — that is the operator's choice of layout. LS-click stays free.
     fxButtons: [
       fxButton(0, { label: 'GENERA', icon: '⚡', color: ACCENTS.green, mode: 'hold', address: '/composition/layers/12/clips/2/connect' }),
       fxButton(1, { label: 'FLASH M', icon: '⚡', color: ACCENTS.yellow, mode: 'hold', address: '/composition/layers/12/clips/3/connect', gamepadButton: 1 }),
@@ -153,14 +157,14 @@ function defaults() {
     ],
     // Second page: group-1 content FX (opacity ramps) + clears + resets.
     fxButtons2: [
-      fxButton(0, { id: 'fx2-1', label: 'EDGE FX', icon: '◐', mode: 'hold', type: 'float', address: '/composition/groups/1/video/effects/edgedetection/opacity', ramp: { enabled: true, from: 0, to: 1, durationMs: 2000 } }),
-      fxButton(1, { id: 'fx2-2', label: 'ACUARELA', icon: '◐', color: ACCENTS.green, mode: 'hold', type: 'float', address: '/composition/groups/1/video/effects/acuarela/opacity', ramp: { enabled: true, from: 0, to: 1, durationMs: 2000 } }),
-      fxButton(2, { id: 'fx2-3', label: 'BLOOM', icon: '◐', color: ACCENTS.yellow, mode: 'hold', type: 'float', address: '/composition/groups/1/video/effects/bloom/opacity', ramp: { enabled: true, from: 0, to: 1, durationMs: 2000 } }),
+      fxButton(0, { id: 'fx2-1', label: 'EDGE FX', icon: '◐', mode: 'hold', type: 'float', address: '/composition/groups/1/video/effects/edgedetection/opacity', ramp: { enabled: true, from: 0, to: 1, durationMs: 2000 }, gamepadButton: 2, gamepadModifier: 5 }),
+      fxButton(1, { id: 'fx2-2', label: 'ACUARELA', icon: '◐', color: ACCENTS.green, mode: 'hold', type: 'float', address: '/composition/groups/1/video/effects/acuarela/opacity', ramp: { enabled: true, from: 0, to: 1, durationMs: 2000 }, gamepadButton: 7, gamepadModifier: 4 }),
+      fxButton(2, { id: 'fx2-3', label: 'BLOOM', icon: '◐', color: ACCENTS.yellow, mode: 'hold', type: 'float', address: '/composition/groups/1/video/effects/bloom/opacity', ramp: { enabled: true, from: 0, to: 1, durationMs: 2000 }, gamepadButton: 1, gamepadModifier: 5 }),
       fxButton(3, { id: 'fx2-4', label: 'GOO', icon: '◐', color: ACCENTS.purple, mode: 'hold', type: 'float', address: '/composition/groups/1/video/effects/goo/opacity', ramp: { enabled: true, from: 0, to: 1, durationMs: 2000 } }),
       fxButton(4, { id: 'fx2-5', label: 'INF ZOOM', icon: '◐', color: ACCENTS.orange, mode: 'hold', type: 'float', address: '/composition/groups/1/video/effects/infinitezoom/opacity', ramp: { enabled: true, from: 0, to: 1, durationMs: 2000 } }),
       fxButton(5, { id: 'fx2-6', label: 'METASHAPE', icon: '◐', color: ACCENTS.blue, mode: 'hold', type: 'float', address: '/composition/groups/1/video/effects/metashape/opacity', ramp: { enabled: true, from: 0, to: 1, durationMs: 2000 } }),
-      fxButton(6, { id: 'fx2-7', label: 'GLITCH', icon: '◐', color: ACCENTS.magenta, mode: 'hold', type: 'float', address: '/composition/groups/1/video/effects/shiftglitch/opacity', ramp: { enabled: true, from: 0, to: 1, durationMs: 2000 } }),
-      fxButton(7, { id: 'fx2-8', label: 'HUE SPIN', icon: '◐', color: ACCENTS.yellow, mode: 'hold', type: 'float', address: '/composition/groups/1/video/effects/huerotate/effect/huerotate', releaseValue: 0.57, ramp: { enabled: true, from: 0, to: 1, durationMs: 2000 } }),
+      fxButton(6, { id: 'fx2-7', label: 'GLITCH', icon: '◐', color: ACCENTS.magenta, mode: 'hold', type: 'float', address: '/composition/groups/1/video/effects/shiftglitch/opacity', ramp: { enabled: true, from: 0, to: 1, durationMs: 2000 }, gamepadButton: 0, gamepadModifier: 5 }),
+      fxButton(7, { id: 'fx2-8', label: 'HUE SPIN', icon: '◐', color: ACCENTS.yellow, mode: 'hold', type: 'float', address: '/composition/groups/1/video/effects/huerotate/effect/huerotate', releaseValue: 0.57, ramp: { enabled: true, from: 0, to: 1, durationMs: 2000 }, gamepadButton: 3, gamepadModifier: 5 }),
       fxButton(8, { id: 'fx2-9', label: 'CLR FX', icon: '✕', color: ACCENTS.red, mode: 'hold', address: '/composition/layers/12/clear' }),
       fxButton(9, { id: 'fx2-10', label: 'CLR LOGO', icon: '✕', color: ACCENTS.red, mode: 'hold', address: '/composition/layers/9/clear' }),
       fxButton(10, { id: 'fx2-11', label: 'BOOM INV', icon: '☄', color: ACCENTS.white, mode: 'hold', address: '/composition/video/effects/boomer/effect/invert', repeat: { enabled: true, intervalMs: 250, sync: true } }),
@@ -185,7 +189,8 @@ function defaults() {
     // Page-1 utility quad: toggles for the always-on look switches.
     utilButtons: [
       fxButton(0, { id: 'util1', label: 'KEEP GREYS', icon: '◐', color: ACCENTS.white, mode: 'toggle', address: '/composition/groups/1/video/effects/colorize/effect/greyskeep' }),
-      fxButton(1, { id: 'util2', label: 'HAZE', icon: '✦', color: ACCENTS.green, mode: 'toggle', address: '/composition/layers/8/video/effects/outlinehaze/bypassed', value: 0, offValue: 1, extraAddress: '/composition/layers/9/video/effects/outlinehaze/bypassed' }),
+      fxButton(1, { id: 'util2', label: 'HAZE', icon: '✦', color: ACCENTS.green, mode: 'toggle', address: '/composition/layers/8/video/effects/outlinehaze/bypassed', value: 0, offValue: 1, extraAddress: '/composition/layers/9/video/effects/outlinehaze/bypassed',
+        extraAddresses: ['/composition/layers/10/video/effects/outlinehaze/bypassed'] }),
       fxButton(2, { id: 'util3', label: 'DISTORT', icon: '◈', color: ACCENTS.orange, mode: 'toggle', address: '/composition/video/effects/distortion/bypassed', value: 0, offValue: 1 }),
       fxButton(3, { id: 'util4', label: 'AUTO VJ', icon: '↻', color: ACCENTS.green, mode: 'toggle', address: '/composition/layers/1/autopilot/target', value: 3 }),
       // SLICE STROBE (layer 12 clip 9). Verified against Resolume 7.26:

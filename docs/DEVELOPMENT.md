@@ -94,7 +94,9 @@ Zero runtime dependencies (vanilla JS/CSS + Electron) and a hand-rolled OSC
   A/B/X/Y = PUSH WHT / FLASH M / FLASH M2 / INVERT, LB = SUCK IT!, RB =
   PIXELATE, RS-click = PUSH BLK, D-pad = SLICE STR + BOOM BLUR/EXPO/EDGE,
   LS-click free; LT is the master duck and RT the analog INVERT stomp.
-  Combos are the operator's to add. **A trigger can be a combo's target
+  Shipped combos (2.2.6): `RB+A` GLITCH, `RB+B` BLOOM, `RB+X` EDGE FX,
+  `RB+Y` HUE SPIN (the Page 2 content pushers) and `LB+RT` ACUARELA — RB and
+  LB keep their plain bindings, which fire while held. **A trigger can be a combo's target
   too** (`LB+RT`): hold the pad button, pull the trigger — that pull fires the
   combo as a hold and the trigger's own stomp/analog action stays off until
   it is let go; the trigger pulled alone is still the stomp, and a modifier

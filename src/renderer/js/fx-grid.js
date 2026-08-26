@@ -48,7 +48,9 @@ function fire(btn, value, address = btn.address) {
   }
   const args = typedArgs(btn.type, value);
   rogger.sendTyped(address, args);
-  if (btn.extraAddress && address === btn.address) rogger.sendTyped(btn.extraAddress, args);
+  if (address !== btn.address) return; // a releaseAddress is not mirrored
+  if (btn.extraAddress) rogger.sendTyped(btn.extraAddress, args);
+  for (const a of btn.extraAddresses ?? []) if (a) rogger.sendTyped(a, args);
 }
 
 export const PAGE_DEFS = [
