@@ -252,6 +252,10 @@ export function openEditor(kind, index) {
     const extra = textInput(draft.extraAddress ?? '', v => { draft.extraAddress = v.trim(); });
     extra.placeholder = '/optional/mirror/address';
     body.append(field('Mirror to (optional second address)', extra));
+    body.append(field('Further mirror addresses (one per line)',
+      textArea((draft.extraAddresses ?? []).join('\n'),
+        v => { draft.extraAddresses = v.split('\n').map(s => s.trim()).filter(Boolean); },
+        '/composition/.../another/target')));
     if (draft.type !== 'command') {
       const vals = h('div', 'row');
       vals.append(field(draft.mode === 'toggle' ? 'On value' : 'Value',

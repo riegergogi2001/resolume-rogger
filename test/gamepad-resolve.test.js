@@ -170,9 +170,10 @@ test('bindingLabel formatting', () => {
   assert.equal(bindingLabel(NAMES, undefined, undefined), '');
 });
 
-// The shipped pad layout (the 2026-08-22 layout, restored in 2.2.5): plain
-// bindings only, no combos. Checked on both the defaults and the show config,
-// so the two cannot drift apart.
+// The shipped pad layout: the 2026-08-22 plain layout (restored in 2.2.5)
+// plus the 2.2.6 combos — RB+A/B/X/Y = the page-2 content pushers, LB+RT =
+// ACUARELA with the trigger as the combo's target. Checked on both the
+// defaults and the show config, so the two cannot drift apart.
 const store = require('../src/main/config-store.js');
 const path = require('node:path');
 const LB = 4, RB = 5, RT = 7, LS = 10, RS = 11;
@@ -183,7 +184,7 @@ for (const [name, load] of [
   ['defaults', () => store.defaults()],
   ['configs/show.json', () => store.load(path.join(__dirname, '..', 'configs', 'show.json'))],
 ]) {
-  test(`${name}: ships the plain pad layout — A/B/X/Y, LB SUCK IT!, RB PIXELATE, RS-click PUSH BLK, no combos`, () => {
+  test(`${name}: ships the plain layout — A/B/X/Y, LB SUCK IT!, RB PIXELATE, RS-click PUSH BLK — plus RB combos and LB+RT`, () => {
     const cfg = load();
     const plain = b => labelOf(cfg, resolveBinding(cfg, b, new Set()));
     assert.deepEqual([0, 1, 2, 3].map(plain), ['PUSH WHT', 'FLASH M', 'FLASH M2', 'INVERT'], 'A/B/X/Y');
@@ -192,13 +193,13 @@ for (const [name, load] of [
     assert.equal(plain(RS), 'PUSH BLK', 'RS-click');
     assert.equal(plain(LS), null, 'LS-click is free');
     assert.deepEqual([12, 13, 14, 15].map(plain), ['SLICE STR', 'BOOM BLUR', 'BOOM EXPO', 'BOOM EDGE'], 'D-pad');
-    assert.ok(!HANDLE_KINDS.some(k => (cfg[k] ?? []).some(x => x && (x.gamepadModifier ?? -1) >= 0)),
-      'no combos ship by default');
-    // Holding any modifier changes nothing: the plain binding still wins.
-    for (const m of [LB, RB, RT]) {
-      assert.deepEqual([0, 1, 2, 3].map(b => labelOf(cfg, resolveBinding(cfg, b, new Set([m])))),
-        ['PUSH WHT', 'FLASH M', 'FLASH M2', 'INVERT'], `${NAMES[m]}+A/B/X/Y fall through to the plain bindings`);
-    }
+    assert.deepEqual([0, 1, 2, 3].map(b => labelOf(cfg, resolveBinding(cfg, b, new Set([RB])))),
+      ['GLITCH', 'BLOOM', 'EDGE FX', 'HUE SPIN'], 'RB+A/B/X/Y are the page-2 content pushers');
+    assert.deepEqual([0, 1, 2, 3].map(b => labelOf(cfg, resolveBinding(cfg, b, new Set([LB])))),
+      ['PUSH WHT', 'FLASH M', 'FLASH M2', 'INVERT'], 'LB+A/B/X/Y fall through to the plain bindings');
+    assert.equal(labelOf(cfg, comboBinding(cfg, RT, new Set([LB]))), 'ACUARELA', 'LB+RT is ACUARELA');
+    assert.equal(comboBinding(cfg, RT, new Set()), null, 'RT alone is the stomp, no combo');
+    assert.equal(comboBinding(cfg, RT, new Set([RB])), null, 'RB+RT is nothing');
     assert.equal(bindingLabel(NAMES, 0, LB), 'LB+A');
 
     // No (button, modifier) pair is claimed twice anywhere on the surface.

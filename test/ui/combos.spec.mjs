@@ -231,6 +231,28 @@ async function main() {
     assert(!hasAddr(log, feStrAddr), 'RT alone does not fire the LB+RT combo');
     await setPad(idleButtons());
 
+    function argOf(log, addr) {
+      const m = [...log].reverse().find(x => x.address === addr);
+      return m?.args?.[0]?.value;
+    }
+    // --- HAZE toggle: address + extraAddress + extraAddresses all fire ------
+    const haze = defaults.utilButtons.find(b => b.label === 'HAZE');
+    const hazeIdx = defaults.utilButtons.indexOf(haze);
+    const hazeAll = [haze.address, haze.extraAddress, ...(haze.extraAddresses ?? [])];
+    assert(hazeAll.length === 3 && hazeAll.every(Boolean), 'defaults: HAZE reaches three addresses');
+    console.log('\n[touch] HAZE toggle on -> all three logo hazes un-bypass');
+    await clearLog();
+    await page.locator(`.fx-btn[data-kind="utilButtons"][data-index="${hazeIdx}"]`).dispatchEvent('pointerdown', { pointerId: 1 });
+    await page.waitForTimeout(50);
+    log = await readLog();
+    for (const a of hazeAll) assert(argOf(log, a) === haze.value, `HAZE on sends ${haze.value} to ${a}`);
+    console.log('\n[touch] HAZE toggle off -> all three bypass again');
+    await clearLog();
+    await page.locator(`.fx-btn[data-kind="utilButtons"][data-index="${hazeIdx}"]`).dispatchEvent('pointerdown', { pointerId: 1 });
+    await page.waitForTimeout(50);
+    log = await readLog();
+    for (const a of hazeAll) assert(argOf(log, a) === haze.offValue, `HAZE off sends ${haze.offValue} to ${a}`);
+
     // --- pad disconnect mid-hold: everything the pad was driving lets go ---
     // The Ally's pad vanishes from navigator.getGamepads() on an Armoury
     // Crate mode switch / firmware reconnect. A hold button, an engaged
@@ -240,11 +262,6 @@ async function main() {
     const stickX = defaults.sticks.ls.x;
     assert(trig.enabled && trig.engageAddress && trig.analogAddress, 'defaults: RT trigger enabled with engage + analog addresses');
     assert(defaults.sticks.ls.enabled && stickX.address, 'defaults: LS stick enabled with an X address');
-    function argOf(log, addr) {
-      const m = [...log].reverse().find(x => x.address === addr);
-      return m?.args?.[0]?.value;
-    }
-
     // RB (PIXELATE): a plain hold with no RT combo, so it still fires while
     // RT is engaged.
     const flashM2 = defaults.fxButtons.find(b => b.label === 'PIXELATE');
