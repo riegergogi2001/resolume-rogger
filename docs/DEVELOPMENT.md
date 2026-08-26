@@ -299,9 +299,23 @@ and fader labels are sized to their longest label and keep that size, font and
 decoration at every window size — a control that renames, shrinks or drops its
 glyph under your thumb mid-show is worse than one that needs a bigger window.
 
-The price is a hard floor: **1704 x 1035**, declared in `src/window-size.js` and
-enforced as the Electron window's `minWidth`/`minHeight`. The ASUS ROG Ally X
-runs 1920x1080, comfortably above it.
+The price is a hard floor: **1704 x 1035 CSS pixels**, declared in
+`src/window-size.js` and enforced as the Electron window's `minWidth`/`minHeight`.
+
+The Ally X's panel is 1920x1080, but that is not what Electron sees. Windows
+sizes windows in device-independent pixels, and the Ally ships at **150%
+display scaling**, so its whole screen is only 1280x720 DIP — smaller than the
+floor. Up to 2.2.3 the window was created at the floor anyway and the right and
+bottom of the surface fell off the panel. Since 2.2.4 `fitZoom()` in
+`src/window-size.js` zooms the page out until the floor fits the display it is
+on (`webPreferences.zoomFactor`, re-stated on every load and on
+`display-metrics-changed`), and `fitFloor()` scales the `minWidth`/`minHeight`
+to match. On the Ally at 150% that is zoom 0.6956: the surface gets a
+1840x1035 CSS viewport rendered at 1.04 panel pixels per CSS pixel — within a
+few percent of the 1:1 it was drawn for. At 100% scaling, or on any display that
+already holds the floor, the zoom is exactly 1 and nothing changes. The
+1280x720 panel mode in Armoury Crate is covered by the same maths.
+`test/window-size.test.js` pins the numbers.
 
 Three guards keep that honest, because the floor moves whenever a fixed label
 gets longer:
@@ -324,7 +338,8 @@ in the real app, because a 1000px window was giving the surface 968px.
 That second one is fixed for good: the window is created with
 `useContentSize: true`, so `minWidth`/`minHeight` mean the surface, not the
 frame around it. The window cannot be dragged below the floor, so the layout
-can never be squeezed at all.
+can never be squeezed at all. The audit always runs at zoom 1 (`ROGGER_LAYOUT_AUDIT`
+disables the display fit), so the size it requests is the size it measures.
 
 If a new label pushes the natural minimum past the declared floor, these fail —
 raise the numbers in `src/window-size.js` on purpose rather than letting the
