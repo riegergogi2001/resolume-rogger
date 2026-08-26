@@ -164,6 +164,73 @@ async function main() {
     assert(!hasAddr(log, pushWhtAddr), 'releasing RT does not refire the plain address');
     assert(!hasAddr(log, feStrAddr), 'releasing RT does not refire the combo address');
 
+    // --- LB+RT: an analog trigger as the combo's TARGET ------------------
+    // Hold a pad button, pull RT: the combo fires as a hold and RT's own
+    // stomp (engage clip + analog master) stays off for that pull. RT alone
+    // is still the stomp. LB's own plain binding fires while held, as any
+    // modifier's does.
+    const rtTrig = defaults.triggers.rt;
+    assert(rtTrig.enabled && rtTrig.engageAddress && rtTrig.analogAddress, 'defaults: RT is an enabled analog trigger');
+    const suckIt = defaults.fxButtons.find(b => b.label === 'SUCK IT!');
+    assert(suckIt.gamepadButton === 4 && (suckIt.gamepadModifier ?? -1) === -1, 'defaults: SUCK IT! is the plain LB binding');
+
+    console.log('\n[UI] rebind FE STR to LB+RT through the editor');
+    await page.click('#edit-toggle');
+    await page.click('.fx-btn[data-kind="fxButtons"][data-index="5"]'); // FE STR
+    await page.waitForSelector('#editor-overlay');
+    await ctrlField.getByRole('button', { name: 'RT', exact: true }).click();
+    await modField.getByRole('button', { name: 'LB', exact: true }).click();
+    await page.click('#ed-save');
+    await page.waitForSelector('#editor-overlay', { state: 'detached' });
+    await page.click('#edit-toggle');
+    const lbRtBadge = await page.locator('.fx-btn[data-kind="fxButtons"][data-index="5"] .fx-pad').textContent();
+    assert(lbRtBadge === 'LB+RT', `FE STR badge reads "LB+RT" (got "${lbRtBadge}")`);
+
+    console.log('\n[pad] hold LB -> its own plain binding fires, RT untouched');
+    await setPad(idleButtons());
+    await clearLog();
+    await setPad(withButtons([[4, { pressed: true, value: 1 }]]));
+    log = await readLog();
+    assert(hasAddr(log, suckIt.address), 'LB held: SUCK IT! (plain LB) fires');
+    assert(!hasAddr(log, rtTrig.engageAddress) && !hasAddr(log, feStrAddr), 'nothing on RT yet');
+
+    console.log('\n[pad] LB held + RT at 6% (below the digital edge) -> stomp held back');
+    await clearLog();
+    await setPad(withButtons([[4, { pressed: true, value: 1 }], [7, { pressed: false, value: 0.06 }]]));
+    log = await readLog();
+    assert(!hasAddr(log, rtTrig.engageAddress), 'the stomp does not engage under a combo-armed modifier');
+    assert(!hasAddr(log, rtTrig.analogAddress), 'no analog value leaks out either');
+    assert(!hasAddr(log, feStrAddr), 'and the combo waits for the digital edge');
+
+    console.log('\n[pad] LB held + RT pulled -> LB+RT combo fires, stomp stays off');
+    await clearLog();
+    await setPad(withButtons([[4, { pressed: true, value: 1 }], [7, { pressed: true, value: 1 }]]));
+    log = await readLog();
+    assert(hasAddr(log, feStrAddr), `LB+RT fires the combo address ${feStrAddr}`);
+    assert(!hasAddr(log, rtTrig.engageAddress), 'RT engage clip is NOT fired by a claimed pull');
+    assert(!hasAddr(log, rtTrig.analogAddress), 'RT analog master is NOT driven by a claimed pull');
+
+    console.log('\n[pad] release RT (LB held) -> combo release, no stomp release');
+    await clearLog();
+    await setPad(withButtons([[4, { pressed: true, value: 1 }]]));
+    log = await readLog();
+    assert(hasAddr(log, feStrAddr), 'letting go of RT releases the combo');
+    assert(!hasAddr(log, rtTrig.engageAddress) && !hasAddr(log, rtTrig.analogAddress), 'no stomp release messages for a pull that never engaged');
+
+    console.log('\n[pad] release LB -> plain LB release');
+    await clearLog();
+    await setPad(idleButtons());
+    log = await readLog();
+    assert(hasAddr(log, suckIt.address), 'LB release sends its plain release');
+
+    console.log('\n[pad] RT alone -> the stomp, exactly as before');
+    await clearLog();
+    await setPad(withButtons([[7, { pressed: true, value: 1 }]]));
+    log = await readLog();
+    assert(hasAddr(log, rtTrig.engageAddress), 'RT alone engages the stomp');
+    assert(!hasAddr(log, feStrAddr), 'RT alone does not fire the LB+RT combo');
+    await setPad(idleButtons());
+
     // --- pad disconnect mid-hold: everything the pad was driving lets go ---
     // The Ally's pad vanishes from navigator.getGamepads() on an Armoury
     // Crate mode switch / firmware reconnect. A hold button, an engaged
@@ -178,25 +245,26 @@ async function main() {
       return m?.args?.[0]?.value;
     }
 
-    // LS-click (PIXELATE): a plain hold with no RT combo, so it still fires
-    // while RT is engaged. (X would resolve to the RT+X content pusher now.)
-    const flashM2 = defaults.fxButtons[4];
-    assert(flashM2.gamepadButton === 10 && flashM2.mode === 'hold' && flashM2.address !== trig.engageAddress,
-      'defaults: fxButtons[4] is a hold binding on LS-click, separate from the RT engage clip');
-    console.log('\n[pad] hold LS-click + engage RT + deflect LS, then the pad disconnects');
+    // RB (PIXELATE): a plain hold with no RT combo, so it still fires while
+    // RT is engaged.
+    const flashM2 = defaults.fxButtons.find(b => b.label === 'PIXELATE');
+    const PIX = flashM2.gamepadButton;
+    assert(PIX === 5 && flashM2.mode === 'hold' && flashM2.address !== trig.engageAddress,
+      'defaults: PIXELATE is a hold binding on RB, separate from the RT engage clip');
+    console.log('\n[pad] hold RB + engage RT + deflect LS, then the pad disconnects');
     await setPad(idleButtons());
     await clearLog();
-    await page.evaluate(() => {
+    await page.evaluate(pix => {
       window.__gamepadOverride = {
         buttons: Array.from({ length: 16 }, (_, i) => (
-          i === 10 ? { pressed: true, value: 1 } : i === 7 ? { pressed: true, value: 0.6 } : { pressed: false, value: 0 })),
+          i === pix ? { pressed: true, value: 1 } : i === 7 ? { pressed: true, value: 0.6 } : { pressed: false, value: 0 })),
         axes: [0.5, 0, 0, 0],
       };
-    });
+    }, PIX);
     await page.evaluate(() => new Promise(res => requestAnimationFrame(() => requestAnimationFrame(res))));
     await page.waitForTimeout(30);
     log = await readLog();
-    assert(argOf(log, flashM2.address) === flashM2.value, 'LS-click held: press message sent');
+    assert(argOf(log, flashM2.address) === flashM2.value, 'RB held: press message sent');
     assert(argOf(log, trig.engageAddress) === trig.engageValue, 'RT engaged: engage message sent');
     assert(typeof argOf(log, stickX.address) === 'number' && argOf(log, stickX.address) !== stickX.center, 'LS deflected: axis message sent');
 
@@ -205,7 +273,7 @@ async function main() {
     await page.evaluate(() => new Promise(res => requestAnimationFrame(() => requestAnimationFrame(res))));
     await page.waitForTimeout(30);
     log = await readLog();
-    assert(argOf(log, flashM2.address) === flashM2.releaseValue, 'pad disconnect releases the held X binding');
+    assert(argOf(log, flashM2.address) === flashM2.releaseValue, 'pad disconnect releases the held RB binding');
     assert(argOf(log, trig.engageAddress) === trig.engageReleaseValue, 'pad disconnect disengages RT (engage release message)');
     assert(argOf(log, trig.analogAddress) === trig.releaseValue, 'pad disconnect snaps the RT analog param back');
     assert(argOf(log, stickX.address) === stickX.center, 'pad disconnect re-centers the deflected stick axis');

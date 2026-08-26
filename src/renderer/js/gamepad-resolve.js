@@ -46,6 +46,17 @@ export function resolveBinding(cfg, buttonIndex, heldSet) {
   return combo ?? plain ?? null;
 }
 
+// Like resolveBinding, but only a combo counts: the entry whose modifier is
+// currently held, or null. The analog triggers use this — LT/RT never act as
+// plain buttons (their pull is the stomp), yet with a pad button held they
+// can be a combo's target, e.g. LB+RT.
+export function comboBinding(cfg, buttonIndex, heldSet) {
+  const entry = resolveBinding(cfg, buttonIndex, heldSet);
+  if (!entry) return null;
+  const c = cfg[entry.kind]?.[entry.index];
+  return (c?.gamepadModifier ?? -1) >= 0 ? entry : null;
+}
+
 // 'A', 'RT+A' or '' (button unbound).
 export function bindingLabel(names, button, modifier) {
   if (button == null || button < 0) return '';
