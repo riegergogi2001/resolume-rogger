@@ -5,7 +5,10 @@
 
 // Order handles are laid out in for the gamepad (see fxHandles in
 // fx-grid.js): all FX pages in turn, then the utility quad.
-export const HANDLE_KINDS = ['fxButtons', 'fxButtons2', 'fxButtons3', 'utilButtons'];
+// tempoButtons last: the two big Page 2 tempo buttons (fixed addresses, only
+// their pad binding is editable) — appended so the other kinds' handle
+// offsets never moved.
+export const HANDLE_KINDS = ['fxButtons', 'fxButtons2', 'fxButtons3', 'utilButtons', 'tempoButtons'];
 
 // Set of pad button indices used as a `gamepadModifier` anywhere in cfg.
 export function modifierSet(cfg) {

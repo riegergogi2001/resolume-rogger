@@ -94,6 +94,7 @@ body {
   gap: 8px;
 }
 .tempo-big {
+  position: relative;
   flex: 1;
   height: 64px;
   border: 1px solid var(--line-bright);

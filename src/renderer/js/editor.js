@@ -13,7 +13,7 @@ const GLYPHS = ['◆', '●', '▲', '▼', '■', '◉', '✕', '⚡', '⏱', '
   '★', '♪', '☰', '◐', '▶', '◀', '⏸', '⏹', '✦', '☄', '♦', '▩'];
 const PALETTE = ['#00e0ff', '#ffb400', '#ff4757', '#2ee66b', '#b46bff',
   '#ff7a1a', '#eaeef5', '#3aa0ff', '#ff3df0', '#ffd93d'];
-const KIND_TITLES = { fxButtons: 'FX BUTTON', fxButtons2: 'FX BUTTON P2', fxButtons3: 'DJ INTRO', utilButtons: 'UTILITY', faders: 'FADER', groupFaders: 'GROUP FADER', colorButtons: 'COLOR PRESET', colorTargets: 'COLOR TARGET' };
+const KIND_TITLES = { fxButtons: 'FX BUTTON', fxButtons2: 'FX BUTTON P2', fxButtons3: 'DJ INTRO', utilButtons: 'UTILITY', tempoButtons: 'TEMPO', faders: 'FADER', groupFaders: 'GROUP FADER', colorButtons: 'COLOR PRESET', colorTargets: 'COLOR TARGET' };
 
 // int-family library kinds — anything else (event/int/bool/choice) becomes
 // a plain int-typed FX button; only 'float' switches the button to float.
@@ -279,69 +279,17 @@ export function openEditor(kind, index) {
         field('Ramp from', numInput(draft.ramp?.from ?? 0, v => { draft.ramp = { ...draft.ramp, from: v }; })),
         field('Ramp to', numInput(draft.ramp?.to ?? 1, v => { draft.ramp = { ...draft.ramp, to: v }; })),
         field('Ramp time (ms)', numInput(draft.ramp?.durationMs ?? 1500,
-          v => { draft.ramp = { ...draft.ramp, durationMs: v }; }, '1')),
-        field('Release fade (ms, 0 = snap)', numInput(draft.ramp?.releaseMs ?? 0,
-          v => { draft.ramp = { ...draft.ramp, releaseMs: v }; }, '1')));
+          v => { draft.ramp = { ...draft.ramp, durationMs: v }; }, '1')));
       body.append(rrow);
+      // Its own row: four number fields side by side overflow the 720px panel.
+      const rrow2 = h('div', 'row');
+      rrow2.append(
+        field('Release fade (ms, 0 = snap)', numInput(draft.ramp?.releaseMs ?? 0,
+          v => { draft.ramp = { ...draft.ramp, releaseMs: v }; }, '1')),
+        h('div', 'hint', 'On release the value sweeps back to the release value over this time instead of snapping.'));
+      body.append(rrow2);
     }
-    // controller binding (ROG Ally X gamepad)
-    const padWrap = h('div', 'field');
-    padWrap.append(h('label', null, 'Controller button'));
-    const padRow = h('div', 'glyph-row');
-    function padBtn(labelText, val) {
-      const pb = h('button', 'pad-pick', labelText);
-      pb.classList.toggle('on', draft.gamepadButton === val);
-      pb.addEventListener('click', () => {
-        draft.gamepadButton = val;
-        padRow.querySelectorAll('.on').forEach(x => x.classList.remove('on'));
-        pb.classList.add('on');
-      });
-      return pb;
-    }
-    padRow.append(padBtn('NONE', -1), ...BUTTON_NAMES.map((n, bi) => padBtn(n, bi)));
-    padWrap.appendChild(padRow);
-
-    // Modifier: hold this pad button while pressing the one above to fire
-    // this binding instead of that button's plain one.
-    const modWrap = h('div', 'field');
-    modWrap.append(h('label', null, 'Modifier (hold with)'));
-    const modRow = h('div', 'glyph-row');
-    function modBtn(labelText, val) {
-      const mb = h('button', 'pad-pick', labelText);
-      mb.classList.toggle('on', (draft.gamepadModifier ?? -1) === val);
-      mb.addEventListener('click', () => {
-        draft.gamepadModifier = val;
-        modRow.querySelectorAll('.on').forEach(x => x.classList.remove('on'));
-        mb.classList.add('on');
-      });
-      return mb;
-    }
-    modRow.append(modBtn('NONE', -1), ...BUTTON_NAMES.map((n, bi) => modBtn(n, bi)));
-    modWrap.appendChild(modRow);
-    body.append(padWrap, modWrap);
-    body.append(h('div', 'hint',
-      'A modifier held alone still fires its own binding; only the second button changes. '
-      + 'LT/RT can be the second button too (hold a pad button, pull the trigger): that pull fires this binding instead of the trigger\'s own stomp.'));
-
-    const padLearn = h('button', 'big-btn learn-btn u-caps', 'Gamepad learn');
-    padLearn.addEventListener('click', () => {
-      if (padLearn.classList.contains('listening')) {
-        disarmGamepadLearn();
-        padLearn.classList.remove('listening');
-        padLearn.textContent = 'GAMEPAD LEARN';
-        return;
-      }
-      padLearn.classList.add('listening');
-      padLearn.textContent = 'PRESS A BUTTON · OR HOLD ONE + PRESS ANOTHER…';
-      armGamepadLearn((bi, modifier) => {
-        draft.gamepadButton = bi;
-        draft.gamepadModifier = modifier ?? -1;
-        disarmGamepadLearn();
-        buildBody();
-        showToast(`Bound to ${bindingLabel(BUTTON_NAMES, bi, draft.gamepadModifier)}`);
-      });
-    });
-    body.append(padLearn);
+    padBindingSection();
 
     body.append(checkRow('Repeat while held', draft.repeat?.enabled ?? false,
       v => { draft.repeat = { ...draft.repeat, enabled: v }; }));
@@ -475,10 +423,80 @@ export function openEditor(kind, index) {
     }
   }
 
+  // Controller binding rows + Gamepad learn — shared by the FX button form
+  // and the tempo buttons (whose only editable part this is).
+  function padBindingSection() {
+    // controller binding (ROG Ally X gamepad)
+    const padWrap = h('div', 'field');
+    padWrap.append(h('label', null, 'Controller button'));
+    const padRow = h('div', 'glyph-row');
+    function padBtn(labelText, val) {
+      const pb = h('button', 'pad-pick', labelText);
+      pb.classList.toggle('on', draft.gamepadButton === val);
+      pb.addEventListener('click', () => {
+        draft.gamepadButton = val;
+        padRow.querySelectorAll('.on').forEach(x => x.classList.remove('on'));
+        pb.classList.add('on');
+      });
+      return pb;
+    }
+    padRow.append(padBtn('NONE', -1), ...BUTTON_NAMES.map((n, bi) => padBtn(n, bi)));
+    padWrap.appendChild(padRow);
+
+    // Modifier: hold this pad button while pressing the one above to fire
+    // this binding instead of that button's plain one.
+    const modWrap = h('div', 'field');
+    modWrap.append(h('label', null, 'Modifier (hold with)'));
+    const modRow = h('div', 'glyph-row');
+    function modBtn(labelText, val) {
+      const mb = h('button', 'pad-pick', labelText);
+      mb.classList.toggle('on', (draft.gamepadModifier ?? -1) === val);
+      mb.addEventListener('click', () => {
+        draft.gamepadModifier = val;
+        modRow.querySelectorAll('.on').forEach(x => x.classList.remove('on'));
+        mb.classList.add('on');
+      });
+      return mb;
+    }
+    modRow.append(modBtn('NONE', -1), ...BUTTON_NAMES.map((n, bi) => modBtn(n, bi)));
+    modWrap.appendChild(modRow);
+    body.append(padWrap, modWrap);
+    body.append(h('div', 'hint',
+      'A modifier held alone still fires its own binding; only the second button changes. '
+      + 'LT/RT can be the second button too (hold a pad button, pull the trigger): that pull fires this binding instead of the trigger\'s own stomp.'));
+
+    const padLearn = h('button', 'big-btn learn-btn u-caps', 'Gamepad learn');
+    padLearn.addEventListener('click', () => {
+      if (padLearn.classList.contains('listening')) {
+        disarmGamepadLearn();
+        padLearn.classList.remove('listening');
+        padLearn.textContent = 'GAMEPAD LEARN';
+        return;
+      }
+      padLearn.classList.add('listening');
+      padLearn.textContent = 'PRESS A BUTTON · OR HOLD ONE + PRESS ANOTHER…';
+      armGamepadLearn((bi, modifier) => {
+        draft.gamepadButton = bi;
+        draft.gamepadModifier = modifier ?? -1;
+        disarmGamepadLearn();
+        buildBody();
+        showToast(`Bound to ${bindingLabel(BUTTON_NAMES, bi, draft.gamepadModifier)}`);
+      });
+    });
+    body.append(padLearn);
+  }
+
+  function tempoForm() {
+    body.append(h('div', 'hint',
+      `${draft.label} is a fixed control (${draft.address}); pick the pad button or combo that fires it.`));
+    padBindingSection();
+  }
+
   function buildBody() {
     cleanupLearn();
     body.innerHTML = '';
     if (kind.startsWith('fxButtons') || kind === 'utilButtons') fxForm();
+    else if (kind === 'tempoButtons') tempoForm();
     else if (kind === 'faders' || kind === 'groupFaders') faderForm();
     else if (kind === 'colorTargets') colorTargetForm();
     else colorForm();
@@ -491,7 +509,7 @@ export function openEditor(kind, index) {
   const save = h('button', 'big-btn primary u-caps', 'Save');
   save.id = 'ed-save';
   save.addEventListener('pointerdown', () => {
-    if ((kind.startsWith('fxButtons') || kind === 'utilButtons') && draft.gamepadButton >= 0) {
+    if ((kind.startsWith('fxButtons') || kind === 'utilButtons' || kind === 'tempoButtons') && draft.gamepadButton >= 0) {
       // one (button, modifier) pair drives one FX button — steal that exact
       // pair across pages; a plain A binding survives adding RT+A elsewhere
       stealBinding(state.get(), kind, index, draft.gamepadButton, draft.gamepadModifier ?? -1);

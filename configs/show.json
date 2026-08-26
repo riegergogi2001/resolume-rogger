@@ -2081,6 +2081,22 @@
       "gamepadModifier": -1
     }
   ],
+  "tempoButtons": [
+    {
+      "id": "tap",
+      "label": "TAP TEMPO",
+      "address": "/composition/tempocontroller/tempotap",
+      "gamepadButton": -1,
+      "gamepadModifier": -1
+    },
+    {
+      "id": "resync",
+      "label": "RESYNC",
+      "address": "/composition/tempocontroller/resync",
+      "gamepadButton": -1,
+      "gamepadModifier": -1
+    }
+  ],
   "faders": [
     {
       "id": "fader1",

@@ -17,7 +17,8 @@ Zero runtime dependencies (vanilla JS/CSS + Electron) and a hand-rolled OSC
   - **Page 1** — FLASH bank (8 momentary punch buttons) and BUMP bank
     (8 one-shot punches, two of them left free for whatever comes up).
   - **Page 2** — 8 ramp buttons (hold to sweep an effect in; release fades it back out over `ramp.releaseMs`, 1 s by default, 0 = instant drop
-    it), big Tap Tempo / Resync buttons, and 6 horizontal group-master faders.
+    it), big Tap Tempo / Resync buttons (bindable to a pad button or combo like
+    any FX button — tap them in edit mode), and 6 horizontal group-master faders.
   - **DJ Intro** — a 24-slot clip grid built dynamically from the live
     composition (**Sync from Resolume** reads the name-source layer and
     targets its group's columns); customized slots survive syncs. The sync

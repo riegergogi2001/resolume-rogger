@@ -180,6 +180,23 @@
   text-overflow: ellipsis;
 }
 .fx-btn .fx-pad:empty { display: none; }
+.tempo-big .fx-pad {
+  position: absolute;
+  bottom: 10px;
+  right: 12px;
+  max-width: calc(100% - 24px);
+  font-size: 10px;
+  font-weight: 800;
+  color: var(--text-dim);
+  border: 1px solid var(--line-bright);
+  border-radius: 4px;
+  padding: 2px 6px;
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.tempo-big .fx-pad:empty { display: none; }
 .fx-btn.pressed .fx-pad,
 .fx-btn.latched .fx-pad {
   color: var(--fx-color, var(--accent));
@@ -473,6 +490,7 @@ body.edit-mode .target-pick.target-add { display: block; }
 }
 
 /* ---- Edit mode ---- */
+body.edit-mode .tempo-big,
 body.edit-mode .fx-btn,
 body.edit-mode .fader,
 body.edit-mode .color-btn {
