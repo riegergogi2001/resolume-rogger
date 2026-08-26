@@ -3,13 +3,13 @@
 // payload to load and calls start() with the resolved paths, so everything here
 // addresses files through ctx.root rather than app.getAppPath() — that is what
 // lets an OTA payload replace the main process, preload and renderer together.
-const { app, BrowserWindow, ipcMain, powerSaveBlocker, session, dialog, shell } = require('electron');
+const { app, BrowserWindow, ipcMain, powerSaveBlocker, session, dialog, shell, screen } = require('electron');
 const fs = require('node:fs');
 const path = require('node:path');
 const { OscEngine } = require('./osc-engine.js');
 const store = require('./config-store.js');
 const { registerIpc } = require('./ipc.js');
-const { MIN_WIDTH, MIN_HEIGHT, DEV_WIDTH, DEV_HEIGHT } = require('../window-size.js');
+const { DEV_WIDTH, DEV_HEIGHT, fitZoom, fitFloor } = require('../window-size.js');
 
 function start(ctx = {}) {
   const root = ctx.root ?? path.join(__dirname, '..', '..');
@@ -35,29 +35,67 @@ function start(ctx = {}) {
     }
   });
 
+  // Kiosk-style on the Ally X; windowed during development.
+  const kiosk = app.isPackaged && process.platform === 'win32';
+
+  // The surface is drawn in CSS pixels and never adapts, but Electron sizes
+  // windows in DIPs, and on the Ally X (150% Windows scaling by default) the
+  // whole 1920x1080 panel is only 1280x720 DIP — less than the floor, so the
+  // right and bottom of the surface used to fall off the screen. Zoom the page
+  // out until the floor fits the display it is on; on the Ally that is within a
+  // few percent of one CSS pixel per panel pixel, which is what it was drawn for.
+  // Layout audits force a content size in CSS px and measure it, so they run
+  // unzoomed — otherwise the size they report would not be the size they saw.
+  function displayZoom() {
+    if (process.env.ROGGER_LAYOUT_AUDIT) return 1;
+    const display = screen.getPrimaryDisplay();
+    const area = kiosk ? display.size : display.workAreaSize;
+    return fitZoom(area?.width, area?.height);
+  }
+
   function createWindow() {
+    let zoom = displayZoom();
+    const floor = fitFloor(zoom);
     win = new BrowserWindow({
       width: DEV_WIDTH,
       height: DEV_HEIGHT,
       // Hard floor, not a suggestion: below this the chrome would have to
-      // shrink or truncate itself, which this surface never does.
-      minWidth: MIN_WIDTH,
-      minHeight: MIN_HEIGHT,
+      // shrink or truncate itself, which this surface never does. Expressed
+      // in DIPs at the zoom that makes it fit the display.
+      minWidth: floor.minWidth,
+      minHeight: floor.minHeight,
       backgroundColor: '#0a0b0d',
       // Size the CONTENT, not the frame. Without this the title bar eats into
       // the surface: a 1000px window gave the layout 968px and the FX labels
       // on Page 2 were clipped by 4px, below the floor this app declares.
       useContentSize: true,
-      // Kiosk-style on the Ally X; windowed during development.
-      fullscreen: app.isPackaged && process.platform === 'win32',
+      fullscreen: kiosk,
       autoHideMenuBar: true,
       webPreferences: {
         preload: path.join(root, 'src', 'preload.js'),
         contextIsolation: true,
         nodeIntegration: false,
+        zoomFactor: zoom,
       },
     });
     win.loadFile(path.join(root, 'src', 'renderer', 'index.html'));
+    // Chromium remembers a zoom per origin, so state it on every load rather
+    // than trusting the default above to survive.
+    win.webContents.on('did-finish-load', () => { win?.webContents.setZoomFactor(zoom); });
+    // Panel mode changed under a running app (Armoury Crate 1080p <-> 720p,
+    // a scaling change): re-fit instead of leaving part of the surface offscreen.
+    const refit = () => {
+      if (!win) return;
+      const next = displayZoom();
+      if (next === zoom) return;
+      zoom = next;
+      const f = fitFloor(zoom);
+      win.setMinimumSize(f.minWidth, f.minHeight);
+      win.webContents.setZoomFactor(zoom);
+    };
+    screen.on('display-metrics-changed', refit);
+    screen.on('display-added', refit);
+    screen.on('display-removed', refit);
     win.webContents.once('did-finish-load', () => {
       // The window painted, so this payload is healthy: clear the crash counter
       // before anything else can go wrong.
@@ -78,7 +116,12 @@ function start(ctx = {}) {
         });
       }
     });
-    win.on('closed', () => { win = null; });
+    win.on('closed', () => {
+      win = null;
+      screen.removeListener('display-metrics-changed', refit);
+      screen.removeListener('display-added', refit);
+      screen.removeListener('display-removed', refit);
+    });
   }
 
   app.whenReady().then(() => {
