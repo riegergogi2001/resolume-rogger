@@ -120,6 +120,8 @@ const LOGO_COLORIZE_8 = '/composition/layers/8/video/effects/colorize/effect/col
 const LOGO_COLORIZE_9 = '/composition/layers/9/video/effects/colorize/effect/color';
 const LOGO_HAZE_8 = '/composition/layers/8/video/effects/outlinehaze/effect/color';
 const LOGO_HAZE_9 = '/composition/layers/9/video/effects/outlinehaze/effect/color';
+const LOGO_COLORIZE_10 = '/composition/layers/10/video/effects/colorize/effect/color';
+const LOGO_HAZE_10 = '/composition/layers/10/video/effects/outlinehaze/effect/color';
 
 test('a saved colorTargets list is authoritative: a deleted built-in stays deleted', () => {
   const file = path.join(dir, 'config.json');
@@ -157,23 +159,47 @@ test('a saved active id that no longer exists falls back to the first saved targ
   assert.equal(merged.colorTargets.active, 'flash');
 });
 
-test('the LOGO target drives every colour on both logo layers, linked', () => {
+test('the LOGO target drives every colour on all three logo layers, linked', () => {
   const logo = store.defaults().colorTargets.items.find(t => t.id === 'logo');
-  // Colorize is what actually tints the logos on LOGO DJ (8) and LOGO MAIN
-  // (9); OutlineHaze is the optional glow the HAZE toggle switches on. One
-  // pick must land on all four so the two logos can never drift apart.
-  assert.deepEqual(logo.colorBases, [LOGO_COLORIZE_8, LOGO_COLORIZE_9, LOGO_HAZE_8, LOGO_HAZE_9]);
+  // Colorize is what actually tints the logos on LOGO DJ (8), LOGO MAIN (9)
+  // and LOGO OPT1 (10); OutlineHaze is the optional glow the HAZE toggle
+  // switches on. One pick must land on all six so the logos never drift apart.
+  assert.deepEqual(logo.colorBases, [LOGO_COLORIZE_8, LOGO_COLORIZE_9, LOGO_COLORIZE_10, LOGO_HAZE_8, LOGO_HAZE_9, LOGO_HAZE_10]);
   const bypassSteps = steps => steps.map(s => `${s.address}=${s.values.join(',')}`);
   assert.deepEqual(bypassSteps(logo.onSteps), [
     '/composition/layers/8/video/effects/colorize/bypassed=0',
     '/composition/layers/9/video/effects/colorize/bypassed=0',
-  ], 'picking a colour switches Colorize on for both logos');
+    '/composition/layers/10/video/effects/colorize/bypassed=0',
+  ], 'picking a colour switches Colorize on for all three logos');
   assert.deepEqual(bypassSteps(logo.offSteps), [
     '/composition/layers/8/video/effects/colorize/bypassed=1',
     '/composition/layers/9/video/effects/colorize/bypassed=1',
+    '/composition/layers/10/video/effects/colorize/bypassed=1',
     '/composition/layers/8/video/effects/outlinehaze/bypassed=1',
     '/composition/layers/9/video/effects/outlinehaze/bypassed=1',
-  ], 'OFF returns both logos to their own colours and drops the haze');
+    '/composition/layers/10/video/effects/outlinehaze/bypassed=1',
+  ], 'OFF returns all three logos to their own colours and drops the haze');
+});
+
+test('an untouched 2.2.0–2.2.5 LOGO target (layers 8 + 9) is upgraded to include LOGO OPT1 on load', () => {
+  // Exactly what every config saved by 2.2.0 – 2.2.5 holds for LOGO.
+  const bypass = (n, fx, v) => ({ address: `/composition/layers/${n}/video/effects/${fx}/bypassed`, values: [v] });
+  const saved = {
+    id: 'logo', label: 'LOGO', swatch: '#eaeef5',
+    colorBases: [LOGO_COLORIZE_8, LOGO_COLORIZE_9, LOGO_HAZE_8, LOGO_HAZE_9],
+    onSteps: [bypass(8, 'colorize', 0), bypass(9, 'colorize', 0)],
+    offSteps: [bypass(8, 'colorize', 1), bypass(9, 'colorize', 1), bypass(8, 'outlinehaze', 1), bypass(9, 'outlinehaze', 1)],
+  };
+  const fresh = store.defaults().colorTargets.items.find(t => t.id === 'logo');
+  const upgraded = store.merge({ colorTargets: { active: 'logo', items: [{ ...saved, swatch: '#010203' }] } })
+    .colorTargets.items[0];
+  assert.deepEqual(upgraded.colorBases, fresh.colorBases, 'layer 10 joins without a reset');
+  assert.deepEqual(upgraded.onSteps, fresh.onSteps);
+  assert.deepEqual(upgraded.offSteps, fresh.offSteps);
+  assert.equal(upgraded.swatch, '#010203', 'cosmetic customization survives');
+  const custom = { ...saved, colorBases: [LOGO_COLORIZE_8] };
+  const kept = store.merge({ colorTargets: { active: 'logo', items: [custom] } }).colorTargets.items[0];
+  assert.deepEqual(kept.colorBases, [LOGO_COLORIZE_8], 'a wiring the operator changed is theirs');
 });
 
 test('an untouched legacy LOGO target (haze only) is upgraded on load, a customized one is left alone', () => {

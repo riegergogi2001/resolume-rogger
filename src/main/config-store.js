@@ -266,29 +266,35 @@ function defaults() {
           onSteps: [{ address: '/composition/groups/1/video/effects/colorize/bypassed', values: [0] }],
           offSteps: [{ address: '/composition/groups/1/video/effects/colorize/bypassed', values: [1] }],
         },
-        // Every colour on both logo layers (LOGO DJ = 8, LOGO MAIN = 9),
-        // linked: Colorize is what actually tints the logos, OutlineHaze is
-        // the optional glow the HAZE toggle switches on. Before this the
-        // target only reached the haze, which is bypassed by default, so a
-        // pick changed nothing on the screens and the two Colorize colours
-        // could drift apart.
+        // Every colour on all three logo layers (LOGO DJ = 8, LOGO MAIN = 9,
+        // LOGO OPT1 = 10), linked: Colorize is what actually tints the logos,
+        // OutlineHaze is the optional glow the HAZE toggle switches on. Before
+        // 2.2.0 the target only reached the haze, which is bypassed by
+        // default, so a pick changed nothing on the screens and the Colorize
+        // colours could drift apart; layer 10 joined once the comp got its
+        // own Colorize + OutlineHaze (26autoV_SZIN_0826).
         {
           id: 'logo', label: 'LOGO', swatch: '#eaeef5',
           colorBases: [
             '/composition/layers/8/video/effects/colorize/effect/color',
             '/composition/layers/9/video/effects/colorize/effect/color',
+            '/composition/layers/10/video/effects/colorize/effect/color',
             '/composition/layers/8/video/effects/outlinehaze/effect/color',
             '/composition/layers/9/video/effects/outlinehaze/effect/color',
+            '/composition/layers/10/video/effects/outlinehaze/effect/color',
           ],
           onSteps: [
             { address: '/composition/layers/8/video/effects/colorize/bypassed', values: [0] },
             { address: '/composition/layers/9/video/effects/colorize/bypassed', values: [0] },
+            { address: '/composition/layers/10/video/effects/colorize/bypassed', values: [0] },
           ],
           offSteps: [
             { address: '/composition/layers/8/video/effects/colorize/bypassed', values: [1] },
             { address: '/composition/layers/9/video/effects/colorize/bypassed', values: [1] },
+            { address: '/composition/layers/10/video/effects/colorize/bypassed', values: [1] },
             { address: '/composition/layers/8/video/effects/outlinehaze/bypassed', values: [1] },
             { address: '/composition/layers/9/video/effects/outlinehaze/bypassed', values: [1] },
+            { address: '/composition/layers/10/video/effects/outlinehaze/bypassed', values: [1] },
           ],
         },
         {
@@ -368,6 +374,26 @@ function mergeControls(defaultsArr, patchArr, grow = false) {
 // swatch are cosmetic and always kept.
 const LEGACY_TARGET_WIRINGS = {
   logo: [
+    // 2.2.0 – 2.2.5: layers 8 + 9 only (LOGO OPT1 had no colour effect yet).
+    {
+      colorBases: [
+        '/composition/layers/8/video/effects/colorize/effect/color',
+        '/composition/layers/9/video/effects/colorize/effect/color',
+        '/composition/layers/8/video/effects/outlinehaze/effect/color',
+        '/composition/layers/9/video/effects/outlinehaze/effect/color',
+      ],
+      onSteps: [
+        { address: '/composition/layers/8/video/effects/colorize/bypassed', values: [0] },
+        { address: '/composition/layers/9/video/effects/colorize/bypassed', values: [0] },
+      ],
+      offSteps: [
+        { address: '/composition/layers/8/video/effects/colorize/bypassed', values: [1] },
+        { address: '/composition/layers/9/video/effects/colorize/bypassed', values: [1] },
+        { address: '/composition/layers/8/video/effects/outlinehaze/bypassed', values: [1] },
+        { address: '/composition/layers/9/video/effects/outlinehaze/bypassed', values: [1] },
+      ],
+    },
+    // before 2.2.0: haze only.
     {
       colorBases: [
         '/composition/layers/8/video/effects/outlinehaze/effect/color',
