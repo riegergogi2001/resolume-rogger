@@ -157,13 +157,12 @@ test('bindingLabel formatting', () => {
   assert.equal(bindingLabel(NAMES, undefined, undefined), '');
 });
 
-// The shipped pad layout: LB is a clean modifier and LB+A/B/X/Y are the bump
-// combos. Checked on both the defaults and the show config, so the two cannot
-// drift apart and a plain binding cannot quietly land on LB again.
+// The shipped pad layout (the 2026-08-22 layout, restored in 2.2.5): plain
+// bindings only, no combos. Checked on both the defaults and the show config,
+// so the two cannot drift apart.
 const store = require('../src/main/config-store.js');
-const fs = require('node:fs');
 const path = require('node:path');
-const LB = 4;
+const LB = 4, RB = 5, RT = 7, LS = 10, RS = 11;
 
 function labelOf(cfg, entry) { return entry ? cfg[entry.kind][entry.index].label : null; }
 
@@ -171,33 +170,21 @@ for (const [name, load] of [
   ['defaults', () => store.defaults()],
   ['configs/show.json', () => store.load(path.join(__dirname, '..', 'configs', 'show.json'))],
 ]) {
-  test(`${name}: LB is a clean modifier and LB+A/B/X/Y fire the bump combos`, () => {
+  test(`${name}: ships the plain pad layout — A/B/X/Y, LB SUCK IT!, RB PIXELATE, RS-click PUSH BLK, no combos`, () => {
     const cfg = load();
-    assert.equal(resolveBinding(cfg, LB, new Set([LB])), null, 'nothing fires on LB alone');
-    const held = new Set([LB]);
-    assert.deepEqual(
-      [0, 1, 2, 3].map(b => labelOf(cfg, resolveBinding(cfg, b, held))),
-      ['PUSH BLK', 'PUSH X2', 'BOOM BLOW', 'BOOM INV'], 'LB+A/B/X/Y');
-    assert.deepEqual(
-      [0, 1, 2, 3].map(b => labelOf(cfg, resolveBinding(cfg, b, new Set()))),
-      ['PUSH WHT', 'FLASH M', 'FLASH M2', 'INVERT'], 'A/B/X/Y alone are unchanged');
-    assert.equal(labelOf(cfg, resolveBinding(cfg, 11, new Set())), 'SUCK IT!', 'SUCK IT! moved to RS-click');
-    assert.equal(labelOf(cfg, resolveBinding(cfg, 10, new Set())), 'PIXELATE', 'PIXELATE on LS-click');
-    const RB = 5;
-    assert.equal(resolveBinding(cfg, RB, new Set()), null, 'RB is free: the operator\'s own modifier');
-    assert.ok(!HANDLE_KINDS.some(k => (cfg[k] ?? []).some(x => x && (x.gamepadModifier === RB))), 'and ships with no RB combos');
-    const RT = 7;
-    assert.deepEqual(
-      [0, 1, 2, 3].map(b => labelOf(cfg, resolveBinding(cfg, b, new Set([RT])))),
-      ['GLITCH', 'BLOOM', 'EDGE FX', 'HUE SPIN'], 'RT+A/B/X/Y are the page-2 content pushers');
-    // Both modifiers down is an operator error, not a crash: each button still
-    // resolves to one of its two combos (first in page/index order), never to
-    // the plain binding.
-    for (const b of [0, 1, 2, 3]) {
-      const lb = labelOf(cfg, resolveBinding(cfg, b, new Set([LB])));
-      const rt = labelOf(cfg, resolveBinding(cfg, b, new Set([RT])));
-      const both = labelOf(cfg, resolveBinding(cfg, b, new Set([LB, RT])));
-      assert.ok(both === lb || both === rt, `LB+RT+${NAMES[b]} resolves to a combo (${both})`);
+    const plain = b => labelOf(cfg, resolveBinding(cfg, b, new Set()));
+    assert.deepEqual([0, 1, 2, 3].map(plain), ['PUSH WHT', 'FLASH M', 'FLASH M2', 'INVERT'], 'A/B/X/Y');
+    assert.equal(plain(LB), 'SUCK IT!', 'LB');
+    assert.equal(plain(RB), 'PIXELATE', 'RB');
+    assert.equal(plain(RS), 'PUSH BLK', 'RS-click');
+    assert.equal(plain(LS), null, 'LS-click is free');
+    assert.deepEqual([12, 13, 14, 15].map(plain), ['SLICE STR', 'BOOM BLUR', 'BOOM EXPO', 'BOOM EDGE'], 'D-pad');
+    assert.ok(!HANDLE_KINDS.some(k => (cfg[k] ?? []).some(x => x && (x.gamepadModifier ?? -1) >= 0)),
+      'no combos ship by default');
+    // Holding any modifier changes nothing: the plain binding still wins.
+    for (const m of [LB, RB, RT]) {
+      assert.deepEqual([0, 1, 2, 3].map(b => labelOf(cfg, resolveBinding(cfg, b, new Set([m])))),
+        ['PUSH WHT', 'FLASH M', 'FLASH M2', 'INVERT'], `${NAMES[m]}+A/B/X/Y fall through to the plain bindings`);
     }
     assert.equal(bindingLabel(NAMES, 0, LB), 'LB+A');
 

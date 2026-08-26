@@ -125,7 +125,8 @@
         "durationMs": 1500
       },
       "macro": [],
-      "gamepadButton": 1
+      "gamepadButton": 1,
+      "gamepadModifier": -1
     },
     {
       "id": "fx3",
@@ -152,7 +153,8 @@
         "durationMs": 1500
       },
       "macro": [],
-      "gamepadButton": 2
+      "gamepadButton": 2,
+      "gamepadModifier": -1
     },
     {
       "id": "fx4",
@@ -179,7 +181,8 @@
         "durationMs": 1500
       },
       "macro": [],
-      "gamepadButton": 3
+      "gamepadButton": 3,
+      "gamepadModifier": -1
     },
     {
       "id": "fx5",
@@ -206,7 +209,7 @@
         "durationMs": 1500
       },
       "macro": [],
-      "gamepadButton": 10,
+      "gamepadButton": 5,
       "gamepadModifier": -1
     },
     {
@@ -261,7 +264,7 @@
         "durationMs": 1500
       },
       "macro": [],
-      "gamepadButton": 11,
+      "gamepadButton": 4,
       "gamepadModifier": -1
     },
     {
@@ -289,7 +292,8 @@
         "durationMs": 1500
       },
       "macro": [],
-      "gamepadButton": 12
+      "gamepadButton": 12,
+      "gamepadModifier": -1
     },
     {
       "id": "fx9",
@@ -316,7 +320,8 @@
         "durationMs": 1500
       },
       "macro": [],
-      "gamepadButton": 13
+      "gamepadButton": 13,
+      "gamepadModifier": -1
     },
     {
       "id": "fx10",
@@ -343,7 +348,8 @@
         "durationMs": 1500
       },
       "macro": [],
-      "gamepadButton": 14
+      "gamepadButton": 14,
+      "gamepadModifier": -1
     },
     {
       "id": "fx11",
@@ -370,7 +376,8 @@
         "durationMs": 1500
       },
       "macro": [],
-      "gamepadButton": 15
+      "gamepadButton": 15,
+      "gamepadModifier": -1
     },
     {
       "id": "fx12",
@@ -397,8 +404,8 @@
         "durationMs": 1500
       },
       "macro": [],
-      "gamepadButton": 2,
-      "gamepadModifier": 4
+      "gamepadButton": -1,
+      "gamepadModifier": -1
     },
     {
       "id": "fx13",
@@ -425,7 +432,8 @@
         "durationMs": 1500
       },
       "macro": [],
-      "gamepadButton": 0
+      "gamepadButton": 0,
+      "gamepadModifier": -1
     },
     {
       "id": "fx14",
@@ -452,8 +460,8 @@
         "durationMs": 1500
       },
       "macro": [],
-      "gamepadButton": 0,
-      "gamepadModifier": 4
+      "gamepadButton": 11,
+      "gamepadModifier": -1
     },
     {
       "id": "fx15",
@@ -538,8 +546,8 @@
         "durationMs": 2000
       },
       "macro": [],
-      "gamepadButton": 2,
-      "gamepadModifier": 7
+      "gamepadButton": -1,
+      "gamepadModifier": -1
     },
     {
       "id": "fx2-2",
@@ -593,8 +601,8 @@
         "durationMs": 2000
       },
       "macro": [],
-      "gamepadButton": 1,
-      "gamepadModifier": 7
+      "gamepadButton": -1,
+      "gamepadModifier": -1
     },
     {
       "id": "fx2-4",
@@ -702,8 +710,8 @@
         "durationMs": 2000
       },
       "macro": [],
-      "gamepadButton": 0,
-      "gamepadModifier": 7
+      "gamepadButton": -1,
+      "gamepadModifier": -1
     },
     {
       "id": "fx2-8",
@@ -730,8 +738,8 @@
         "durationMs": 2000
       },
       "macro": [],
-      "gamepadButton": 3,
-      "gamepadModifier": 7
+      "gamepadButton": -1,
+      "gamepadModifier": -1
     },
     {
       "id": "fx2-9",
@@ -812,8 +820,8 @@
         "durationMs": 1500
       },
       "macro": [],
-      "gamepadButton": 3,
-      "gamepadModifier": 4
+      "gamepadButton": -1,
+      "gamepadModifier": -1
     },
     {
       "id": "fx2-12",
@@ -853,8 +861,8 @@
           ]
         }
       ],
-      "gamepadButton": 1,
-      "gamepadModifier": 4
+      "gamepadButton": -1,
+      "gamepadModifier": -1
     },
     {
       "id": "fx2-13",
