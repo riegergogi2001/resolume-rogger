@@ -181,6 +181,19 @@ test('the LOGO target drives every colour on all three logo layers, linked', () 
   ], 'OFF returns all three logos to their own colours and drops the haze');
 });
 
+test('the page-2 content pushers fade back on release; every other ramp snaps', () => {
+  const cfg = store.defaults();
+  const pushers = cfg.fxButtons2.filter(b => b.ramp?.enabled);
+  assert.deepEqual(pushers.map(b => b.label), ['EDGE FX', 'ACUARELA', 'BLOOM', 'GOO', 'INF ZOOM', 'METASHAPE', 'GLITCH', 'HUE SPIN']);
+  assert.ok(pushers.every(b => b.ramp.releaseMs === 1000), 'a 1 s fade back instead of a snap');
+  for (const kind of ['fxButtons', 'fxButtons3', 'utilButtons']) {
+    assert.ok(cfg[kind].every(b => (b.ramp?.releaseMs ?? 0) === 0), `${kind}: snap back (0)`);
+  }
+  // A config saved before the field existed: the default's fade fills in.
+  const merged = store.merge({ fxButtons2: [null, { label: 'ACUARELA', ramp: { enabled: true, from: 0, to: 1, durationMs: 2000 } }] });
+  assert.equal(merged.fxButtons2[1].ramp.releaseMs, 1000);
+});
+
 test('the HAZE toggle switches OutlineHaze on all three logo layers', () => {
   const haze = store.defaults().utilButtons.find(b => b.label === 'HAZE');
   const all = [haze.address, haze.extraAddress, ...haze.extraAddresses];

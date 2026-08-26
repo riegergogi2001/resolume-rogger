@@ -25,7 +25,7 @@ function fxButton(i, over = {}) {
     extraAddress: '',       // optional second target mirrored on every send
     extraAddresses: [],     // any further targets mirrored the same way
     repeat: { enabled: false, intervalMs: 250, sync: false }, // sync = follow tapped beat
-    ramp: { enabled: false, from: 0, to: 1, durationMs: 1500 }, // hold: sweep value while pressed
+    ramp: { enabled: false, from: 0, to: 1, durationMs: 1500, releaseMs: 0 }, // hold: sweep value while pressed; releaseMs > 0 fades back instead of snapping
     macro: [],              // [{address, values:[...]}] — sent in order instead of single message
     gamepadButton: -1,      // standard-mapping gamepad button index, -1 = unbound
     gamepadModifier: -1,    // pad button that must be held for this binding; -1 = none
@@ -131,7 +131,7 @@ function defaults() {
     // D-pad = SLICE STR + BOOM BLUR/EXPO/EDGE, LT master duck, RT INVERT
     // stomp. Combos (2.2.6): RB+A/B/X/Y = the page-2 content pushers GLITCH /
     // BLOOM / EDGE FX / HUE SPIN, LB+RT = ACUARELA (a trigger as a combo's
-    // target: the pull fires the combo, not the stomp). A modifier's own
+    // target: the pull fires the combo, not the stomp), LB+Y = BOOM INV. A modifier's own
     // plain binding still fires while it is held (RB = PIXELATE, LB = SUCK
     // IT!) — that is the operator's choice of layout. LS-click stays free.
     fxButtons: [
@@ -157,17 +157,17 @@ function defaults() {
     ],
     // Second page: group-1 content FX (opacity ramps) + clears + resets.
     fxButtons2: [
-      fxButton(0, { id: 'fx2-1', label: 'EDGE FX', icon: '◐', mode: 'hold', type: 'float', address: '/composition/groups/1/video/effects/edgedetection/opacity', ramp: { enabled: true, from: 0, to: 1, durationMs: 2000 }, gamepadButton: 2, gamepadModifier: 5 }),
-      fxButton(1, { id: 'fx2-2', label: 'ACUARELA', icon: '◐', color: ACCENTS.green, mode: 'hold', type: 'float', address: '/composition/groups/1/video/effects/acuarela/opacity', ramp: { enabled: true, from: 0, to: 1, durationMs: 2000 }, gamepadButton: 7, gamepadModifier: 4 }),
-      fxButton(2, { id: 'fx2-3', label: 'BLOOM', icon: '◐', color: ACCENTS.yellow, mode: 'hold', type: 'float', address: '/composition/groups/1/video/effects/bloom/opacity', ramp: { enabled: true, from: 0, to: 1, durationMs: 2000 }, gamepadButton: 1, gamepadModifier: 5 }),
-      fxButton(3, { id: 'fx2-4', label: 'GOO', icon: '◐', color: ACCENTS.purple, mode: 'hold', type: 'float', address: '/composition/groups/1/video/effects/goo/opacity', ramp: { enabled: true, from: 0, to: 1, durationMs: 2000 } }),
-      fxButton(4, { id: 'fx2-5', label: 'INF ZOOM', icon: '◐', color: ACCENTS.orange, mode: 'hold', type: 'float', address: '/composition/groups/1/video/effects/infinitezoom/opacity', ramp: { enabled: true, from: 0, to: 1, durationMs: 2000 } }),
-      fxButton(5, { id: 'fx2-6', label: 'METASHAPE', icon: '◐', color: ACCENTS.blue, mode: 'hold', type: 'float', address: '/composition/groups/1/video/effects/metashape/opacity', ramp: { enabled: true, from: 0, to: 1, durationMs: 2000 } }),
-      fxButton(6, { id: 'fx2-7', label: 'GLITCH', icon: '◐', color: ACCENTS.magenta, mode: 'hold', type: 'float', address: '/composition/groups/1/video/effects/shiftglitch/opacity', ramp: { enabled: true, from: 0, to: 1, durationMs: 2000 }, gamepadButton: 0, gamepadModifier: 5 }),
-      fxButton(7, { id: 'fx2-8', label: 'HUE SPIN', icon: '◐', color: ACCENTS.yellow, mode: 'hold', type: 'float', address: '/composition/groups/1/video/effects/huerotate/effect/huerotate', releaseValue: 0.57, ramp: { enabled: true, from: 0, to: 1, durationMs: 2000 }, gamepadButton: 3, gamepadModifier: 5 }),
+      fxButton(0, { id: 'fx2-1', label: 'EDGE FX', icon: '◐', mode: 'hold', type: 'float', address: '/composition/groups/1/video/effects/edgedetection/opacity', ramp: { enabled: true, from: 0, to: 1, durationMs: 2000, releaseMs: 1000 }, gamepadButton: 2, gamepadModifier: 5 }),
+      fxButton(1, { id: 'fx2-2', label: 'ACUARELA', icon: '◐', color: ACCENTS.green, mode: 'hold', type: 'float', address: '/composition/groups/1/video/effects/acuarela/opacity', ramp: { enabled: true, from: 0, to: 1, durationMs: 2000, releaseMs: 1000 }, gamepadButton: 7, gamepadModifier: 4 }),
+      fxButton(2, { id: 'fx2-3', label: 'BLOOM', icon: '◐', color: ACCENTS.yellow, mode: 'hold', type: 'float', address: '/composition/groups/1/video/effects/bloom/opacity', ramp: { enabled: true, from: 0, to: 1, durationMs: 2000, releaseMs: 1000 }, gamepadButton: 1, gamepadModifier: 5 }),
+      fxButton(3, { id: 'fx2-4', label: 'GOO', icon: '◐', color: ACCENTS.purple, mode: 'hold', type: 'float', address: '/composition/groups/1/video/effects/goo/opacity', ramp: { enabled: true, from: 0, to: 1, durationMs: 2000, releaseMs: 1000 } }),
+      fxButton(4, { id: 'fx2-5', label: 'INF ZOOM', icon: '◐', color: ACCENTS.orange, mode: 'hold', type: 'float', address: '/composition/groups/1/video/effects/infinitezoom/opacity', ramp: { enabled: true, from: 0, to: 1, durationMs: 2000, releaseMs: 1000 } }),
+      fxButton(5, { id: 'fx2-6', label: 'METASHAPE', icon: '◐', color: ACCENTS.blue, mode: 'hold', type: 'float', address: '/composition/groups/1/video/effects/metashape/opacity', ramp: { enabled: true, from: 0, to: 1, durationMs: 2000, releaseMs: 1000 } }),
+      fxButton(6, { id: 'fx2-7', label: 'GLITCH', icon: '◐', color: ACCENTS.magenta, mode: 'hold', type: 'float', address: '/composition/groups/1/video/effects/shiftglitch/opacity', ramp: { enabled: true, from: 0, to: 1, durationMs: 2000, releaseMs: 1000 }, gamepadButton: 0, gamepadModifier: 5 }),
+      fxButton(7, { id: 'fx2-8', label: 'HUE SPIN', icon: '◐', color: ACCENTS.yellow, mode: 'hold', type: 'float', address: '/composition/groups/1/video/effects/huerotate/effect/huerotate', releaseValue: 0.57, ramp: { enabled: true, from: 0, to: 1, durationMs: 2000, releaseMs: 1000 }, gamepadButton: 3, gamepadModifier: 5 }),
       fxButton(8, { id: 'fx2-9', label: 'CLR FX', icon: '✕', color: ACCENTS.red, mode: 'hold', address: '/composition/layers/12/clear' }),
       fxButton(9, { id: 'fx2-10', label: 'CLR LOGO', icon: '✕', color: ACCENTS.red, mode: 'hold', address: '/composition/layers/9/clear' }),
-      fxButton(10, { id: 'fx2-11', label: 'BOOM INV', icon: '☄', color: ACCENTS.white, mode: 'hold', address: '/composition/video/effects/boomer/effect/invert', repeat: { enabled: true, intervalMs: 250, sync: true } }),
+      fxButton(10, { id: 'fx2-11', label: 'BOOM INV', icon: '☄', color: ACCENTS.white, mode: 'hold', address: '/composition/video/effects/boomer/effect/invert', repeat: { enabled: true, intervalMs: 250, sync: true }, gamepadButton: 3, gamepadModifier: 4 }),
       fxButton(11, { id: 'fx2-12', label: 'PUSH X2', icon: '☄', color: ACCENTS.white, mode: 'hold', address: '/composition/video/effects/pusher/effect/push!', repeat: { enabled: true, intervalMs: 250, sync: true },
         macro: [{ address: '/composition/video/effects/pusher/effect/push!', values: [1] }, { address: '/composition/video/effects/pusher2/effect/push!', values: [1] }] }),
       fxButton(12, { id: 'fx2-13', label: 'LOGO ALT', icon: '▩', color: ACCENTS.blue, mode: 'hold', address: '/composition/layers/8/clips/17/connect' }),

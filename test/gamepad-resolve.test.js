@@ -184,7 +184,7 @@ for (const [name, load] of [
   ['defaults', () => store.defaults()],
   ['configs/show.json', () => store.load(path.join(__dirname, '..', 'configs', 'show.json'))],
 ]) {
-  test(`${name}: ships the plain layout — A/B/X/Y, LB SUCK IT!, RB PIXELATE, RS-click PUSH BLK — plus RB combos and LB+RT`, () => {
+  test(`${name}: ships the plain layout — A/B/X/Y, LB SUCK IT!, RB PIXELATE, RS-click PUSH BLK — plus RB combos, LB+RT and LB+Y`, () => {
     const cfg = load();
     const plain = b => labelOf(cfg, resolveBinding(cfg, b, new Set()));
     assert.deepEqual([0, 1, 2, 3].map(plain), ['PUSH WHT', 'FLASH M', 'FLASH M2', 'INVERT'], 'A/B/X/Y');
@@ -196,7 +196,7 @@ for (const [name, load] of [
     assert.deepEqual([0, 1, 2, 3].map(b => labelOf(cfg, resolveBinding(cfg, b, new Set([RB])))),
       ['GLITCH', 'BLOOM', 'EDGE FX', 'HUE SPIN'], 'RB+A/B/X/Y are the page-2 content pushers');
     assert.deepEqual([0, 1, 2, 3].map(b => labelOf(cfg, resolveBinding(cfg, b, new Set([LB])))),
-      ['PUSH WHT', 'FLASH M', 'FLASH M2', 'INVERT'], 'LB+A/B/X/Y fall through to the plain bindings');
+      ['PUSH WHT', 'FLASH M', 'FLASH M2', 'BOOM INV'], 'LB+Y is the invert bump; LB+A/B/X fall through to the plain bindings');
     assert.equal(labelOf(cfg, comboBinding(cfg, RT, new Set([LB]))), 'ACUARELA', 'LB+RT is ACUARELA');
     assert.equal(comboBinding(cfg, RT, new Set()), null, 'RT alone is the stomp, no combo');
     assert.equal(comboBinding(cfg, RT, new Set([RB])), null, 'RB+RT is nothing');

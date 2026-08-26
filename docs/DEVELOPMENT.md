@@ -16,7 +16,7 @@ Zero runtime dependencies (vanilla JS/CSS + Electron) and a hand-rolled OSC
 - **Five pages** with tabs:
   - **Page 1** — FLASH bank (8 momentary punch buttons) and BUMP bank
     (8 one-shot punches, two of them left free for whatever comes up).
-  - **Page 2** — 8 ramp buttons (hold to sweep an effect in, release to drop
+  - **Page 2** — 8 ramp buttons (hold to sweep an effect in; release fades it back out over `ramp.releaseMs`, 1 s by default, 0 = instant drop
     it), big Tap Tempo / Resync buttons, and 6 horizontal group-master faders.
   - **DJ Intro** — a 24-slot clip grid built dynamically from the live
     composition (**Sync from Resolume** reads the name-source layer and
@@ -95,7 +95,8 @@ Zero runtime dependencies (vanilla JS/CSS + Electron) and a hand-rolled OSC
   PIXELATE, RS-click = PUSH BLK, D-pad = SLICE STR + BOOM BLUR/EXPO/EDGE,
   LS-click free; LT is the master duck and RT the analog INVERT stomp.
   Shipped combos (2.2.6): `RB+A` GLITCH, `RB+B` BLOOM, `RB+X` EDGE FX,
-  `RB+Y` HUE SPIN (the Page 2 content pushers) and `LB+RT` ACUARELA — RB and
+  `RB+Y` HUE SPIN (the Page 2 content pushers), `LB+RT` ACUARELA and `LB+Y`
+  BOOM INV — RB and
   LB keep their plain bindings, which fire while held. **A trigger can be a combo's target
   too** (`LB+RT`): hold the pad button, pull the trigger — that pull fires the
   combo as a hold and the trigger's own stomp/analog action stays off until

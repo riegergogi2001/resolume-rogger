@@ -235,6 +235,33 @@ async function main() {
       const m = [...log].reverse().find(x => x.address === addr);
       return m?.args?.[0]?.value;
     }
+    // --- release fade: a ramped FX sweeps back instead of snapping ----------
+    const acua = defaults.fxButtons2.find(b => b.label === 'ACUARELA');
+    const acuaIdx = defaults.fxButtons2.indexOf(acua);
+    assert(acua.mode === 'hold' && acua.ramp?.enabled && acua.ramp.releaseMs > 0 && acua.ramp.durationMs >= 1000,
+      'defaults: ACUARELA is a hold ramp with a release fade');
+    console.log('\n[touch] hold ACUARELA 600 ms, release -> fades to the release value, no snap');
+    await page.locator('#fx-grid .page-tab', { hasText: 'Page 2' }).click();
+    await page.waitForTimeout(100);
+    const acuaBtn = page.locator(`.fx-btn[data-kind="fxButtons2"][data-index="${acuaIdx}"]`);
+    await clearLog();
+    await acuaBtn.dispatchEvent('pointerdown', { pointerId: 1 });
+    await page.waitForTimeout(600);
+    const heldLog = (await readLog()).filter(m => m.address === acua.address).map(m => m.args[0].value);
+    assert(heldLog.length >= 5 && heldLog[heldLog.length - 1] > heldLog[0], 'the hold ramp is sweeping up');
+    await clearLog();
+    await acuaBtn.dispatchEvent('pointerup', { pointerId: 1 });
+    await acuaBtn.dispatchEvent('pointercancel', { pointerId: 1 }); // a stray second release must not cut the fade
+    await page.waitForTimeout(acua.ramp.releaseMs + 400);
+    const fade = (await readLog()).filter(m => m.address === acua.address).map(m => m.args[0].value);
+    const releaseValue = acua.releaseValue ?? acua.ramp.from;
+    assert(fade.length >= 5, `the release is a sweep, not one message (got ${fade.length})`);
+    assert(fade[0] > releaseValue + 0.05, `the first release message starts near the held value (got ${fade[0]})`);
+    assert(fade.every((v, i) => i === 0 || v <= fade[i - 1] + 1e-9), 'the fade only goes down');
+    assert(fade[fade.length - 1] === releaseValue, `and ends exactly at the release value ${releaseValue}`);
+    await page.locator('#fx-grid .page-tab', { hasText: 'Page 1' }).click();
+    await page.waitForTimeout(100);
+
     // --- HAZE toggle: address + extraAddress + extraAddresses all fire ------
     const haze = defaults.utilButtons.find(b => b.label === 'HAZE');
     const hazeIdx = defaults.utilButtons.indexOf(haze);

@@ -279,7 +279,9 @@ export function openEditor(kind, index) {
         field('Ramp from', numInput(draft.ramp?.from ?? 0, v => { draft.ramp = { ...draft.ramp, from: v }; })),
         field('Ramp to', numInput(draft.ramp?.to ?? 1, v => { draft.ramp = { ...draft.ramp, to: v }; })),
         field('Ramp time (ms)', numInput(draft.ramp?.durationMs ?? 1500,
-          v => { draft.ramp = { ...draft.ramp, durationMs: v }; }, '1')));
+          v => { draft.ramp = { ...draft.ramp, durationMs: v }; }, '1')),
+        field('Release fade (ms, 0 = snap)', numInput(draft.ramp?.releaseMs ?? 0,
+          v => { draft.ramp = { ...draft.ramp, releaseMs: v }; }, '1')));
       body.append(rrow);
     }
     // controller binding (ROG Ally X gamepad)
