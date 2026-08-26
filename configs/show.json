@@ -2394,8 +2394,10 @@
         "colorBases": [
           "/composition/layers/8/video/effects/colorize/effect/color",
           "/composition/layers/9/video/effects/colorize/effect/color",
+          "/composition/layers/10/video/effects/colorize/effect/color",
           "/composition/layers/8/video/effects/outlinehaze/effect/color",
-          "/composition/layers/9/video/effects/outlinehaze/effect/color"
+          "/composition/layers/9/video/effects/outlinehaze/effect/color",
+          "/composition/layers/10/video/effects/outlinehaze/effect/color"
         ],
         "onSteps": [
           {
@@ -2406,6 +2408,12 @@
           },
           {
             "address": "/composition/layers/9/video/effects/colorize/bypassed",
+            "values": [
+              0
+            ]
+          },
+          {
+            "address": "/composition/layers/10/video/effects/colorize/bypassed",
             "values": [
               0
             ]
@@ -2425,6 +2433,12 @@
             ]
           },
           {
+            "address": "/composition/layers/10/video/effects/colorize/bypassed",
+            "values": [
+              1
+            ]
+          },
+          {
             "address": "/composition/layers/8/video/effects/outlinehaze/bypassed",
             "values": [
               1
@@ -2432,6 +2446,12 @@
           },
           {
             "address": "/composition/layers/9/video/effects/outlinehaze/bypassed",
+            "values": [
+              1
+            ]
+          },
+          {
+            "address": "/composition/layers/10/video/effects/outlinehaze/bypassed",
             "values": [
               1
             ]
