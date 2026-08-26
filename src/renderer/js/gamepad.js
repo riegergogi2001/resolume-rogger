@@ -4,7 +4,7 @@
 // LT/RT can act as analog triggers: pressed depth maps onto a float param.
 import { rogger } from './bridge.js';
 import * as state from './state.js';
-import { resolveBinding } from './gamepad-resolve.js';
+import { resolveBinding, comboBinding } from './gamepad-resolve.js';
 
 // Standard-mapping button indices.
 export const BUTTON_NAMES = ['A', 'B', 'X', 'Y', 'LB', 'RB', 'LT', 'RT',
@@ -40,9 +40,11 @@ export function startGamepad(handles) {
   const active = {};
   // suppressed: releaseAll() let go of the trigger while it was still
   // physically held; it stays released until the axis reads idle once.
+  // claimed: this pull is a combo's press (a pad button was held when the
+  // trigger came down), so the stomp stays off until the trigger is let go.
   const trigState = {
-    lt: { engaged: false, last: null, suppressed: false },
-    rt: { engaged: false, last: null, suppressed: false },
+    lt: { engaged: false, last: null, suppressed: false, claimed: false },
+    rt: { engaged: false, last: null, suppressed: false, claimed: false },
   };
   const stickLast = {};
   let activePad = null;
@@ -106,6 +108,7 @@ export function startGamepad(handles) {
       // still standing on the trigger when focus is stolen, the next tick
       // must not re-engage it -- that would blip the strobe clip OFF/ON.
       if (trigState[key].engaged) trigState[key].suppressed = true;
+      trigState[key].claimed = false; // its handle was just released above
       disengageTrigger(key, tcfg[key]);
     }
     const scfg = state.get()?.sticks ?? {};
@@ -131,16 +134,54 @@ export function startGamepad(handles) {
     const tcfg = state.get()?.triggers ?? {};
     const analogIdx = new Set(ANALOG_TRIGGERS.filter(([k]) => tcfg[k]?.enabled).map(([, i]) => i));
 
+    const curr = pad.buttons.map(btn =>
+      typeof btn === 'object' ? (btn.pressed || btn.value > 0.5) : btn > 0.5);
+    // Digital-held set for combo resolution — includes LT/RT (they count
+    // as held modifiers even though they're excluded from button actions
+    // below) and every other currently-down button.
+    const heldSet = new Set();
+    for (let i = 0; i < curr.length; i++) if (curr[i]) heldSet.add(i);
+
     // analog triggers: depth -> value, snap back on release
     for (const [key, idx] of ANALOG_TRIGGERS) {
       const t = tcfg[key];
       if (!t?.enabled) continue;
-      const v = Math.min(1, axisValue(pad.buttons[idx]));
       const st = trigState[key];
+      const down = curr[idx];
+      const was = prev[idx] ?? false;
+      // A pull claimed by a combo is that combo's press for as long as the
+      // trigger stays down: no stomp, no analog value; letting go releases
+      // the combo's handle (paired to the physical trigger, like a button).
+      if (st.claimed) {
+        if (!down) {
+          st.claimed = false;
+          const hi = active[idx];
+          delete active[idx];
+          if (hi !== undefined && handles[hi]) handles[hi].release();
+        }
+        continue;
+      }
+      const v = Math.min(1, axisValue(pad.buttons[idx]));
       const engaged = v > 0.03;
       if (st.suppressed) {
         if (engaged) continue; // released by releaseAll(), never let go since
         st.suppressed = false; // idle once -> live again on the next press
+      }
+      // A held pad button with a combo on this trigger (e.g. LB+RT): hold the
+      // stomp back — it would engage at 3 % depth, before the digital edge
+      // that fires the combo — and claim the pull at that edge. Once the
+      // stomp is engaged a modifier pressed afterwards changes nothing.
+      if (!st.engaged && !learnCb) {
+        const combo = comboBinding(state.get(), idx, heldSet);
+        if (combo) {
+          if (down && !was && handles[combo.handle]) {
+            handles[combo.handle].press();
+            active[idx] = combo.handle;
+            st.claimed = true;
+            if (haptics.enabled && haptics.press) rumble(0.15, 0.4, 50);
+          }
+          continue;
+        }
       }
       if (engaged && !st.engaged) {
         st.engaged = true;
@@ -191,18 +232,28 @@ export function startGamepad(handles) {
       }
     }
 
-    const curr = pad.buttons.map(btn =>
-      typeof btn === 'object' ? (btn.pressed || btn.value > 0.5) : btn > 0.5);
-    // Digital-held set for combo resolution — includes LT/RT (they count
-    // as held modifiers even though they're excluded from button actions
-    // below) and every other currently-down button.
-    const heldSet = new Set();
-    for (let i = 0; i < curr.length; i++) if (curr[i]) heldSet.add(i);
-
     for (let bi = 0; bi < curr.length; bi++) {
       const down = curr[bi];
       if (down === (prev[bi] ?? false)) continue;
-      if (analogIdx.has(bi)) continue; // analog triggers never act as buttons
+      if (analogIdx.has(bi)) {
+        // Analog triggers never act as plain buttons — their pull is the
+        // stomp (handled above, combos included). Learn still captures a
+        // pull with a pad button held as that combo, e.g. LB+RT; a trigger
+        // pulled alone, or with only the other trigger held, learns nothing.
+        if (learnCb && down) {
+          let modifier = -1;
+          if (learnPending >= 0 && learnPending !== bi && heldSet.has(learnPending) && !analogIdx.has(learnPending)) {
+            modifier = learnPending;
+          } else {
+            for (const i of heldSet) {
+              if (i === bi || analogIdx.has(i)) continue;
+              if (modifier === -1 || i < modifier) modifier = i;
+            }
+          }
+          if (modifier >= 0) { learnPending = -1; learnCb(bi, modifier); }
+        }
+        continue;
+      }
       if (learnCb) {
         if (down) { // learn consumes every press
           // A digital button deliberately held for the combo wins over a

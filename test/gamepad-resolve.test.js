@@ -2,7 +2,7 @@
 const { test } = require('node:test');
 const assert = require('node:assert/strict');
 const {
-  HANDLE_KINDS, modifierSet, resolveBinding, bindingLabel, stealBinding,
+  HANDLE_KINDS, modifierSet, resolveBinding, comboBinding, bindingLabel, stealBinding,
 } = require('../src/renderer/js/gamepad-resolve.js');
 
 const NAMES = ['A', 'B', 'X', 'Y', 'LB', 'RB', 'LT', 'RT',
@@ -100,6 +100,19 @@ test('handle index offsets across kinds match fxHandles layout', () => {
     utilButtons: [ctrl({ gamepadButton: 3 })],
   });
   assert.equal(resolveBinding(c4, 3, new Set([3])).handle, 4); // 1 + 2 + 1
+});
+
+// The analog triggers only ever fire as a combo's target (LB+RT), never as a
+// plain button: comboBinding is resolveBinding minus the plain fallback.
+test('comboBinding: LB held + RT resolves the LB+RT combo, RT alone resolves nothing', () => {
+  const c = cfg({
+    fxButtons: [ctrl({ gamepadButton: 7 })],                             // plain RT — dead by design
+    fxButtons2: [ctrl(), ctrl({ gamepadButton: 7, gamepadModifier: 4 })], // LB+RT
+  });
+  assert.deepEqual(comboBinding(c, 7, new Set([4, 7])), { kind: 'fxButtons2', index: 1, handle: 2 });
+  assert.equal(comboBinding(c, 7, new Set([7])), null, 'no modifier held: the plain RT binding does not count');
+  assert.equal(comboBinding(c, 7, new Set([5, 7])), null, 'a different modifier held: nothing');
+  assert.equal(comboBinding(cfg(), 7, new Set([4, 7])), null, 'nothing bound: nothing');
 });
 
 test('modifierSet collects every gamepadModifier in use', () => {

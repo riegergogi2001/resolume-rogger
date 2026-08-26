@@ -314,7 +314,8 @@ export function openEditor(kind, index) {
     modWrap.appendChild(modRow);
     body.append(padWrap, modWrap);
     body.append(h('div', 'hint',
-      'A modifier held alone still fires its own binding; only the second button changes.'));
+      'A modifier held alone still fires its own binding; only the second button changes. '
+      + 'LT/RT can be the second button too (hold a pad button, pull the trigger): that pull fires this binding instead of the trigger\'s own stomp.'));
 
     const padLearn = h('button', 'big-btn learn-btn u-caps', 'Gamepad learn');
     padLearn.addEventListener('click', () => {
