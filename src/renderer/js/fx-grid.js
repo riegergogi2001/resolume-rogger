@@ -108,6 +108,7 @@ export function renderFxGrid(el, { isEditMode, onEdit }) {
     let repeatTimer = null;
     let holdActive = false;
     let rampRaf = null;
+    let rampValue = null; // last value the hold ramp sent, where a release fade starts from
     const key = `${kind}:${i}`;
     const cfg = () => state.get()[kind][i];
 
@@ -127,6 +128,7 @@ export function renderFxGrid(el, { isEditMode, onEdit }) {
     else latched.delete(key);
 
     function startRamp() {
+      if (rampRaf !== null) cancelAnimationFrame(rampRaf); // a release fade still running
       const startedAt = performance.now();
       const step = () => {
         if (rampRaf === null) return;
@@ -134,8 +136,30 @@ export function renderFxGrid(el, { isEditMode, onEdit }) {
         const r = c.ramp;
         const t = Math.min(1, (performance.now() - startedAt) / Math.max(50, r.durationMs));
         const v = r.from + (r.to - r.from) * t;
+        rampValue = v;
         rogger.sendTyped(c.address, [{ type: 'f', value: v }]);
         if (t < 1) rampRaf = requestAnimationFrame(step);
+      };
+      rampRaf = requestAnimationFrame(step);
+    }
+
+    // Release fade (ramp.releaseMs > 0): instead of snapping back, sweep from
+    // wherever the hold ramp got to down to the release value. Runs after
+    // holdActive has cleared, so a second pointerup/pointercancel cannot cut
+    // it short; a new press replaces it.
+    function startReleaseFade(c) {
+      const from = rampValue ?? c.ramp.from;
+      const to = c.releaseValue ?? c.ramp.from;
+      const ms = Math.max(50, c.ramp.releaseMs);
+      const startedAt = performance.now();
+      const step = () => {
+        if (rampRaf === null) return;
+        const t = Math.min(1, (performance.now() - startedAt) / ms);
+        const v = from + (to - from) * t;
+        rogger.sendTyped(cfg().address, [{ type: 'f', value: v }]);
+        if (t < 1) { rampRaf = requestAnimationFrame(step); return; }
+        rampRaf = null;
+        rampValue = null;
       };
       rampRaf = requestAnimationFrame(step);
     }
@@ -184,8 +208,8 @@ export function renderFxGrid(el, { isEditMode, onEdit }) {
     }
 
     function release() {
-      if (rampRaf !== null) {
-        cancelAnimationFrame(rampRaf);
+      if (holdActive && rampRaf !== null) {
+        cancelAnimationFrame(rampRaf); // the hold ramp; a release fade is left to finish
         rampRaf = null;
       }
       clearTimeout(repeatTimer);
@@ -199,6 +223,8 @@ export function renderFxGrid(el, { isEditMode, onEdit }) {
           for (const step of c.macro) {
             rogger.send(step.address, (step.values ?? [1]).map(() => c.releaseValue ?? 0));
           }
+        } else if (c.mode === 'hold' && c.ramp?.enabled && (c.ramp.releaseMs ?? 0) > 0 && !c.releaseAddress) {
+          startReleaseFade(c);
         } else {
           fire(c, c.releaseValue, c.releaseAddress || c.address);
         }
