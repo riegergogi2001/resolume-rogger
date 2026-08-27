@@ -5,6 +5,7 @@
 import { rogger } from './bridge.js';
 import * as state from './state.js';
 import { showToast } from './toast.js';
+import { confirmDialog } from './dialog.js';
 import { PAGE_DEFS } from './fx-grid.js';
 import { h, field, textInput, numInput, checkRow, row2, btnRow } from './dom.js';
 import { renderUpdates } from './updates.js';
@@ -215,7 +216,7 @@ export function openSettings() {
     resetBtn.id = 'set-reset';
     resetBtn.addEventListener('click', async () => {
       // One tap next to Import used to wipe every edit on the surface.
-      if (!confirm('Reload the default mapping? Every edit made on this surface will be lost.')) return;
+      if (!(await confirmDialog('Reload the default mapping? Every edit made on this surface will be lost.', { ok: 'Reload', danger: true }))) return;
       const cfg = await rogger.resetConfig();
       state.setAll(cfg);
       state.requestRerender();
@@ -256,15 +257,19 @@ export function openSettings() {
 
   const closeBtn = h('button', 'big-btn u-caps', 'Close');
   closeBtn.id = 'set-close';
-  closeBtn.addEventListener('pointerdown', close);
+  closeBtn.addEventListener('click', close);
   const exitBtn = h('button', 'big-btn danger u-caps', 'Exit app');
   exitBtn.id = 'set-exit';
-  exitBtn.addEventListener('pointerdown', async () => {
-    // Sits right next to Close. A mis-tap must not take the show down, and
-    // an edit made in the last 300 ms is still waiting in persist()'s
-    // debounce — write it before the window goes.
-    if (!confirm('Exit ROGGER?')) return;
-    await rogger.saveConfig(state.get());
+  exitBtn.addEventListener('click', async () => {
+    // Sits right next to Close. A mis-tap must not take the show down, so
+    // ask first (in-page: a native confirm() is unreliable in the fullscreen
+    // kiosk window). An edit made in the last 300 ms is still waiting in
+    // persist()'s debounce — write it before the window goes, but never let
+    // a save that hangs or fails hold the exit hostage.
+    if (!(await confirmDialog('Exit ROGGER?', { ok: 'Exit', danger: true }))) return;
+    try {
+      await Promise.race([rogger.saveConfig(state.get()), new Promise(r => setTimeout(r, 1500))]);
+    } catch { /* quitting anyway */ }
     rogger.quit();
   });
   foot.append(closeBtn, exitBtn);

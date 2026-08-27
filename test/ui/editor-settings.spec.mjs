@@ -410,20 +410,40 @@ async function main() {
     // Destructive buttons ask first. Reload sits next to Import and Exit next
     // to Close; one mis-tap used to wipe every edit or take the show down.
     // ---------------------------------------------------------------
-    console.log('\n[settings] destructive buttons ask first, and there are no dead toggles');
-    const dialogs = [];
-    page.on('dialog', d => { dialogs.push(d.message()); d.dismiss(); });
+    console.log('\n[settings] destructive buttons ask first (in-page, never a native dialog), and there are no dead toggles');
+    page.on('dialog', d => { throw new Error(`native dialog opened: ${d.message()}`); });
     await page.getByRole('button', { name: 'Backup', exact: true }).click();
     const labelBeforeReset = await page.locator('.fx-btn[data-kind="fxButtons"][data-index="0"] .fx-label').textContent();
     await page.click('#set-reset');
-    await page.waitForTimeout(200);
-    assert(dialogs.length === 1 && /default/i.test(dialogs[0]), 'Reload default mapping asks for confirmation');
+    await page.waitForSelector('#confirm-overlay');
+    assert(/default/i.test(await page.locator('#confirm-overlay .confirm-text').textContent()), 'Reload default mapping asks for confirmation');
+    await page.click('#confirm-cancel');
+    await page.waitForSelector('#confirm-overlay', { state: 'detached' });
     assert(await page.locator('.fx-btn[data-kind="fxButtons"][data-index="0"] .fx-label').textContent() === labelBeforeReset,
       'declining leaves the surface as it was');
     await page.click('#set-exit');
-    await page.waitForTimeout(200);
-    assert(dialogs.length === 2, 'Exit app asks for confirmation');
+    await page.waitForSelector('#confirm-overlay');
+    assert(/exit/i.test(await page.locator('#confirm-overlay .confirm-text').textContent()), 'Exit app asks for confirmation');
+    await page.click('#confirm-cancel');
+    await page.waitForSelector('#confirm-overlay', { state: 'detached' });
     assert(!(await page.evaluate(() => window.__quitCalled)), 'declining does not quit');
+
+    console.log('\n[settings] confirming Exit writes the config and quits — even when the save hangs');
+    await page.evaluate(() => { window.__savedConfig = null; window.__quitCalled = false; });
+    await page.click('#set-exit');
+    await page.waitForSelector('#confirm-overlay');
+    await page.click('#confirm-ok');
+    await page.waitForFunction(() => window.__quitCalled === true, null, { timeout: 3000 });
+    assert(await page.evaluate(() => window.__savedConfig !== null), 'the last edits are written before quitting');
+    await page.evaluate(() => { window.__quitCalled = false; window.__saveHang = true; });
+    await page.click('#set-exit');
+    await page.waitForSelector('#confirm-overlay');
+    const t0 = Date.now();
+    await page.click('#confirm-ok');
+    await page.waitForFunction(() => window.__quitCalled === true, null, { timeout: 4000 });
+    const waited = Date.now() - t0;
+    assert(waited >= 1000 && waited < 3500, `a hanging save is given ~1.5 s, then the app quits anyway (took ${waited} ms)`);
+    await page.evaluate(() => { window.__quitCalled = false; window.__saveHang = false; });
     page.removeAllListeners('dialog');
     await page.getByRole('button', { name: 'Network', exact: true }).click();
     assert(await page.locator('#settings-overlay .check-row', { hasText: 'Dark theme' }).count() === 0,

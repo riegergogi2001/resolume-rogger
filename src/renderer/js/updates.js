@@ -5,6 +5,7 @@
 // the OSC link is LIVE asks first. Nothing here ever swaps code under a
 // running show — an installed payload is picked up by the shell next launch.
 import { rogger } from './bridge.js';
+import { confirmDialog } from './dialog.js';
 import { showToast } from './toast.js';
 import { h, checkRow, field, btnRow } from './dom.js';
 
@@ -103,10 +104,11 @@ export function renderUpdates(body, { oscStatus = () => 'offline' } = {}) {
   function restartButton(label) {
     const btn = h('button', 'big-btn primary u-caps', label);
     btn.id = 'upd-restart';
-    btn.addEventListener('click', () => {
+    btn.addEventListener('click', async () => {
       // Restarting drops the OSC socket. If anything is still talking to us,
       // make the operator confirm rather than going dark mid-cue.
-      if (oscStatus() === 'live' && !confirm('OSC is LIVE. Restart ROGGER now to apply the update?')) return;
+      if (oscStatus() === 'live'
+        && !(await confirmDialog('OSC is LIVE. Restart ROGGER now to apply the update?', { ok: 'Restart', danger: true }))) return;
       rogger.relaunch?.();
     });
     return btn;
