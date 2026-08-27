@@ -29,7 +29,8 @@ Zero runtime dependencies (vanilla JS/CSS + Electron) and a hand-rolled OSC
   - **Colors** — advanced picker (hue strip + saturation/value pad, throttled
     live sends), 16 quick swatches, and a ColorMorph strip: MORPH SPEED slider
     and MORPH on/off with OSC feedback. Drives the same switchable targets as
-    the main color row (BG / LOGO / FLASH / MORPH 1 / MORPH 2); the two morph
+    the main color row (BG / LOGO / FLASH / ALL / MORPH 1 / MORPH 2 — ALL is the
+    union of the first three, one pick for every show colour); the two morph
     colours are ordinary targets in the chip row, each on the page exactly once.
   - **BPM page (mic analyser)** — a realtime tempo analyser built natively
     on Web Audio (no Python, no ML): pick an input device from a full list

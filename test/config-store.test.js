@@ -194,6 +194,22 @@ test('the page-2 content pushers fade back on release; every other ramp snaps', 
   assert.equal(merged.fxButtons2[1].ramp.releaseMs, 1000);
 });
 
+test('the ALL colour target is the union of BG + LOGO + FLASH, with their ON/OFF steps, and no morph', () => {
+  const items = store.defaults().colorTargets.items;
+  assert.deepEqual(items.map(t => t.id), ['bg', 'logo', 'flash', 'all', 'morph1', 'morph2']);
+  const all = items.find(t => t.id === 'all');
+  const union = key => ['bg', 'logo', 'flash'].flatMap(id => items.find(t => t.id === id)[key]);
+  assert.deepEqual(all.colorBases, union('colorBases'));
+  assert.deepEqual(all.onSteps, union('onSteps'));
+  assert.deepEqual(all.offSteps, union('offSteps'));
+  assert.ok(all.colorBases.length === 1 + 6 + 3, 'BG colorize + six logo colours + three flash colours');
+  assert.ok(!all.colorBases.some(b => b.includes('colormorph')), 'MORPH stays out');
+  // Its own objects: merging a saved LOGO target must not reach into ALL.
+  const merged = store.merge({ colorTargets: { active: 'all', items: [{ id: 'logo', colorBases: ['/x'] }, { id: 'all' }] } });
+  assert.deepEqual(merged.colorTargets.items[1].colorBases, all.colorBases, 'ALL keeps the shipped union');
+  assert.equal(merged.colorTargets.active, 'all');
+});
+
 test('the tempo buttons are config controls with fixed addresses and an editable pad binding', () => {
   const t = store.defaults().tempoButtons;
   assert.deepEqual(t.map(x => [x.id, x.address]), [
@@ -351,7 +367,7 @@ test('a stray duplicate target id is ignored, not allowed to hijack the real one
   const patch = structuredClone(store.defaults());
   patch.colorTargets.items.push({ id: 'bg', label: 'IMPOSTOR', colorBases: ['/nonsense'] });
   const merged = store.merge(patch);
-  assert.equal(merged.colorTargets.items.length, 5, 'no sixth target appears');
+  assert.equal(merged.colorTargets.items.length, store.defaults().colorTargets.items.length, 'no extra target appears');
   assert.equal(merged.colorTargets.items[0].label, 'BG', 'the first entry with that id wins');
   assert.ok(!merged.colorTargets.items[0].colorBases.includes('/nonsense'));
 });

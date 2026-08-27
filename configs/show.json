@@ -2675,6 +2675,147 @@
         ]
       },
       {
+        "id": "all",
+        "label": "ALL",
+        "swatch": "#ffffff",
+        "colorBases": [
+          "/composition/groups/1/video/effects/colorize/effect/color",
+          "/composition/layers/8/video/effects/colorize/effect/color",
+          "/composition/layers/9/video/effects/colorize/effect/color",
+          "/composition/layers/10/video/effects/colorize/effect/color",
+          "/composition/layers/8/video/effects/outlinehaze/effect/color",
+          "/composition/layers/9/video/effects/outlinehaze/effect/color",
+          "/composition/layers/10/video/effects/outlinehaze/effect/color",
+          "/composition/layers/12/clips/3/video/effects/flashmaster/effect/color1",
+          "/composition/layers/12/clips/4/video/effects/flashmaster/effect/color1",
+          "/composition/layers/12/clips/7/video/effects/flashmaster/effect/color1"
+        ],
+        "onSteps": [
+          {
+            "address": "/composition/groups/1/video/effects/colorize/bypassed",
+            "values": [
+              0
+            ]
+          },
+          {
+            "address": "/composition/layers/8/video/effects/colorize/bypassed",
+            "values": [
+              0
+            ]
+          },
+          {
+            "address": "/composition/layers/9/video/effects/colorize/bypassed",
+            "values": [
+              0
+            ]
+          },
+          {
+            "address": "/composition/layers/10/video/effects/colorize/bypassed",
+            "values": [
+              0
+            ]
+          }
+        ],
+        "offSteps": [
+          {
+            "address": "/composition/groups/1/video/effects/colorize/bypassed",
+            "values": [
+              1
+            ]
+          },
+          {
+            "address": "/composition/layers/8/video/effects/colorize/bypassed",
+            "values": [
+              1
+            ]
+          },
+          {
+            "address": "/composition/layers/9/video/effects/colorize/bypassed",
+            "values": [
+              1
+            ]
+          },
+          {
+            "address": "/composition/layers/10/video/effects/colorize/bypassed",
+            "values": [
+              1
+            ]
+          },
+          {
+            "address": "/composition/layers/8/video/effects/outlinehaze/bypassed",
+            "values": [
+              1
+            ]
+          },
+          {
+            "address": "/composition/layers/9/video/effects/outlinehaze/bypassed",
+            "values": [
+              1
+            ]
+          },
+          {
+            "address": "/composition/layers/10/video/effects/outlinehaze/bypassed",
+            "values": [
+              1
+            ]
+          },
+          {
+            "address": "/composition/layers/12/clips/3/video/effects/flashmaster/effect/color1/red",
+            "values": [
+              0
+            ]
+          },
+          {
+            "address": "/composition/layers/12/clips/3/video/effects/flashmaster/effect/color1/green",
+            "values": [
+              0
+            ]
+          },
+          {
+            "address": "/composition/layers/12/clips/3/video/effects/flashmaster/effect/color1/blue",
+            "values": [
+              0
+            ]
+          },
+          {
+            "address": "/composition/layers/12/clips/4/video/effects/flashmaster/effect/color1/red",
+            "values": [
+              1
+            ]
+          },
+          {
+            "address": "/composition/layers/12/clips/4/video/effects/flashmaster/effect/color1/green",
+            "values": [
+              1
+            ]
+          },
+          {
+            "address": "/composition/layers/12/clips/4/video/effects/flashmaster/effect/color1/blue",
+            "values": [
+              1
+            ]
+          },
+          {
+            "address": "/composition/layers/12/clips/7/video/effects/flashmaster/effect/color1/red",
+            "values": [
+              1
+            ]
+          },
+          {
+            "address": "/composition/layers/12/clips/7/video/effects/flashmaster/effect/color1/green",
+            "values": [
+              1
+            ]
+          },
+          {
+            "address": "/composition/layers/12/clips/7/video/effects/flashmaster/effect/color1/blue",
+            "values": [
+              1
+            ]
+          }
+        ]
+      },
+      {
         "id": "morph1",
         "label": "MORPH 1",
         "swatch": "#ff3b30",
