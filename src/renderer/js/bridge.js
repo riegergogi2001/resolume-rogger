@@ -52,7 +52,10 @@ function mockBridge() {
   return {
     platform: 'mock',
     getConfig: loadConfig,
-    saveConfig: async cfg => { config = cfg; window.__savedConfig = cfg; },
+    saveConfig: async cfg => {
+      if (window.__saveHang) return new Promise(() => {}); // test: a save that never returns
+      config = cfg; window.__savedConfig = cfg;
+    },
     resetConfig: async () => { config = null; window.__savedConfig = null; return loadConfig(); },
     // Real bridge opens a native save dialog; the mock just records what
     // *would* have been written so Playwright can assert on it.

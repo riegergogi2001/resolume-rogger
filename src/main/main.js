@@ -4,6 +4,7 @@
 // addresses files through ctx.root rather than app.getAppPath() — that is what
 // lets an OTA payload replace the main process, preload and renderer together.
 const { app, BrowserWindow, ipcMain, powerSaveBlocker, session, dialog, shell, screen } = require('electron');
+const { relaunchOptions } = require('./relaunch.js');
 const fs = require('node:fs');
 const path = require('node:path');
 const { OscEngine } = require('./osc-engine.js');
@@ -147,21 +148,29 @@ function start(ctx = {}) {
     createWindow();
   });
 
+  function closeEngine(why) {
+    try { engine.close(); } catch (err) { console.error(`engine.close on ${why}:`, err); }
+  }
+
   ipcMain.on('app:quit', () => {
-    engine.close();
+    closeEngine('quit');
     app.quit();
+    // The operator asked for it: a quit that does not complete (a window
+    // refusing to close, a stuck renderer) must still take the app down.
+    setTimeout(() => app.exit(0), 2000);
   });
 
   // Restart into whichever payload the shell resolves next — how an OTA update
-  // is applied without the operator hunting for the exe.
+  // is applied without the operator hunting for the exe. On the portable exe
+  // the relaunch has to target the real exe, not the unpacked temp copy.
   ipcMain.on('app:relaunch', () => {
-    engine.close();
-    app.relaunch();
+    closeEngine('relaunch');
+    app.relaunch(relaunchOptions(process.env));
     app.exit(0);
   });
 
   app.on('window-all-closed', () => {
-    engine.close();
+    closeEngine('window-all-closed');
     app.quit();
   });
 }

@@ -60,8 +60,9 @@ async function main() {
     browser = await chromium.launch();
     const page = await browser.newPage();
     page.on('pageerror', err => console.log('[page error]', err.message));
-    // The restart guard uses confirm(); accept unless a test says otherwise.
-    page.on('dialog', d => d.accept());
+    // The restart guard is an in-page confirm (#confirm-overlay); a native
+    // dialog opening anywhere is a failure.
+    page.on('dialog', d => { throw new Error(`native dialog opened: ${d.message()}`); });
 
     await page.goto(URL);
     await page.waitForFunction(() => document.body.dataset.ready === '1');
@@ -180,29 +181,26 @@ async function main() {
 
     // ---------------------------------------------------------------
     console.log('\n[updates] restarting while OSC is LIVE asks first');
-    page.removeAllListeners('dialog');
-    let dialogMessage = null;
-    page.on('dialog', d => { dialogMessage = d.message(); d.dismiss(); });
     await page.evaluate(() => { window.__relaunchCalled = false; });
     await openUpdates(page, { info: { ...OTA, staged: '2.2.0', installed: ['2.2.0'] }, result: null });
     await page.evaluate(() => window.__emitStatus('live'));
     await page.waitForSelector('#upd-restart');
     await page.click('#upd-restart');
-    await page.waitForFunction(() => true);
-    await page.waitForTimeout(150);
-    assert(dialogMessage !== null && /LIVE/.test(dialogMessage), 'a LIVE link makes the restart ask first');
+    await page.waitForSelector('#confirm-overlay');
+    assert(/LIVE/.test(await page.locator('#confirm-overlay .confirm-text').textContent()), 'a LIVE link makes the restart ask first');
+    await page.click('#confirm-cancel');
+    await page.waitForSelector('#confirm-overlay', { state: 'detached' });
     assert(await page.evaluate(() => window.__relaunchCalled === false),
       'declining the confirm leaves the show running');
 
     console.log('\n[updates] confirming the LIVE restart goes through');
-    page.removeAllListeners('dialog');
-    page.on('dialog', d => d.accept());
     await page.click('#upd-restart');
+    await page.waitForSelector('#confirm-overlay');
+    await page.click('#confirm-ok');
     await page.waitForFunction(() => window.__relaunchCalled === true);
     assert(true, 'accepting the confirm restarts');
 
     console.log('\n[updates] restarting while the link is idle does not ask at all');
-    page.removeAllListeners('dialog');
     let askedWhenIdle = false;
     page.on('dialog', d => { askedWhenIdle = true; d.accept(); });
     await page.evaluate(() => { window.__relaunchCalled = false; });
