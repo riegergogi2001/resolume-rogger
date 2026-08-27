@@ -356,6 +356,7 @@ function allTarget(items) {
   const parts = ALL_PARTS.map(id => items.find(t => t.id === id)).filter(Boolean);
   return {
     id: 'all', label: 'ALL', swatch: '#ffffff',
+    recall: true, // tapping the chip re-sends every covered target its own colour
     colorBases: parts.flatMap(t => structuredClone(t.colorBases)),
     onSteps: parts.flatMap(t => structuredClone(t.onSteps)),
     offSteps: parts.flatMap(t => structuredClone(t.offSteps)),
