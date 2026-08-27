@@ -55,3 +55,17 @@ export function recallAll(targetsCfg, all, rogger, colorMemory) {
   for (const [id, rgb] of colours) colorMemory.setColor(id, rgb);
   return msgs.length;
 }
+
+// Chip order for the two surfaces that show the targets: the recall trigger
+// comes first. ALL is the one chip an operator hits blind mid-show — every
+// other target is a deliberate, look-at-the-screen pick — so it gets the front
+// slot and, in CSS, a row of its own. Config order is left alone: the editor
+// still lists the targets as stored, and the original index rides along so
+// onEdit() keeps pointing at the right one.
+export function chipOrder(items) {
+  const list = (items ?? []).map((item, index) => ({ item, index }));
+  return [
+    ...list.filter(e => isRecallTarget(e.item)),
+    ...list.filter(e => !isRecallTarget(e.item)),
+  ];
+}

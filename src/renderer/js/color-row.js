@@ -5,7 +5,7 @@
 import { rogger } from './bridge.js';
 import * as state from './state.js';
 import * as colorMemory from './color-memory.js';
-import { isRecallTarget, recallAll } from './color-recall.js';
+import { chipOrder, isRecallTarget, recallAll } from './color-recall.js';
 
 const EPS = 0.03;
 
@@ -145,7 +145,8 @@ export function renderColorRow(el, { isEditMode, onEdit }) {
     });
   });
 
-  // The target switch: small squares choosing what the picker points at.
+  // The target switch: the chips choosing what the picker points at, ALL
+  // across the top row (see chipOrder in color-recall.js).
   if (targetMode() && targetsCfg()?.items?.length) {
     const sw = document.createElement('div');
     sw.className = 'color-target-switch';
@@ -159,12 +160,13 @@ export function renderColorRow(el, { isEditMode, onEdit }) {
     function buildSwitch() {
       sw.innerHTML = '';
       builtIds = idsOf();
-      (targetsCfg()?.items ?? []).forEach((item, ti) => {
+      chipOrder(targetsCfg()?.items).forEach(({ item, index }) => {
         const tb = document.createElement('button');
         tb.className = 'target-pick u-caps';
+        tb.classList.toggle('target-recall', isRecallTarget(item));
         tb.dataset.target = item.id;
         tb.addEventListener('pointerdown', () => {
-          if (isEditMode()) { onEdit('colorTargets', ti); return; }
+          if (isEditMode()) { onEdit('colorTargets', index); return; }
           state.setColorTarget(item.id);
           // ALL is a trigger, not just a destination: one tap re-sends every
           // covered target its own assigned colour.

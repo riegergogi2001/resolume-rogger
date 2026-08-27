@@ -152,12 +152,20 @@ body {
 body[data-page="colors"] { grid-template-rows: 64px 1fr auto; }
 body[data-page="colors"] #color-row { display: none; }
 
-/* two columns so five targets keep finger-sized rows in the footer strip */
+/* ALL takes the whole top row and the rest share the one below, so the chip
+   that gets hit blind mid-show is a wide banner instead of one of six equal
+   squares, and every chip gets a taller row out of the same footer height. */
 .color-target-switch {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: repeat(5, 1fr);
   grid-auto-rows: 1fr;
   gap: 4px;
+}
+.target-pick.target-recall {
+  grid-column: 1 / -1;
+  font-size: 15px;
+  letter-spacing: 0.16em;
+  color: var(--text);
 }
 .target-pick {
   flex: 1;

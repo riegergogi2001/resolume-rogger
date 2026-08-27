@@ -4,7 +4,7 @@
 import { rogger } from './bridge.js';
 import * as state from './state.js';
 import * as colorMemory from './color-memory.js';
-import { isRecallTarget, recallAll } from './color-recall.js';
+import { chipOrder, isRecallTarget, recallAll } from './color-recall.js';
 
 const SEND_MS = 33; // drag send throttle
 
@@ -81,12 +81,13 @@ export function renderColorLab(el, { isEditMode, onEdit } = {}) {
   function buildChips() {
     chips.innerHTML = '';
     builtIds = idsOf();
-    (targetsCfg()?.items ?? []).forEach((item, ti) => {
+    chipOrder(targetsCfg()?.items).forEach(({ item, index }) => {
       const c = document.createElement('button');
       c.className = 'target-pick u-caps';
+      c.classList.toggle('target-recall', isRecallTarget(item));
       c.dataset.target = item.id;
       c.addEventListener('pointerdown', () => {
-        if (isEditMode?.()) { onEdit?.('colorTargets', ti); return; }
+        if (isEditMode?.()) { onEdit?.('colorTargets', index); return; }
         state.setColorTarget(item.id);
         if (isRecallTarget(item)) recallAll(targetsCfg(), item, rogger, colorMemory);
       });

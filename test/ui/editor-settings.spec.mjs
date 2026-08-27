@@ -305,8 +305,11 @@ async function main() {
     const targetIds = defaults.colorTargets.items.map(t => t.id);
     const chipIds = await page.locator('.lab-chips .target-pick[data-target]').evaluateAll(
       els => els.map(e => e.dataset.target));
-    assert(JSON.stringify(chipIds) === JSON.stringify(targetIds),
+    assert(JSON.stringify([...chipIds].sort()) === JSON.stringify([...targetIds].sort()),
       `chip row lists each configured target once (${chipIds.join(', ')})`);
+    // ALL leads both chip rows: it is the one chip that gets hit blind
+    // mid-show, so it is first and widest. Config order is untouched.
+    assert(chipIds[0] === 'all', `ALL is the first chip (${chipIds.join(', ')})`);
     assert(await page.locator('.morph-well').count() === 0, 'no duplicate morph wells');
     // The footer target switch exists on every page but is hidden on COLORS
     // (the lab has its own chip row), so count what is actually on screen.
