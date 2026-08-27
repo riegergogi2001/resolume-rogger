@@ -10,7 +10,7 @@ const ACCENTS = {
 };
 
 function fxButton(i, over = {}) {
-  return {
+  const base = {
     id: `fx${i + 1}`,
     label: `FX ${i + 1}`,
     icon: '◆',
@@ -25,11 +25,28 @@ function fxButton(i, over = {}) {
     extraAddress: '',       // optional second target mirrored on every send
     extraAddresses: [],     // any further targets mirrored the same way
     repeat: { enabled: false, intervalMs: 250, sync: false }, // sync = follow tapped beat
-    ramp: { enabled: false, from: 0, to: 1, durationMs: 1500, releaseMs: 0 }, // hold: sweep value while pressed; releaseMs > 0 fades back instead of snapping
+    // hold: sweep value while pressed; releaseMs > 0 fades back instead of
+    // snapping. followTrigger swaps the timed sweep for the pull depth of an
+    // analog trigger when this control is a combo on LT/RT (e.g. LB+RT) --
+    // the operator rides the value by hand instead of waiting out durationMs.
+    // smoothMs slews that depth so a twitchy finger does not step the param;
+    // 0 = raw. Pressed from anywhere else (touch, a plain pad button) the
+    // control falls back to the timed sweep.
+    ramp: {
+      enabled: false, from: 0, to: 1, durationMs: 1500, releaseMs: 0,
+      followTrigger: false, smoothMs: 0,
+    },
     macro: [],              // [{address, values:[...]}] — sent in order instead of single message
     gamepadButton: -1,      // standard-mapping gamepad button index, -1 = unbound
     gamepadModifier: -1,    // pad button that must be held for this binding; -1 = none
+  };
+  return {
+    ...base,
     ...over,
+    // A `ramp` in `over` states only what that control changes; spreading it
+    // whole would drop every field it does not mention (the page-2 pushers
+    // would have arrived with no followTrigger/smoothMs at all).
+    ramp: { ...base.ramp, ...(over.ramp ?? {}) },
   };
 }
 

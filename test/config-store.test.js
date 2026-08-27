@@ -194,6 +194,24 @@ test('the page-2 content pushers fade back on release; every other ramp snaps', 
   assert.equal(merged.fxButtons2[1].ramp.releaseMs, 1000);
 });
 
+test('every ramp starts as a timed sweep; follow-trigger is opt-in and fills in on old configs', () => {
+  const cfg = store.defaults();
+  for (const kind of ['fxButtons', 'fxButtons2', 'fxButtons3', 'utilButtons']) {
+    assert.ok(cfg[kind].every(b => b.ramp.followTrigger === false), `${kind}: sweeps, as before`);
+    assert.ok(cfg[kind].every(b => b.ramp.smoothMs === 0), `${kind}: raw depth when it is switched on`);
+  }
+  // A config saved before follow-trigger existed keeps its ramp and gains the
+  // two new fields switched off, so nothing changes under an operator's feet.
+  const merged = store.merge({ fxButtons2: [null, { label: 'ACUARELA', ramp: { enabled: true, from: 0, to: 1, durationMs: 2000, releaseMs: 1000 } }] });
+  assert.equal(merged.fxButtons2[1].ramp.followTrigger, false);
+  assert.equal(merged.fxButtons2[1].ramp.smoothMs, 0);
+  // ...and one that has it on keeps it.
+  const on = store.merge({ fxButtons2: [null, { ramp: { followTrigger: true, smoothMs: 250 } }] });
+  assert.equal(on.fxButtons2[1].ramp.followTrigger, true);
+  assert.equal(on.fxButtons2[1].ramp.smoothMs, 250);
+  assert.equal(on.fxButtons2[1].ramp.durationMs, 2000, 'the timed sweep it falls back to on touch is untouched');
+});
+
 test('the ALL colour target is the union of BG + LOGO + FLASH, with their ON/OFF steps, and no morph', () => {
   const items = store.defaults().colorTargets.items;
   assert.deepEqual(items.map(t => t.id), ['bg', 'logo', 'flash', 'all', 'morph1', 'morph2']);

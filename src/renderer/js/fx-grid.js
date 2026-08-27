@@ -109,6 +109,7 @@ export function renderFxGrid(el, { isEditMode, onEdit }) {
     let holdActive = false;
     let rampRaf = null;
     let rampValue = null; // last value the hold ramp sent, where a release fade starts from
+    let triggerDepth = null; // 0..1 pull depth of the analog trigger driving this hold
     const key = `${kind}:${i}`;
     const cfg = () => state.get()[kind][i];
 
@@ -143,6 +144,49 @@ export function renderFxGrid(el, { isEditMode, onEdit }) {
       rampRaf = requestAnimationFrame(step);
     }
 
+    // Trigger-follow (ramp.followTrigger): when the press came from a combo
+    // whose target is an analog trigger, the pull depth IS the value -- no
+    // timed sweep, the operator rides the param by hand. gamepad.js feeds the
+    // depth in through this handle's analog() every frame; the loop maps it
+    // through ramp.from/to and (when ramp.smoothMs > 0) slews towards it
+    // one-pole, so it keeps closing even while the trigger is held still.
+    function startTriggerFollow() {
+      if (rampRaf !== null) cancelAnimationFrame(rampRaf); // a release fade still running
+      const c0 = cfg();
+      // Smoothed: start at ramp.from so the step up to the claim depth (the
+      // pull is already past the pad's digital edge when the combo fires) is
+      // ridden out rather than sent as a jump. Raw: no reason to lag.
+      rampValue = (c0.ramp.smoothMs ?? 0) > 0 ? c0.ramp.from : null;
+      let last = performance.now();
+      const step = () => {
+        if (rampRaf === null) return;
+        const c = cfg();
+        const r = c.ramp;
+        const now = performance.now();
+        const dt = now - last;
+        last = now;
+        const target = r.from + (r.to - r.from) * (triggerDepth ?? 0);
+        // smoothMs is read as "how long until it has caught up", not as the
+        // raw time constant -- three time constants puts it ~95 % of the way
+        // there, which is what the number on the panel has to mean for an
+        // operator dialling it in between songs.
+        const tau = Math.max(0, r.smoothMs ?? 0) / 3;
+        let v = (tau > 0 && rampValue !== null)
+          ? rampValue + (target - rampValue) * (1 - Math.exp(-dt / tau))
+          : target;
+        // A one-pole slew only ever approaches its target, so without this it
+        // would trickle vanishingly small deltas onto the wire forever; snap
+        // the last hair and the loop goes quiet on a trigger held still.
+        if (Math.abs(target - v) < 1e-4) v = target;
+        if (v !== rampValue) {
+          rampValue = v;
+          rogger.sendTyped(c.address, [{ type: 'f', value: v }]);
+        }
+        rampRaf = requestAnimationFrame(step);
+      };
+      rampRaf = requestAnimationFrame(step);
+    }
+
     // Release fade (ramp.releaseMs > 0): instead of snapping back, sweep from
     // wherever the hold ramp got to down to the release value. Runs after
     // holdActive has cleared, so a second pointerup/pointercancel cannot cut
@@ -164,7 +208,9 @@ export function renderFxGrid(el, { isEditMode, onEdit }) {
       rampRaf = requestAnimationFrame(step);
     }
 
-    function press() {
+    // opts.analog: the press came from an analog trigger claimed by a combo,
+    // so a followTrigger hold can ride its depth instead of sweeping.
+    function press(opts) {
       const c = cfg();
       // tempotap buttons also drive the local beat clock (touch + gamepad)
       if (c.address === '/composition/tempocontroller/tempotap') beat.tap();
@@ -186,7 +232,9 @@ export function renderFxGrid(el, { isEditMode, onEdit }) {
         holdActive = true;
       }
       if (c.mode === 'hold' && c.ramp?.enabled) {
-        startRamp(); // the sweep replaces the single press message
+        // the sweep -- or the trigger's own depth -- replaces the press message
+        if (opts?.analog && c.ramp.followTrigger) { triggerDepth = 0; startTriggerFollow(); }
+        else startRamp();
       } else {
         fire(c, c.value);
         if (c.repeat?.enabled) scheduleRepeat();
@@ -212,6 +260,7 @@ export function renderFxGrid(el, { isEditMode, onEdit }) {
         cancelAnimationFrame(rampRaf); // the hold ramp; a release fade is left to finish
         rampRaf = null;
       }
+      triggerDepth = null;
       clearTimeout(repeatTimer);
       repeatTimer = null;
       b.classList.remove('pressed', 'flashing');
@@ -268,8 +317,11 @@ export function renderFxGrid(el, { isEditMode, onEdit }) {
     });
 
     fxHandles[offsets[kind] + i] = {
-      press: () => { if (!isEditMode()) press(); },
+      press: opts => { if (!isEditMode()) press(opts); },
       release,
+      // Live pull depth (0..1) of the trigger holding this control down.
+      // Ignored unless a followTrigger hold is actually running.
+      analog: v => { if (triggerDepth !== null) triggerDepth = Math.min(1, Math.max(0, v)); },
     };
   }
 

@@ -294,6 +294,105 @@ async function main() {
     await page.locator('#fx-grid .page-tab', { hasText: 'Page 1' }).click();
     await page.waitForTimeout(100);
 
+    // --- follow trigger depth: an LT/RT combo rides the pull, no sweep ------
+    // Same control, same hold, but bound to LB+RT with "Follow trigger depth"
+    // on: the value is the pull depth, so it can go DOWN while the control is
+    // still held -- something a timed sweep can never do.
+    const acuaBtnSel = `.fx-btn[data-kind="fxButtons2"][data-index="${acuaIdx}"]`;
+    const followRow = page.locator('#editor-overlay .check-row')
+      .filter({ hasText: 'Follow trigger depth' }).locator('button.toggle');
+    const smoothInput = page.locator('#editor-overlay .field')
+      .filter({ has: page.locator('label', { hasText: /^Trigger smoothing/ }) }).locator('input');
+
+    console.log('\n[UI] ACUARELA: bind LB+RT and switch its ramp to follow the trigger');
+    await page.locator('#fx-grid .page-tab', { hasText: 'Page 2' }).click();
+    await page.waitForTimeout(100);
+    await page.click('#edit-toggle');
+    await page.click(acuaBtnSel);
+    await page.waitForSelector('#editor-overlay');
+    await followRow.click();
+    await ctrlField.getByRole('button', { name: 'RT', exact: true }).click();
+    await modField.getByRole('button', { name: 'LB', exact: true }).click();
+    await page.click('#ed-save');
+    await page.waitForSelector('#editor-overlay', { state: 'detached' });
+    await page.click('#edit-toggle');
+    const acuaBadge = await page.locator(`${acuaBtnSel} .fx-pad`).textContent();
+    assert(acuaBadge === 'LB+RT', `ACUARELA badge reads "LB+RT" (got "${acuaBadge}")`);
+
+    const depthLog = async () => (await readLog())
+      .filter(m => m.address === acua.address).map(m => m.args[0].value);
+    const near = (a, b, tol = 0.03) => Math.abs(a - b) <= tol;
+
+    await setPad(idleButtons());
+    await setPad(withButtons([[4, { pressed: true, value: 1 }]])); // LB down first
+    console.log('\n[pad] LB held + RT at 40% -> the value IS the depth, not a sweep start');
+    await clearLog();
+    await setPad(withButtons([[4, { pressed: true, value: 1 }], [7, { pressed: true, value: 0.4 }]]));
+    let d = await depthLog();
+    assert(d.length > 0, `the followed hold sends on its address (got ${d.length} messages)`);
+    assert(near(d[d.length - 1], 0.4), `40% pull sends ~0.4, a 2 s sweep would still be near 0 (got ${d[d.length - 1]})`);
+    assert(!hasAddr(await readLog(), rtTrig.analogAddress), 'the trigger\u2019s own stomp address stays silent');
+
+    console.log('\n[pad] push RT to 90% -> the value follows up');
+    await clearLog();
+    await setPad(withButtons([[4, { pressed: true, value: 1 }], [7, { pressed: true, value: 0.9 }]]));
+    d = await depthLog();
+    assert(near(d[d.length - 1], 0.9), `90% pull sends ~0.9 (got ${d[d.length - 1]})`);
+
+    console.log('\n[pad] ease RT back to 20% -> the value follows DOWN while still held');
+    await clearLog();
+    await setPad(withButtons([[4, { pressed: true, value: 1 }], [7, { pressed: true, value: 0.2 }]]));
+    d = await depthLog();
+    assert(near(d[d.length - 1], 0.2), `easing off sends ~0.2 -- a sweep could only rise (got ${d[d.length - 1]})`);
+
+    console.log('\n[pad] release RT (LB held) -> the release fade still runs, from where the trigger left it');
+    await clearLog();
+    await setPad(withButtons([[4, { pressed: true, value: 1 }]]));
+    await page.waitForTimeout(acua.ramp.releaseMs + 400);
+    d = await depthLog();
+    assert(d.length >= 5, `the release is still a fade, not one message (got ${d.length})`);
+    assert(d.every((v, i) => i === 0 || v <= d[i - 1] + 1e-9), 'the fade only goes down');
+    assert(d[d.length - 1] === releaseValue, `and ends exactly at the release value ${releaseValue}`);
+    await setPad(idleButtons());
+
+    console.log('\n[UI] add 400 ms of trigger smoothing');
+    await page.click('#edit-toggle');
+    await page.click(acuaBtnSel);
+    await page.waitForSelector('#editor-overlay');
+    await smoothInput.fill('400');
+    await page.click('#ed-save');
+    await page.waitForSelector('#editor-overlay', { state: 'detached' });
+    await page.click('#edit-toggle');
+
+    console.log('\n[pad] LB + RT slammed to 100% -> smoothing eases in instead of jumping');
+    await setPad(withButtons([[4, { pressed: true, value: 1 }]]));
+    await clearLog();
+    await setPad(withButtons([[4, { pressed: true, value: 1 }], [7, { pressed: true, value: 1 }]]));
+    d = await depthLog();
+    assert(d.length >= 3, `smoothing sends a stream, not a single value (got ${d.length})`);
+    assert(d[d.length - 1] < 0.6, `a slammed trigger has not arrived yet (got ${d[d.length - 1]})`);
+    assert(d.every((v, i) => i === 0 || v >= d[i - 1] - 1e-9), 'and it climbs monotonically');
+    await page.waitForTimeout(1600);
+    d = await depthLog();
+    assert(d[d.length - 1] > 0.99, `and settles at the pull depth (got ${d[d.length - 1]})`);
+    await clearLog();
+    await page.waitForTimeout(300);
+    assert((await depthLog()).length === 0, 'a settled slew goes quiet instead of trickling forever');
+
+    console.log('\n[touch] the same control from touch still sweeps over Ramp time');
+    await setPad(idleButtons());
+    await page.waitForTimeout(acua.ramp.releaseMs + 400);
+    await clearLog();
+    await page.locator(acuaBtnSel).dispatchEvent('pointerdown', { pointerId: 1 });
+    await page.waitForTimeout(500);
+    d = await depthLog();
+    assert(d.length >= 5 && d[d.length - 1] > d[0] && d[d.length - 1] < 0.6,
+      `touch falls back to the timed sweep (got ${d.length} messages ending at ${d[d.length - 1]})`);
+    await page.locator(acuaBtnSel).dispatchEvent('pointerup', { pointerId: 1 });
+    await page.waitForTimeout(acua.ramp.releaseMs + 400);
+    await page.locator('#fx-grid .page-tab', { hasText: 'Page 1' }).click();
+    await page.waitForTimeout(100);
+
     // --- ALL chip in the footer: one tap recalls every assigned colour --------
     const allT = defaults.colorTargets.items.find(t => t.id === 'all');
     assert(allT && allT.recall === true, 'defaults: ALL is a recall trigger');

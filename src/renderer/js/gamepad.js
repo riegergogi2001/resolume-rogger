@@ -149,19 +149,24 @@ export function startGamepad(handles) {
       const st = trigState[key];
       const down = curr[idx];
       const was = prev[idx] ?? false;
+      const v = Math.min(1, axisValue(pad.buttons[idx]));
       // A pull claimed by a combo is that combo's press for as long as the
-      // trigger stays down: no stomp, no analog value; letting go releases
-      // the combo's handle (paired to the physical trigger, like a button).
+      // trigger stays down: no stomp, no analog value on the trigger's own
+      // address; letting go releases the combo's handle (paired to the
+      // physical trigger, like a button). The depth still goes to the handle
+      // itself -- a "follow trigger" hold rides it instead of sweeping; every
+      // other control ignores it.
       if (st.claimed) {
+        const hi = active[idx];
         if (!down) {
           st.claimed = false;
-          const hi = active[idx];
           delete active[idx];
           if (hi !== undefined && handles[hi]) handles[hi].release();
+        } else if (hi !== undefined) {
+          handles[hi]?.analog?.(v);
         }
         continue;
       }
-      const v = Math.min(1, axisValue(pad.buttons[idx]));
       const engaged = v > 0.03;
       if (st.suppressed) {
         if (engaged) continue; // released by releaseAll(), never let go since
@@ -175,9 +180,10 @@ export function startGamepad(handles) {
         const combo = comboBinding(state.get(), idx, heldSet);
         if (combo) {
           if (down && !was && handles[combo.handle]) {
-            handles[combo.handle].press();
+            handles[combo.handle].press({ analog: true });
             active[idx] = combo.handle;
             st.claimed = true;
+            handles[combo.handle].analog?.(v); // depth at the claim, not a frame late
             if (haptics.enabled && haptics.press) rumble(0.15, 0.4, 50);
           }
           continue;

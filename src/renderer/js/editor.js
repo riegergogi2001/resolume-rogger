@@ -288,6 +288,19 @@ export function openEditor(kind, index) {
           v => { draft.ramp = { ...draft.ramp, releaseMs: v }; }, '1')),
         h('div', 'hint', 'On release the value sweeps back to the release value over this time instead of snapping.'));
       body.append(rrow2);
+      // Combos on LT/RT (e.g. LB+RT) hand the pull depth to the control they
+      // fire; this switch makes the hold ride that depth instead of running
+      // the timed sweep. Touch and plain pad buttons carry no depth, so they
+      // keep sweeping over Ramp time.
+      body.append(checkRow('Follow trigger depth instead of sweeping (LT/RT combo)',
+        draft.ramp?.followTrigger ?? false,
+        v => { draft.ramp = { ...draft.ramp, followTrigger: v }; }));
+      const rrow3 = h('div', 'row');
+      rrow3.append(
+        field('Trigger smoothing (ms, 0 = raw)', numInput(draft.ramp?.smoothMs ?? 0,
+          v => { draft.ramp = { ...draft.ramp, smoothMs: v }; }, '1')),
+        h('div', 'hint', 'Bound to a combo on LT or RT, the pull depth is the value — Ramp from at rest, Ramp to fully pulled. Smoothing lets the value catch up to the trigger over roughly that many milliseconds, so the step at the pull\u2019s digital edge, and a shaky finger, do not land as jumps. Ramp time still applies to a press from touch or a plain pad button.'));
+      body.append(rrow3);
     }
     padBindingSection();
 
