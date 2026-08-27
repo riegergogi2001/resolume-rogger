@@ -916,6 +916,11 @@ body.edit-mode .color-btn {
   min-width: 84px;
   height: 48px;
 }
+/* Same reason as the footer switch: ALL leads and is the widest chip. */
+.lab-chips .target-recall {
+  flex: 1.6;
+  font-size: 15px;
+}
 .lab-chips .target-off {
   flex: 0 0 auto;
   border-left-color: var(--err);

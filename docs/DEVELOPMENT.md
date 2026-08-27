@@ -70,11 +70,15 @@ Zero runtime dependencies (vanilla JS/CSS + Electron) and a hand-rolled OSC
   and the other one's colour comes back with it. Anything that does report
   colour writes into the same store, so a device that behaves lights the presets
   for the right reason with no other change.
-- **10 color presets + target switch** — the small squares at the row's end
-  choose what the picker paints (background colorize / every colour on both
-  logo layers, linked — Colorize + OutlineHaze on LOGO DJ and LOGO MAIN /
+- **10 color presets + target switch** — the chips at the row's end choose what
+  the picker paints (background colorize / every colour on all three logo
+  layers, linked — Colorize + OutlineHaze on LOGO DJ, LOGO MAIN and LOGO OPT1 /
   strobe color / ColorMorph Color 1 / Color 3); OFF fires the target's release
-  steps. Feedback lights the matching preset.
+  steps. Feedback lights the matching preset. ALL leads the row and spans it,
+  on the footer switch and on the COLORS page: it is the one chip that gets hit
+  blind mid-show, so it is the one that must not need aiming. The chip order is
+  a display rule (`chipOrder`), not the config's — the editor still lists the
+  targets as they are stored.
 - **Topbar** — OSC target, analog-mapping readout, beat clock (BPM + beat ms,
   /2 and x2, a three-way **Tap / Auto / Mic** beat-source toggle — manual
   taps, following Resolume's reported BPM, or the BPM page's mic analyser —
