@@ -73,7 +73,7 @@ function tempoButton(id, label, address) {
   return { id, label, address, gamepadButton: -1, gamepadModifier: -1 };
 }
 
-function defaults() {
+function baseDefaults() {
   return {
     version: 1,
     network: {
@@ -344,6 +344,30 @@ function defaults() {
       bypassAddress: '/composition/video/effects/colormorph/bypassed',
     },
   };
+}
+
+// ALL: one pick lands on every show colour — BG, both logo layers, the flash
+// clips — and fires their ON/OFF steps. No addresses of its own: it is the
+// union of those three targets, built from them so it can never drift.
+// MORPH 1/2 stay out (a morph with both colours equal is no morph).
+const ALL_PARTS = ['bg', 'logo', 'flash'];
+
+function allTarget(items) {
+  const parts = ALL_PARTS.map(id => items.find(t => t.id === id)).filter(Boolean);
+  return {
+    id: 'all', label: 'ALL', swatch: '#ffffff',
+    colorBases: parts.flatMap(t => structuredClone(t.colorBases)),
+    onSteps: parts.flatMap(t => structuredClone(t.onSteps)),
+    offSteps: parts.flatMap(t => structuredClone(t.offSteps)),
+  };
+}
+
+function defaults() {
+  const d = baseDefaults();
+  const items = d.colorTargets.items;
+  const at = items.findIndex(t => t.id === 'morph1');
+  items.splice(at < 0 ? items.length : at, 0, allTarget(items));
+  return d;
 }
 
 function isPlainObject(v) {

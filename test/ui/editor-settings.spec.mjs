@@ -280,10 +280,11 @@ async function main() {
     assert(await addChip.isVisible(), '+ TARGET appears in edit mode');
 
     const chipsBefore = await page.locator('.lab-chips .target-pick').count();
+    const targetsBefore = await page.locator('.lab-chips .target-pick[data-target]').count(); // real targets, not OFF / + TARGET
     await addChip.click();
     await page.waitForSelector('.overlay');
     await page.waitForTimeout(250);
-    assert(/COLOR TARGET 6/.test(await page.locator('.overlay .panel-head').innerText()),
+    assert(new RegExp(`COLOR TARGET ${targetsBefore + 1}`).test(await page.locator('.overlay .panel-head').innerText()),
       'adding one opens its editor straight away');
     assert(await page.locator('#set-target-delete').count() === 1, 'and it can be deleted again');
     await page.click('#set-target-delete');
