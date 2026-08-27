@@ -2678,6 +2678,7 @@
         "id": "all",
         "label": "ALL",
         "swatch": "#ffffff",
+        "recall": true,
         "colorBases": [
           "/composition/groups/1/video/effects/colorize/effect/color",
           "/composition/layers/8/video/effects/colorize/effect/color",

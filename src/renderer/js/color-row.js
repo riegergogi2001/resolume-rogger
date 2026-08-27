@@ -5,6 +5,7 @@
 import { rogger } from './bridge.js';
 import * as state from './state.js';
 import * as colorMemory from './color-memory.js';
+import { isRecallTarget, recallAll } from './color-recall.js';
 
 const EPS = 0.03;
 
@@ -165,6 +166,9 @@ export function renderColorRow(el, { isEditMode, onEdit }) {
         tb.addEventListener('pointerdown', () => {
           if (isEditMode()) { onEdit('colorTargets', ti); return; }
           state.setColorTarget(item.id);
+          // ALL is a trigger, not just a destination: one tap re-sends every
+          // covered target its own assigned colour.
+          if (isRecallTarget(item)) recallAll(targetsCfg(), item, rogger, colorMemory);
           lastVals.clear();
           evaluateSelection();
         });

@@ -294,6 +294,30 @@ async function main() {
     await page.locator('#fx-grid .page-tab', { hasText: 'Page 1' }).click();
     await page.waitForTimeout(100);
 
+    // --- ALL chip in the footer: one tap recalls every assigned colour --------
+    const allT = defaults.colorTargets.items.find(t => t.id === 'all');
+    assert(allT && allT.recall === true, 'defaults: ALL is a recall trigger');
+    const covered = defaults.colorTargets.items.filter(t => t.id !== 'all' && t.colorBases.length && t.colorBases.every(b => allT.colorBases.includes(b)));
+    assert(covered.map(t => t.id).join() === 'bg,logo,flash', `ALL covers bg, logo, flash (got ${covered.map(t => t.id)})`);
+    const hex01 = hex => { const n = parseInt(hex.replace('#', ''), 16); return [((n >> 16) & 255) / 255, ((n >> 8) & 255) / 255, (n & 255) / 255]; };
+    console.log('\n[touch] tap ALL in the footer -> every covered target gets its ON steps and its own colour');
+    await clearLog();
+    await page.locator('#color-row .color-target-switch .target-pick[data-target="all"]').dispatchEvent('pointerdown', { pointerId: 1 });
+    await page.waitForTimeout(80);
+    log = await readLog();
+    for (const t of covered) {
+      const rgb = hex01(t.swatch); // nothing picked on these targets yet -> swatch colour
+      for (const st of t.onSteps) assert(log.some(m => m.address === st.address && m.values?.[0] === st.values[0]), `${t.id}: ON step ${st.address}`);
+      for (const b of t.colorBases) {
+        assert(Math.abs(argOf(log, `${b}/red`) - rgb[0]) < 1e-6 && Math.abs(argOf(log, `${b}/green`) - rgb[1]) < 1e-6 && Math.abs(argOf(log, `${b}/blue`) - rgb[2]) < 1e-6,
+          `${t.id}: its own colour lands on ${b}`);
+      }
+    }
+    assert(!log.some(m => m.address.includes('colormorph')), 'MORPH is not touched by ALL');
+    assert(await page.locator('#color-row .color-target-switch .target-pick.on').getAttribute('data-target') === 'all', 'ALL becomes the active target');
+    await page.locator('#color-row .color-target-switch .target-pick[data-target="bg"]').dispatchEvent('pointerdown', { pointerId: 1 });
+    await page.waitForTimeout(50);
+
     // --- HAZE toggle: address + extraAddress + extraAddresses all fire ------
     const haze = defaults.utilButtons.find(b => b.label === 'HAZE');
     const hazeIdx = defaults.utilButtons.indexOf(haze);
