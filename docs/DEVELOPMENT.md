@@ -108,7 +108,9 @@ Zero runtime dependencies (vanilla JS/CSS + Electron) and a hand-rolled OSC
   too** (`LB+RT`): hold the pad button, pull the trigger — that pull fires the
   combo as a hold and the trigger's own stomp/analog action stays off until
   it is let go; the trigger pulled alone is still the stomp, and a modifier
-  pressed after the stomp has already engaged changes nothing. Set a modifier in the editor's
+  pressed after the stomp has already engaged changes nothing. A hold on the
+  far side of such a combo can **follow the trigger depth** instead of running
+  its timed sweep — see below. Set a modifier in the editor's
   "Modifier (hold with)" row below the controller button pick, or arm
   **Gamepad Learn** and press the modifier + target button together — it
   captures both and toasts the combo (e.g. `Bound to RT+A`). A modifier
@@ -121,7 +123,8 @@ Zero runtime dependencies (vanilla JS/CSS + Electron) and a hand-rolled OSC
 
 Tap, toggle (latching), hold (piano-style 1/0, optional separate release
 address), flash animation, repeat while held (fixed interval or beat-synced),
-ramp-while-held (value sweep), multi-message macros (zeroed on release so
+ramp-while-held (value sweep, or the pull depth of an LT/RT combo — see
+"Follow trigger depth" below), multi-message macros (zeroed on release so
 clears let go), per-button icon / label / color, OSC learn, command library
 (searchable, with a hint per entry — fader editors only offer float-typed
 entries), a mirror-to second address on every FX button, and fader mirror
@@ -131,6 +134,27 @@ color target is active — plus an OFF preset that fires that target's off
 steps. In Edit mode, tapping a target-switch square opens a **COLOR TARGET**
 editor (label, swatch, color-base addresses, on/off step macros).
 
+### Follow trigger depth
+
+A hold with `ramp.enabled` normally sweeps `ramp.from` → `ramp.to` over
+`ramp.durationMs`. With **`ramp.followTrigger`** on, a press that arrives from
+an analog trigger claimed by a combo (`LB+RT`, `RB+LT`, …) drops the timer and
+maps the live pull depth instead: released = `ramp.from`, fully pulled =
+`ramp.to`. The value can therefore go *down* while the control is still held,
+which a timed sweep can never do — the operator rides the effect by hand.
+
+`ramp.smoothMs` slews that value towards the depth; it is read as *how long
+until it has caught up* (the one-pole time constant is `smoothMs / 3`, so it
+is ~95 % there after `smoothMs`), and `0` sends the raw depth. Two things make
+it worth using: the pad only reports a trigger as *pressed* around 12 % of its
+travel, so the claim edge lands as a small step, and a finger resting on a
+pulled trigger jitters. Once the slew is within 1e-4 of its target it snaps
+and goes quiet rather than trickling deltas onto the wire forever.
+
+Everything else about the hold is unchanged: `ramp.releaseMs` still fades back
+from wherever the trigger left the value, and a press from touch, the remote
+API, or a plain pad button carries no depth, so it falls back to the timed
+sweep over `ramp.durationMs`.
 ## Settings
 
 The gear icon opens a tabbed Settings panel (scrolls inside the panel body
