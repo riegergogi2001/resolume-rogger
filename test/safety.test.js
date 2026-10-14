@@ -70,3 +70,13 @@ test('old configs gain safeties and panic; saved safeties survive a load', () =>
   assert.equal(store.merge({}).panicButtons[0].id, 'panic');
   assert.deepEqual(store.merge({}).safeties, []);
 });
+
+test('two-hand: both bound pad buttons must be down', () => {
+  const s = store.safety(0, { twoHand: true, gamepadButton: 8, gamepadModifier: 9 });
+  const pad = held => [{ buttons: Array.from({ length: 17 }, (_, i) => ({ pressed: held.includes(i) })) }];
+  assert.equal(s.armHoldMs, 1000);
+  assert.equal(safety.bothHeld(s, pad([8, 9])), true);
+  assert.equal(safety.bothHeld(s, pad([8])), false);
+  assert.equal(safety.bothHeld(s, pad([9])), false);
+  assert.equal(safety.bothHeld(s, [null]), false);
+});

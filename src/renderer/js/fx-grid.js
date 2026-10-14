@@ -383,14 +383,33 @@ export function renderFxGrid(el, { isEditMode, onEdit }) {
   // pad bindings are edited in Settings -> Safety). Panic works in edit mode.
   (state.get().safeties ?? []).forEach((_, i) => {
     const cur = () => state.get().safeties?.[i];
+    let armTimer = null;
     fxHandles[offsets.safeties + i] = {
       press: () => {
         const s = cur();
         if (!s || isEditMode()) return;
-        if (s.mode === 'hold') safety.setArmed(s.id, true, state.get(), rogger);
-        else safety.toggle(s.id, state.get(), rogger);
+        if (safety.isArmed(s.id)) {               // disarm is always instant
+          if (s.mode !== 'hold') safety.setArmed(s.id, false, state.get(), rogger);
+          return;
+        }
+        if (!s.twoHand) { safety.setArmed(s.id, true, state.get(), rogger); return; }
+        // two-hand: the combo has to stay down for armHoldMs, both buttons
+        clearTimeout(armTimer);
+        showToast(`${s.label}: keep both buttons held to arm…`);
+        armTimer = setTimeout(() => {
+          armTimer = null;
+          const now = cur();
+          if (now && safety.bothHeld(now)) {
+            safety.setArmed(now.id, true, state.get(), rogger);
+            showToast(`${now.label} ARMED`, { error: true });
+          } else {
+            showToast(`${s.label}: not armed — both buttons must stay held`, { error: true });
+          }
+        }, Math.max(200, Number(s.armHoldMs) || 1000));
       },
       release: () => {
+        clearTimeout(armTimer);
+        armTimer = null;
         const s = cur();
         if (s?.mode === 'hold' && safety.isArmed(s.id)) safety.setArmed(s.id, false, state.get(), rogger);
       },

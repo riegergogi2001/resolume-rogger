@@ -135,6 +135,47 @@ try {
   assert(await dmx(4) === 255, 'shot fires on press even after release');
   await page.waitForTimeout(400);
   assert(await dmx(4) === 0, 'and ends by itself');
+
+  console.log('[two-hand] needs button + modifier, touch is hold-to-arm, pad needs both held');
+  await page.click('#settings-open');
+  await page.getByRole('button', { name: 'Safety', exact: true }).click();
+  await page.locator('.safety-row button', { hasText: 'Edit' }).click();
+  await page.waitForSelector('#editor-overlay');
+  await page.locator('#editor-overlay .check-row', { hasText: 'Two-hand arm' }).locator('button.toggle').click();
+  await page.click('#ed-save');
+  await page.waitForTimeout(100);
+  assert(await page.locator('#editor-overlay').count() === 1, 'save refused without button + modifier');
+  const padField = label => page.locator('#editor-overlay .field').filter({ has: page.locator('label', { hasText: label }) });
+  await padField(/^Controller button/).locator('.pad-pick', { hasText: /^VIEW$/ }).click();
+  await padField(/^Modifier/).locator('.pad-pick', { hasText: /^MENU$/ }).click();
+  await save();
+  const armBtn = () => page.locator('.safety-row .safety-arm');
+  await page.click('#settings-open');
+  await page.getByRole('button', { name: 'Safety', exact: true }).click();
+  assert((await armBtn().textContent()) === 'HOLD TO ARM', 'touch ARM turns into HOLD TO ARM');
+  await armBtn().dispatchEvent('pointerdown'); await page.waitForTimeout(300); await armBtn().dispatchEvent('pointerup');
+  await page.waitForTimeout(900);
+  assert(await dmx(1) === 5, 'a short touch does not arm');
+  await armBtn().dispatchEvent('pointerdown'); await page.waitForTimeout(1150);
+  assert(await dmx(1) === 200, 'holding for 1 s arms');
+  await page.click('#safety-panic');
+  await page.evaluate(() => document.getElementById('settings-overlay')?.remove());
+  const padArm = async held => page.evaluate(async held => {
+    const fx = await import('/js/fx-grid.js');
+    const st = await import('/js/state.js');
+    const kinds = fx.HANDLE_KINDS; let off = 0;
+    for (const k of kinds) { if (k === 'safeties') break; off += (st.get()[k] ?? []).length; }
+    navigator.getGamepads = () => [{ buttons: Array.from({ length: 17 }, (_, i) => ({ pressed: held.includes(i) })) }];
+    fx.fxHandles[off].press();
+    await new Promise(r => setTimeout(r, 1150));
+    fx.fxHandles[off].release();
+  }, held);
+  const view = await page.evaluate(() => import('/js/state.js').then(m => [m.get().safeties[0].gamepadButton, m.get().safeties[0].gamepadModifier]));
+  await padArm([view[0]]);
+  assert(await dmx(1) === 5, 'pad: one button only does not arm');
+  await padArm(view);
+  assert(await dmx(1) === 200, 'pad: both held for 1 s arms');
+  if (SHOTS) await page.locator('#topbar').screenshot({ path: `${SHOTS}/topbar-armed2.png` });
   assert(errors.length === 0, `no page errors (${errors.join(' | ')})`);
   console.log('\nSAFETY_SPEC_OK');
 } finally {

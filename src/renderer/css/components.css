@@ -1332,3 +1332,4 @@ body.edit-mode .color-btn {
 .safety-row .safety-arm { background: #1d6b3a; color: #fff; }
 .safety-row .safety-arm.armed { background: #ff4757; animation: safety-blink 0.8s steps(1) infinite; }
 .big-btn.safety-panic { background: #ff4757; color: #fff; font-weight: 900; }
+.safety-row .safety-arm.arming { background: #ffb400; color: #0b0d10; }

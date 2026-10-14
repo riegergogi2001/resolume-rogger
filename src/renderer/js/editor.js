@@ -391,6 +391,13 @@ export function openEditor(kind, index) {
       field('SAFE value (0–255)', numInput(draft.safeValue, v => { draft.safeValue = v; }, '1')));
     body.append(vals);
     body.append(h('div', 'hint', 'SAFE goes out at launch, on disarm, on panic and when ROGGER quits. Buttons linked to this safety cannot fire while it is SAFE.'));
+    body.append(checkRow('Two-hand arm: controller button + modifier held together', !!draft.twoHand,
+      v => { draft.twoHand = v; buildBody(); }));
+    if (draft.twoHand) {
+      body.append(field('Hold both for (ms) before it arms', numInput(draft.armHoldMs ?? 1000,
+        v => { draft.armHoldMs = Math.max(200, Math.round(v || 0)); }, '100')));
+      body.append(h('div', 'hint', 'Set both Controller button and Modifier below (e.g. VIEW + MENU, buttons with no other job). Disarm stays one press. In Settings → Safety the ARM button becomes hold-to-arm.'));
+    }
     const net = h('div', 'row');
     const host = textInput(draft.host ?? '', v => { draft.host = v.trim(); });
     host.placeholder = 'empty = multicast';
@@ -616,6 +623,10 @@ export function openEditor(kind, index) {
   const save = h('button', 'big-btn primary u-caps', 'Save');
   save.id = 'ed-save';
   save.addEventListener('pointerdown', () => {
+    if (kind === 'safeties' && draft.twoHand && (draft.gamepadButton < 0 || (draft.gamepadModifier ?? -1) < 0)) {
+      showToast('Two-hand arm needs both a controller button and a modifier', { error: true });
+      return;
+    }
     if ((kind.startsWith('fxButtons') || ['utilButtons', 'tempoButtons', 'safeties', 'panicButtons'].includes(kind)) && draft.gamepadButton >= 0) {
       // one (button, modifier) pair drives one FX button — steal that exact
       // pair across pages; a plain A binding survives adding RT+A elsewhere

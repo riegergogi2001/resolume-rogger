@@ -557,3 +557,10 @@ sACN sets fill on and the `CO₂` icon (both editable). New glyphs: `CO₂`, `�
   hold cut back to default after that long; 0 = no limit).
 - Topbar: with any safety configured the OSC target slot shows `SAFE` / blinking `ARMED: …`.
 - UI checks: `PW_CHANNEL=chrome node test/ui/safety.spec.mjs` and `test/ui/sacn-button.spec.mjs`.
+
+### Two-hand arm — 2.2.17
+
+Safety option `twoHand` + `armHoldMs` (default 1000): arming needs the safety's controller button AND
+its modifier, both still down when the hold time ends (`safety.bothHeld` reads `navigator.getGamepads()`
+at that moment, because gamepad.js only reports the main button's release). Disarm stays one press.
+Save refuses a two-hand safety without both buttons. Settings → Safety ARM becomes **HOLD TO ARM**.

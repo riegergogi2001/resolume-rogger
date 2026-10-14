@@ -69,6 +69,9 @@ function safety(i, over = {}) {
     universe: 1, channel: 1, armedValue: 255, safeValue: 0,
     host: '', iface: '',
     mode: 'toggle',
+    // twoHand: arming needs the controller button AND its modifier held together
+    // for armHoldMs (disarm stays instant); touch ARM becomes hold-to-arm.
+    twoHand: false, armHoldMs: 1000,
     gamepadButton: -1, gamepadModifier: -1,
     ...over,
   };

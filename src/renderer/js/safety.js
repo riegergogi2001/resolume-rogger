@@ -23,6 +23,7 @@ export function newSafety(existing = []) {
     label: `SAFETY ${n}`,
     universe: 1, channel: 1, armedValue: 255, safeValue: 0,
     host: '', iface: '', mode: 'toggle',
+    twoHand: false, armHoldMs: 1000,
     gamepadButton: -1, gamepadModifier: -1,
   };
 }
@@ -64,6 +65,14 @@ export function setArmed(id, on, cfg, rogger) {
     }
   }
   notify();
+}
+
+// Two-hand check at the moment of arming: both bound pad buttons still down.
+export function bothHeld(s, pads = globalThis.navigator?.getGamepads?.() ?? []) {
+  for (const gp of pads) {
+    if (gp?.buttons?.[s.gamepadButton]?.pressed && gp.buttons[s.gamepadModifier]?.pressed) return true;
+  }
+  return false;
 }
 
 export function toggle(id, cfg, rogger) { setArmed(id, !armed.has(id), cfg, rogger); }

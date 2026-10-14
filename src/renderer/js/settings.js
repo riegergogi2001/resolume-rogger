@@ -205,7 +205,7 @@ export function openSettings() {
       const linked = ['fxButtons', 'fxButtons2', 'fxButtons3', 'utilButtons']
         .flatMap(k => cfg[k] ?? []).filter(b => b.output === 'sacn' && b.sacn?.safety === s.id).map(b => b.label);
       info.append(h('div', 'safety-label u-caps', s.label),
-        h('div', 'safety-meta u-num', `U${s.universe} · ch ${s.channel} · ARMED ${s.armedValue} / SAFE ${s.safeValue} · ${s.mode.toUpperCase()}${pad ? ' · ' + pad : ''}`),
+        h('div', 'safety-meta u-num', `U${s.universe} · ch ${s.channel} · ARMED ${s.armedValue} / SAFE ${s.safeValue} · ${s.mode.toUpperCase()}${s.twoHand ? ' · TWO-HAND' : ''}${pad ? ' · ' + pad : ''}`),
         h('div', 'safety-meta', linked.length ? `Locks: ${linked.join(', ')}` : 'No buttons linked yet (button editor → Safety)'));
       const arm = h('button', 'big-btn u-caps safety-arm');
       const paint = () => {
@@ -214,7 +214,21 @@ export function openSettings() {
         arm.classList.toggle('armed', on);
       };
       paint();
-      arm.addEventListener('click', () => { safety.toggle(s.id, state.get(), rogger); });
+      if (s.twoHand && !safety.isArmed(s.id)) {
+        // two-hand safety from the touch screen: hold-to-arm for the same time
+        arm.textContent = 'HOLD TO ARM';
+        let t = null;
+        arm.addEventListener('pointerdown', () => {
+          arm.classList.add('arming');
+          t = setTimeout(() => { t = null; safety.setArmed(s.id, true, state.get(), rogger); }, Math.max(200, Number(s.armHoldMs) || 1000));
+        });
+        const cancel = () => { arm.classList.remove('arming'); if (t) { clearTimeout(t); t = null; } };
+        arm.addEventListener('pointerup', cancel);
+        arm.addEventListener('pointerleave', cancel);
+        arm.addEventListener('pointercancel', cancel);
+      } else {
+        arm.addEventListener('click', () => { safety.toggle(s.id, state.get(), rogger); });
+      }
       const edit = h('button', 'big-btn u-caps', 'Edit');
       edit.addEventListener('click', () => { close(); openEditor('safeties', i); });
       const del = h('button', 'big-btn u-caps', 'Delete');
