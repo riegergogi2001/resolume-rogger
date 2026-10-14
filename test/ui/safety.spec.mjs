@@ -148,7 +148,10 @@ try {
   const padField = label => page.locator('#editor-overlay .field').filter({ has: page.locator('label', { hasText: label }) });
   await padField(/^Controller button/).locator('.pad-pick', { hasText: /^VIEW$/ }).click();
   await padField(/^Modifier/).locator('.pad-pick', { hasText: /^MENU$/ }).click();
+  await page.locator('#editor-overlay .field').filter({ has: page.locator('label', { hasText: /^More machines/ }) }).locator('textarea').fill('8/11\n8/21');
+  if (SHOTS) await page.locator('#editor-overlay .panel').screenshot({ path: `${SHOTS}/safety-editor.png` });
   await save();
+  assert(await dmx(11) === 5 && await dmx(21) === 5, 'bank: saving sends SAFE to every machine');
   const armBtn = () => page.locator('.safety-row .safety-arm');
   await page.click('#settings-open');
   await page.getByRole('button', { name: 'Safety', exact: true }).click();
@@ -175,6 +178,13 @@ try {
   assert(await dmx(1) === 5, 'pad: one button only does not arm');
   await padArm(view);
   assert(await dmx(1) === 200, 'pad: both held for 1 s arms');
+  assert(await dmx(11) === 200 && await dmx(21) === 200, 'bank: every machine armed');
+  await page.click('#settings-open');
+  await page.getByRole('button', { name: 'Safety', exact: true }).click();
+  if (SHOTS) await page.locator('#settings-overlay .panel').screenshot({ path: `${SHOTS}/settings-bank.png` });
+  await page.click('#safety-panic');
+  await page.evaluate(() => document.getElementById('settings-overlay')?.remove());
+  assert(await dmx(11) === 5 && await dmx(21) === 5, 'bank: panic makes every machine SAFE');
   if (SHOTS) await page.locator('#topbar').screenshot({ path: `${SHOTS}/topbar-armed2.png` });
   assert(errors.length === 0, `no page errors (${errors.join(' | ')})`);
   console.log('\nSAFETY_SPEC_OK');

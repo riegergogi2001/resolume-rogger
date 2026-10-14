@@ -205,7 +205,7 @@ export function openSettings() {
       const linked = ['fxButtons', 'fxButtons2', 'fxButtons3', 'utilButtons']
         .flatMap(k => cfg[k] ?? []).filter(b => b.output === 'sacn' && b.sacn?.safety === s.id).map(b => b.label);
       info.append(h('div', 'safety-label u-caps', s.label),
-        h('div', 'safety-meta u-num', `U${s.universe} · ch ${s.channel} · ARMED ${s.armedValue} / SAFE ${s.safeValue} · ${s.mode.toUpperCase()}${s.twoHand ? ' · TWO-HAND' : ''}${pad ? ' · ' + pad : ''}`),
+        h('div', 'safety-meta u-num', `${safety.safetyChannels(s).map(([u, c]) => `U${u}/${c}`).join(' ')} · ARMED ${s.armedValue} / SAFE ${s.safeValue} · ${s.mode.toUpperCase()}${s.twoHand ? ' · TWO-HAND' : ''}${pad ? ' · ' + pad : ''}`),
         h('div', 'safety-meta', linked.length ? `Locks: ${linked.join(', ')}` : 'No buttons linked yet (button editor → Safety)'));
       const arm = h('button', 'big-btn u-caps safety-arm');
       const paint = () => {

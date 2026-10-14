@@ -67,6 +67,7 @@ function safety(i, over = {}) {
     id: `safety${i + 1}`,
     label: `SAFETY ${i + 1}`,
     universe: 1, channel: 1, armedValue: 255, safeValue: 0,
+    extra: [],              // more arm channels in the same bank: ['8/11', '8/21', ...] (universe/channel)
     host: '', iface: '',
     mode: 'toggle',
     // twoHand: arming needs the controller button AND its modifier held together

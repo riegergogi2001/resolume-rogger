@@ -564,3 +564,10 @@ Safety option `twoHand` + `armHoldMs` (default 1000): arming needs the safety's 
 its modifier, both still down when the hold time ends (`safety.bothHeld` reads `navigator.getGamepads()`
 at that moment, because gamepad.js only reports the main button's release). Disarm stays one press.
 Save refuses a two-hand safety without both buttons. Settings → Safety ARM becomes **HOLD TO ARM**.
+
+### Safety banks — 2.2.18
+
+`safety.extra`: more arm channels (`universe/channel` per line) that share the safety's ARMED / SAFE
+values, e.g. eight flame machines. `safetyChannels(s)` = main channel + every valid line; arm, disarm,
+panic, launch and quit cover all of them. There is deliberately no auto-disarm: an armed safety stays
+armed until it is disarmed or PANIC.

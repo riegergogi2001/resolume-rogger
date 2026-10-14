@@ -11,8 +11,18 @@ const armed = new Set();
 const listeners = new Set();
 const forceOffs = new Map(); // button key -> () => void, registered by fx-grid
 
-export function safetyAddress(s) {
-  return sacnAddress({ universe: s.universe, channel: s.channel, defaultValue: s.safeValue, host: s.host, iface: s.iface });
+export function safetyAddress(s, universe = s.universe, channel = s.channel) {
+  return sacnAddress({ universe, channel, defaultValue: s.safeValue, host: s.host, iface: s.iface });
+}
+
+// Every arm channel of a safety bank: the main one plus each valid "u/ch" in extra.
+export function safetyChannels(s) {
+  const out = [[Number(s.universe), Number(s.channel)]];
+  for (const line of s.extra ?? []) {
+    const m = /^\s*(\d+)\s*[/.:]\s*(\d+)\s*$/.exec(String(line));
+    if (m && Number(m[1]) >= 1 && Number(m[2]) >= 1 && Number(m[2]) <= 512) out.push([Number(m[1]), Number(m[2])]);
+  }
+  return out;
 }
 
 export function newSafety(existing = []) {
@@ -22,7 +32,7 @@ export function newSafety(existing = []) {
     id: `safety-${Date.now().toString(36)}${Math.random().toString(36).slice(2, 6)}`,
     label: `SAFETY ${n}`,
     universe: 1, channel: 1, armedValue: 255, safeValue: 0,
-    host: '', iface: '', mode: 'toggle',
+    extra: [], host: '', iface: '', mode: 'toggle',
     twoHand: false, armHoldMs: 1000,
     gamepadButton: -1, gamepadModifier: -1,
   };
@@ -48,7 +58,9 @@ export function blocked(btn) {
 }
 
 function send(s, on, rogger) {
-  rogger.sendTyped(safetyAddress(s), [{ type: 'i', value: on ? s.armedValue : s.safeValue }]);
+  for (const [u, ch] of safetyChannels(s)) {
+    rogger.sendTyped(safetyAddress(s, u, ch), [{ type: 'i', value: on ? s.armedValue : s.safeValue }]);
+  }
 }
 
 export function setArmed(id, on, cfg, rogger) {

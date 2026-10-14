@@ -80,3 +80,18 @@ test('two-hand: both bound pad buttons must be down', () => {
   assert.equal(safety.bothHeld(s, pad([9])), false);
   assert.equal(safety.bothHeld(s, [null]), false);
 });
+
+test('a safety bank arms and disarms every machine in it', () => {
+  const { cfg, sent, rogger } = setup();
+  cfg.safeties[0].extra = ['8/11', ' 8 / 21 ', '9.1', 'junk', '8/600'];
+  assert.deepEqual(safety.safetyChannels(cfg.safeties[0]), [[8, 1], [8, 11], [8, 21], [9, 1]]);
+  safety.setArmed('arm1', true, cfg, rogger);
+  for (const [u, c] of [[8, 1], [8, 11], [8, 21], [9, 1]]) {
+    assert.equal(sent.filter(([t]) => t.universe === u && t.channel === c).at(-1)[1], 200, `U${u}/${c} armed`);
+  }
+  safety.panic(cfg, rogger);
+  for (const [u, c] of [[8, 1], [8, 11], [8, 21], [9, 1]]) {
+    const [t, v] = sent.filter(([x]) => x.universe === u && x.channel === c).at(-1);
+    assert.equal(v, 5); assert.equal(t.def, 5, 'quit restores SAFE too');
+  }
+});

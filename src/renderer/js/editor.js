@@ -385,6 +385,9 @@ export function openEditor(kind, index) {
       field('Universe (1–63999)', numInput(draft.universe, v => { draft.universe = v; }, '1')),
       field('Channel (1–512)', numInput(draft.channel, v => { draft.channel = v; }, '1')));
     body.append(addr);
+    body.append(field('More machines in this bank (one per line: universe/channel)',
+      textArea((draft.extra ?? []).join('\n'),
+        v => { draft.extra = v.split('\n').map(x => x.trim()).filter(Boolean); }, '8/11\n8/21\n8/31')));
     const vals = h('div', 'row');
     vals.append(
       field('ARMED value (0–255)', numInput(draft.armedValue, v => { draft.armedValue = v; }, '1')),
@@ -641,6 +644,8 @@ export function openEditor(kind, index) {
       // disarm on the OLD channel first: an edited address must not leave it armed
       safety.retire(draft.id, state.get(), rogger);
       for (const k of ['universe', 'channel', 'armedValue', 'safeValue']) draft[k] = Math.trunc(Number(draft[k])) || 0;
+      const bad = (draft.extra ?? []).filter(l => safety.safetyChannels({ universe: 1, channel: 1, extra: [l] }).length < 2);
+      if (bad.length) showToast(`Ignored (not universe/channel): ${bad.join(', ')}`, { error: true });
       state.replaceControl(kind, index, draft);
       safety.sendAllSafe({ safeties: [draft] }, rogger);
     } else {
