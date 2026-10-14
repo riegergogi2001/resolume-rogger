@@ -11,6 +11,7 @@ import * as beat from './beat-clock.js';
 import { renderFaderSet } from './faders.js';
 import { renderColorLab } from './color-lab.js';
 import { renderBpmPage } from './bpm/bpm-page.js';
+import * as safety from './safety.js';
 
 // ---- DJ sync reporting -------------------------------------------------
 function summariseSync(report) {
@@ -110,6 +111,8 @@ export function renderFxGrid(el, { isEditMode, onEdit }) {
     let rampRaf = null;
     let rampValue = null; // last value the hold ramp sent, where a release fade starts from
     let triggerDepth = null; // 0..1 pull depth of the analog trigger driving this hold
+    let maxTimer = null;  // sACN: max fire time cut-off
+    let shotTimer = null; // sACN: end of a SHOT pulse
     const key = `${kind}:${i}`;
     const cfg = () => state.get()[kind][i];
 
@@ -117,6 +120,7 @@ export function renderFxGrid(el, { isEditMode, onEdit }) {
       const c = cfg();
       b.style.setProperty('--fx-color', c.color);
       b.classList.toggle('fx-btn--filled', !!c.fill);
+      b.classList.toggle('fx-btn--blocked', safety.blocked(c));
       b.querySelector('.fx-icon').textContent = c.icon;
       b.querySelector('.fx-label').textContent = c.label;
       b.querySelector('.fx-mode').textContent = c.mode === 'tap' ? '' : c.mode;
@@ -124,6 +128,7 @@ export function renderFxGrid(el, { isEditMode, onEdit }) {
     }
     apply();
     state.subscribe(apply);
+    safety.onChange(apply);
     // Restore a toggle that was on before the rebuild; forget it if the
     // control has since been edited into another mode.
     if (cfg().mode === 'toggle' && latched.has(key)) b.classList.add('latched');
@@ -211,19 +216,64 @@ export function renderFxGrid(el, { isEditMode, onEdit }) {
 
     // opts.analog: the press came from an analog trigger claimed by a combo,
     // so a followTrigger hold can ride its depth instead of sweeping.
+    // Drop every running state without sending: the caller (safety disarm,
+    // panic, max-time cut) sends the default level itself.
+    function forceOff() {
+      clearTimeout(maxTimer); maxTimer = null;
+      clearTimeout(shotTimer); shotTimer = null;
+      clearTimeout(repeatTimer); repeatTimer = null;
+      holdActive = false;
+      latched.delete(key);
+      b.classList.remove('pressed', 'flashing', 'latched');
+    }
+    safety.registerForceOff(key, forceOff);
+
+    function armMaxTime(c) {
+      clearTimeout(maxTimer);
+      maxTimer = null;
+      const ms = c.output === 'sacn' ? Number(c.sacn?.maxMs) || 0 : 0;
+      if (ms <= 0) return;
+      maxTimer = setTimeout(() => {
+        forceOff();
+        const now = cfg();
+        fire(now, now.sacn.defaultValue);
+        showToast(`${now.label}: max fire time reached`, { error: true });
+      }, ms);
+    }
+
     function press(opts) {
       const c = cfg();
+      if (safety.blocked(c)) {
+        const s = (state.get().safeties ?? []).find(x => x.id === c.sacn.safety);
+        showToast(`${c.label}: ${s?.label ?? 'SAFETY'} is SAFE — arm it first`, { error: true });
+        b.classList.add('denied');
+        setTimeout(() => b.classList.remove('denied'), 400);
+        return;
+      }
+      if (c.output === 'sacn' && c.mode === 'shot') {
+        clearTimeout(shotTimer);
+        fire(c, c.value);
+        b.classList.add('pressed');
+        shotTimer = setTimeout(() => {
+          shotTimer = null;
+          fire(cfg(), cfg().sacn.defaultValue);
+          b.classList.remove('pressed');
+        }, Math.max(50, Number(c.sacn.shotMs) || 500));
+        return;
+      }
       // tempotap buttons also drive the local beat clock (touch + gamepad)
       if (c.address === '/composition/tempocontroller/tempotap') beat.tap();
       if (c.mode === 'toggle') {
         if (latched.has(key)) {
           latched.delete(key);
           b.classList.remove('latched');
+          clearTimeout(maxTimer);
           fire(c, c.offValue);
         } else {
           latched.add(key);
           b.classList.add('latched');
           fire(c, c.value);
+          armMaxTime(c);
         }
         return;
       }
@@ -238,6 +288,7 @@ export function renderFxGrid(el, { isEditMode, onEdit }) {
         else startRamp();
       } else {
         fire(c, c.value);
+        if (c.mode === 'hold') armMaxTime(c);
         if (c.repeat?.enabled) scheduleRepeat();
       }
     }
@@ -264,6 +315,8 @@ export function renderFxGrid(el, { isEditMode, onEdit }) {
       triggerDepth = null;
       clearTimeout(repeatTimer);
       repeatTimer = null;
+      if (holdActive) { clearTimeout(maxTimer); maxTimer = null; } // a toggle keeps its cut-off
+      if (shotTimer) return; // a SHOT pulse ends on its own timer
       b.classList.remove('pressed', 'flashing');
       if (holdActive) {
         holdActive = false;
@@ -325,6 +378,30 @@ export function renderFxGrid(el, { isEditMode, onEdit }) {
       analog: v => { if (triggerDepth !== null) triggerDepth = Math.min(1, Math.max(0, v)); },
     };
   }
+
+  // Safety switches and panic reach the gamepad through fxHandles too (their
+  // pad bindings are edited in Settings -> Safety). Panic works in edit mode.
+  (state.get().safeties ?? []).forEach((_, i) => {
+    const cur = () => state.get().safeties?.[i];
+    fxHandles[offsets.safeties + i] = {
+      press: () => {
+        const s = cur();
+        if (!s || isEditMode()) return;
+        if (s.mode === 'hold') safety.setArmed(s.id, true, state.get(), rogger);
+        else safety.toggle(s.id, state.get(), rogger);
+      },
+      release: () => {
+        const s = cur();
+        if (s?.mode === 'hold' && safety.isArmed(s.id)) safety.setArmed(s.id, false, state.get(), rogger);
+      },
+      analog: () => {},
+    };
+  });
+  fxHandles[offsets.panicButtons] = {
+    press: () => { safety.panic(state.get(), rogger); showToast('PANIC — all safeties SAFE, every DMX button at default', { error: true }); },
+    release: () => {},
+    analog: () => {},
+  };
 
   const tabs = document.createElement('div');
   tabs.className = 'page-tabs';

@@ -2,6 +2,7 @@
 import { rogger } from './bridge.js';
 import * as state from './state.js';
 import * as beat from './beat-clock.js';
+import * as safety from './safety.js';
 
 export function renderTopbar(el, { onToggleEdit, onOpenSettings }) {
   el.innerHTML = '';
@@ -173,10 +174,20 @@ export function renderTopbar(el, { onToggleEdit, onOpenSettings }) {
 
   el.append(mark, target, trig, warn, spacer, bpm, srcBtn, half, dbl, batt, clock, tap, resync, pill, edit, gear);
 
+  // The topbar is full at the 1704 floor, so the safety state takes the OSC
+  // target readout's slot whenever safeties exist (the target is in Settings).
   function refreshTarget() {
     const n = state.get().network;
-    target.textContent = `${n.targetIp}:${n.targetPort}`;
+    const list = state.get().safeties ?? [];
+    const on = list.filter(s => safety.isArmed(s.id));
+    target.classList.toggle('safety-safe', list.length > 0 && !on.length);
+    target.classList.toggle('safety-armed', on.length > 0);
+    target.id = 'target-readout';
+    if (!list.length) target.textContent = `${n.targetIp}:${n.targetPort}`;
+    else if (!on.length) target.textContent = 'SAFE';
+    else target.textContent = `ARMED: ${on.map(s => s.label).join(', ')}`;
   }
+  safety.onChange(refreshTarget);
   refreshTarget();
   state.subscribe(refreshTarget);
 

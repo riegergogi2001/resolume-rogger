@@ -1304,3 +1304,31 @@ body.edit-mode .color-btn {
 }
 .confirm-text { font-size: 18px; font-weight: 700; line-height: 1.35; }
 .confirm-panel .row > .big-btn { min-height: 64px; }
+
+/* ---- Safety (2.2.16) ---- */
+.fx-btn.fx-btn--blocked { opacity: 0.45; filter: saturate(0.4); }
+.fx-btn.fx-btn--blocked::after {
+  content: 'SAFE';
+  position: absolute; top: 10px; right: 12px;
+  font-size: 10px; font-weight: 900; letter-spacing: 0.1em;
+  color: #0b0d10; background: #eaeef5; border-radius: 4px; padding: 1px 6px;
+}
+.fx-btn.fx-btn--blocked .fx-mode { display: none; }
+.fx-btn.denied { animation: fx-denied 0.4s linear; }
+@keyframes fx-denied { 0%, 50% { transform: translateX(-4px); } 25%, 75% { transform: translateX(4px); } 100% { transform: none; } }
+.target-readout.safety-safe { color: #2ee66b; font-weight: 900; letter-spacing: 0.1em; }
+.target-readout.safety-armed {
+  color: #fff; background: #ff4757; font-weight: 900; letter-spacing: 0.06em;
+  padding: 2px 8px; border-radius: 4px; max-width: 280px;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  animation: safety-blink 0.8s steps(1) infinite;
+}
+@keyframes safety-blink { 50% { background: #7a1018; } }
+.safety-row { display: flex; align-items: center; gap: 10px; padding: 10px 0; border-bottom: 1px solid var(--line); }
+.safety-row .safety-info { flex: 1; min-width: 0; }
+.safety-row .safety-label { font-weight: 900; font-size: 15px; }
+.safety-row .safety-meta { font-size: 12px; color: var(--text-dim); overflow-wrap: anywhere; }
+.safety-row .big-btn { flex: 0 0 auto; width: auto; min-width: 96px; }
+.safety-row .safety-arm { background: #1d6b3a; color: #fff; }
+.safety-row .safety-arm.armed { background: #ff4757; animation: safety-blink 0.8s steps(1) infinite; }
+.big-btn.safety-panic { background: #ff4757; color: #fff; font-weight: 900; }

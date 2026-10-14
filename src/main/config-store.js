@@ -41,7 +41,10 @@ function fxButton(i, over = {}) {
     // fields and writes address/values from them (renderer/js/sacn-button.js).
     output: 'osc',          // osc | sacn
     fill: false,            // full-colour background: marks special buttons (CO2)
-    sacn: { universe: 1, channel: 1, defaultValue: 0, host: '', iface: '' },
+    // safety: id of a config.safeties entry that must be ARMED to fire ('' = none);
+    // maxMs: longest a press/toggle may keep the jet on (0 = no limit);
+    // shotMs: pulse length in mode 'shot'.
+    sacn: { universe: 1, channel: 1, defaultValue: 0, host: '', iface: '', safety: '', maxMs: 0, shotMs: 500 },
     gamepadButton: -1,      // standard-mapping gamepad button index, -1 = unbound
     gamepadModifier: -1,    // pad button that must be held for this binding; -1 = none
   };
@@ -52,6 +55,22 @@ function fxButton(i, over = {}) {
     // whole would drop every field it does not mention (the page-2 pushers
     // would have arrived with no followTrigger/smoothMs at all).
     ramp: { ...base.ramp, ...(over.ramp ?? {}) },
+  };
+}
+
+// A safety switch on a DMX channel (CO2 / spark machine "arm" channel).
+// Starts SAFE on launch and goes back to SAFE on quit; sACN buttons that name
+// it cannot fire while it is SAFE. mode: toggle = press arms / press disarms,
+// hold = armed only while held.
+function safety(i, over = {}) {
+  return {
+    id: `safety${i + 1}`,
+    label: `SAFETY ${i + 1}`,
+    universe: 1, channel: 1, armedValue: 255, safeValue: 0,
+    host: '', iface: '',
+    mode: 'toggle',
+    gamepadButton: -1, gamepadModifier: -1,
+    ...over,
   };
 }
 
@@ -216,6 +235,8 @@ function baseDefaults() {
       return fxButton(i, { id: `fx3-${i + 1}`, label: `TC ${i + 1}`, icon: '♪', color: colors[i % colors.length], mode: 'hold', address: `/composition/groups/5/columns/${i + 1}/connect` });
     }),
     // Page-1 utility quad: toggles for the always-on look switches.
+    safeties: [],
+    panicButtons: [{ id: 'panic', label: 'PANIC', gamepadButton: -1, gamepadModifier: -1 }],
     tempoButtons: [
       tempoButton('tap', 'TAP TEMPO', '/composition/tempocontroller/tempotap'),
       tempoButton('resync', 'RESYNC', '/composition/tempocontroller/resync'),
@@ -535,6 +556,10 @@ function mergeConfig(base, patch) {
     fxButtons3: mergeControls(base.fxButtons3, patch.fxButtons3),
     utilButtons: mergeControls(base.utilButtons, patch.utilButtons, true),
     tempoButtons: mergeControls(base.tempoButtons, patch.tempoButtons),
+    safeties: Array.isArray(patch.safeties)
+      ? patch.safeties.filter(isPlainObject).map((s, i) => deepMerge(safety(i), s))
+      : base.safeties,
+    panicButtons: mergeControls(base.panicButtons, patch.panicButtons),
     faders: mergeControls(base.faders, patch.faders),
     groupFaders: mergeControls(base.groupFaders, patch.groupFaders),
     colorButtons: mergeControls(base.colorButtons, patch.colorButtons),
@@ -574,4 +599,4 @@ function save(filePath, config) {
   fs.renameSync(tmp, filePath);
 }
 
-module.exports = { defaults, load, save, merge, ACCENTS };
+module.exports = { defaults, load, save, merge, safety, ACCENTS };

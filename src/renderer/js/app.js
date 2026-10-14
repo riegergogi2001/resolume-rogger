@@ -5,6 +5,7 @@ import { showToast } from './toast.js';
 import { renderTopbar } from './topbar.js';
 import { renderFxGrid, fxHandles, setPage } from './fx-grid.js';
 import { sendAllDefaults } from './sacn-button.js';
+import { sendAllSafe } from './safety.js';
 import { startGamepad } from './gamepad.js';
 import { renderFaders, faderHandles } from './faders.js';
 import { renderColorRow, colorHandles } from './color-row.js';
@@ -54,6 +55,7 @@ async function boot() {
 
   renderAll();
   state.setRerenderHandler(renderAll);
+  sendAllSafe(state.get(), rogger);      // every safety starts SAFE
   sendAllDefaults(state.get(), rogger); // sACN buttons start at their default level
 
   startGamepad(fxHandles);

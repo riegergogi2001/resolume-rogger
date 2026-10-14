@@ -9,12 +9,13 @@ import { BUTTON_NAMES, armGamepadLearn, disarmGamepadLearn } from './gamepad.js'
 import { bindingLabel, stealBinding } from './gamepad-resolve.js';
 import { h, field, textInput, numInput, textArea, checkRow, seg, btnRow } from './dom.js';
 import { applySacn, sendDefault } from './sacn-button.js';
+import * as safety from './safety.js';
 
 const GLYPHS = ['◆', '●', '▲', '▼', '■', '◉', '✕', '⚡', '⏱', '↻', '⊘', '⏻',
   '★', '♪', '☰', '◐', '▶', '◀', '⏸', '⏹', '✦', '☄', '♦', '▩', 'CO₂', '☁', '⚠'];
 const PALETTE = ['#00e0ff', '#ffb400', '#ff4757', '#2ee66b', '#b46bff',
   '#ff7a1a', '#eaeef5', '#3aa0ff', '#ff3df0', '#ffd93d'];
-const KIND_TITLES = { fxButtons: 'FX BUTTON', fxButtons2: 'FX BUTTON P2', fxButtons3: 'DJ INTRO', utilButtons: 'UTILITY', tempoButtons: 'TEMPO', faders: 'FADER', groupFaders: 'GROUP FADER', colorButtons: 'COLOR PRESET', colorTargets: 'COLOR TARGET' };
+const KIND_TITLES = { fxButtons: 'FX BUTTON', fxButtons2: 'FX BUTTON P2', fxButtons3: 'DJ INTRO', utilButtons: 'UTILITY', tempoButtons: 'TEMPO', safeties: 'SAFETY', panicButtons: 'PANIC', faders: 'FADER', groupFaders: 'GROUP FADER', colorButtons: 'COLOR PRESET', colorTargets: 'COLOR TARGET' };
 
 // int-family library kinds — anything else (event/int/bool/choice) becomes
 // a plain int-typed FX button; only 'float' switches the button to float.
@@ -335,9 +336,10 @@ export function openEditor(kind, index) {
   // and values from these (sacn-button.js applySacn).
   function sacnForm() {
     const sc = draft.sacn;
+    if (!['hold', 'toggle', 'shot'].includes(draft.mode)) draft.mode = 'hold';
     body.append(field('Mode', seg(
-      [{ v: 'hold', label: 'HOLD (push to go)' }, { v: 'toggle', label: 'TOGGLE' }],
-      draft.mode === 'toggle' ? 'toggle' : 'hold', v => { draft.mode = v; })));
+      [{ v: 'hold', label: 'HOLD (push to go)' }, { v: 'toggle', label: 'TOGGLE' }, { v: 'shot', label: 'SHOT (pulse)' }],
+      draft.mode, v => { draft.mode = v; buildBody(); })));
     const addr = h('div', 'row');
     addr.append(
       field('Universe (1–63999)', numInput(sc.universe, v => { sc.universe = v; }, '1')),
@@ -349,6 +351,20 @@ export function openEditor(kind, index) {
       field('Default value (0–255)', numInput(sc.defaultValue, v => { sc.defaultValue = v; }, '1')));
     body.append(vals);
     body.append(h('div', 'hint', 'Default value goes out from startup, on release (hold), when toggled off, and when ROGGER quits.'));
+    const timing = h('div', 'row');
+    if (draft.mode === 'shot') {
+      timing.append(field('Shot length (ms)', numInput(sc.shotMs ?? 500, v => { sc.shotMs = Math.max(50, v || 0); }, '50')));
+    } else {
+      timing.append(field('Max fire time (s, 0 = no limit)', numInput((sc.maxMs ?? 0) / 1000,
+        v => { sc.maxMs = Math.max(0, Math.round((v || 0) * 1000)); }, '0.5')));
+    }
+    body.append(timing);
+    const safeties = state.get().safeties ?? [];
+    if (safeties.some(s => s.id === sc.safety) === false) sc.safety = '';
+    body.append(field('Safety (must be ARMED to fire)', seg(
+      [{ v: '', label: 'NONE' }, ...safeties.map(s => ({ v: s.id, label: s.label }))],
+      sc.safety ?? '', v => { sc.safety = v; })));
+    if (!safeties.length) body.append(h('div', 'hint', 'Add safety switches in Settings → Safety.'));
     const net = h('div', 'row');
     const host = textInput(sc.host ?? '', v => { sc.host = v.trim(); });
     host.placeholder = 'empty = multicast';
@@ -356,6 +372,37 @@ export function openEditor(kind, index) {
     iface.placeholder = 'empty = system default';
     net.append(field('Node IP (unicast, optional)', host), field('Send from local IP (optional)', iface));
     body.append(net);
+    padBindingSection();
+  }
+
+  function safetyForm() {
+    body.append(field('Label', textInput(draft.label, v => { draft.label = v; })));
+    body.append(field('Mode', seg(
+      [{ v: 'toggle', label: 'TOGGLE (press arms / press disarms)' }, { v: 'hold', label: 'HOLD (armed while held)' }],
+      draft.mode ?? 'toggle', v => { draft.mode = v; })));
+    const addr = h('div', 'row');
+    addr.append(
+      field('Universe (1–63999)', numInput(draft.universe, v => { draft.universe = v; }, '1')),
+      field('Channel (1–512)', numInput(draft.channel, v => { draft.channel = v; }, '1')));
+    body.append(addr);
+    const vals = h('div', 'row');
+    vals.append(
+      field('ARMED value (0–255)', numInput(draft.armedValue, v => { draft.armedValue = v; }, '1')),
+      field('SAFE value (0–255)', numInput(draft.safeValue, v => { draft.safeValue = v; }, '1')));
+    body.append(vals);
+    body.append(h('div', 'hint', 'SAFE goes out at launch, on disarm, on panic and when ROGGER quits. Buttons linked to this safety cannot fire while it is SAFE.'));
+    const net = h('div', 'row');
+    const host = textInput(draft.host ?? '', v => { draft.host = v.trim(); });
+    host.placeholder = 'empty = multicast';
+    const iface = textInput(draft.iface ?? '', v => { draft.iface = v.trim(); });
+    iface.placeholder = 'empty = system default';
+    net.append(field('Node IP (unicast, optional)', host), field('Send from local IP (optional)', iface));
+    body.append(net);
+    padBindingSection();
+  }
+
+  function panicForm() {
+    body.append(h('div', 'hint', 'PANIC sets every safety SAFE and every sACN button to its default value. Works in edit mode too.'));
     padBindingSection();
   }
 
@@ -555,6 +602,8 @@ export function openEditor(kind, index) {
     body.innerHTML = '';
     if (kind.startsWith('fxButtons') || kind === 'utilButtons') fxForm();
     else if (kind === 'tempoButtons') tempoForm();
+    else if (kind === 'safeties') safetyForm();
+    else if (kind === 'panicButtons') panicForm();
     else if (kind === 'faders' || kind === 'groupFaders') faderForm();
     else if (kind === 'colorTargets') colorTargetForm();
     else colorForm();
@@ -567,7 +616,7 @@ export function openEditor(kind, index) {
   const save = h('button', 'big-btn primary u-caps', 'Save');
   save.id = 'ed-save';
   save.addEventListener('pointerdown', () => {
-    if ((kind.startsWith('fxButtons') || kind === 'utilButtons' || kind === 'tempoButtons') && draft.gamepadButton >= 0) {
+    if ((kind.startsWith('fxButtons') || ['utilButtons', 'tempoButtons', 'safeties', 'panicButtons'].includes(kind)) && draft.gamepadButton >= 0) {
       // one (button, modifier) pair drives one FX button — steal that exact
       // pair across pages; a plain A binding survives adding RT+A elsewhere
       stealBinding(state.get(), kind, index, draft.gamepadButton, draft.gamepadModifier ?? -1);
@@ -577,6 +626,12 @@ export function openEditor(kind, index) {
       // config on notify — no surface rebuild, which would restart the BPM
       // page's microphone and drop its lock.
       state.replaceColorTarget(index, draft);
+    } else if (kind === 'safeties') {
+      // disarm on the OLD channel first: an edited address must not leave it armed
+      safety.retire(draft.id, state.get(), rogger);
+      for (const k of ['universe', 'channel', 'armedValue', 'safeValue']) draft[k] = Math.trunc(Number(draft[k])) || 0;
+      state.replaceControl(kind, index, draft);
+      safety.sendAllSafe({ safeties: [draft] }, rogger);
     } else {
       applySacn(draft);
       state.replaceControl(kind, index, draft);

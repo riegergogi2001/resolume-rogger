@@ -9,8 +9,12 @@ import { confirmDialog } from './dialog.js';
 import { PAGE_DEFS } from './fx-grid.js';
 import { h, field, textInput, numInput, checkRow, row2, btnRow } from './dom.js';
 import { renderUpdates } from './updates.js';
+import { openEditor } from './editor.js';
+import { BUTTON_NAMES } from './gamepad.js';
+import { bindingLabel } from './gamepad-resolve.js';
+import * as safety from './safety.js';
 
-const TABS = ['Network', 'Controller', 'Pages', 'Updates', 'Backup', 'About'];
+const TABS = ['Network', 'Controller', 'Safety', 'Pages', 'Updates', 'Backup', 'About'];
 
 export function openSettings() {
   const root = document.getElementById('overlay-root');
@@ -29,6 +33,7 @@ export function openSettings() {
 
   function close() {
     offStatus?.();
+    offSafety?.();
     overlay.remove();
   }
 
@@ -59,6 +64,7 @@ export function openSettings() {
     body.innerHTML = '';
     if (currentTab === 'Network') renderNetwork();
     else if (currentTab === 'Controller') renderController();
+    else if (currentTab === 'Safety') renderSafety();
     else if (currentTab === 'Pages') renderPages();
     else if (currentTab === 'Updates') renderUpdates(body, { oscStatus: () => lastOscStatus });
     else if (currentTab === 'Backup') renderBackup();
@@ -172,6 +178,75 @@ export function openSettings() {
   }
 
   // ---------------- Pages ----------------
+  // ---------------- Safety ----------------
+  // Safety switches (arm channels of CO2 / spark machines) and PANIC. Entries
+  // are edited in the normal button editor (label, DMX address, values, mode,
+  // controller button); this tab lists, arms, adds and deletes them.
+  function renderSafety() {
+    const cfg = state.get();
+    const list = cfg.safeties ?? [];
+    const panicBtn = h('button', 'big-btn u-caps safety-panic', 'PANIC — all SAFE');
+    panicBtn.id = 'safety-panic';
+    panicBtn.addEventListener('click', () => {
+      safety.panic(state.get(), rogger);
+      showToast('PANIC — all safeties SAFE, every DMX button at default', { error: true });
+    });
+    const panicEdit = h('button', 'big-btn u-caps', `Panic controller button: ${bindingLabel(BUTTON_NAMES, cfg.panicButtons?.[0]?.gamepadButton ?? -1, cfg.panicButtons?.[0]?.gamepadModifier ?? -1) || 'none'}`);
+    panicEdit.id = 'safety-panic-edit';
+    panicEdit.addEventListener('click', () => { close(); openEditor('panicButtons', 0); });
+    body.append(btnRow(panicBtn, panicEdit));
+
+    if (!list.length) body.append(h('div', 'hint', 'No safety switches yet. A safety is the arm channel of a CO2 jet or spark machine: SAFE at launch, ARMED only when you arm it, and the DMX buttons linked to it cannot fire while it is SAFE.'));
+    list.forEach((s, i) => {
+      const row = h('div', 'safety-row');
+      row.dataset.id = s.id;
+      const info = h('div', 'safety-info');
+      const pad = bindingLabel(BUTTON_NAMES, s.gamepadButton, s.gamepadModifier);
+      const linked = ['fxButtons', 'fxButtons2', 'fxButtons3', 'utilButtons']
+        .flatMap(k => cfg[k] ?? []).filter(b => b.output === 'sacn' && b.sacn?.safety === s.id).map(b => b.label);
+      info.append(h('div', 'safety-label u-caps', s.label),
+        h('div', 'safety-meta u-num', `U${s.universe} · ch ${s.channel} · ARMED ${s.armedValue} / SAFE ${s.safeValue} · ${s.mode.toUpperCase()}${pad ? ' · ' + pad : ''}`),
+        h('div', 'safety-meta', linked.length ? `Locks: ${linked.join(', ')}` : 'No buttons linked yet (button editor → Safety)'));
+      const arm = h('button', 'big-btn u-caps safety-arm');
+      const paint = () => {
+        const on = safety.isArmed(s.id);
+        arm.textContent = on ? 'ARMED' : 'SAFE';
+        arm.classList.toggle('armed', on);
+      };
+      paint();
+      arm.addEventListener('click', () => { safety.toggle(s.id, state.get(), rogger); });
+      const edit = h('button', 'big-btn u-caps', 'Edit');
+      edit.addEventListener('click', () => { close(); openEditor('safeties', i); });
+      const del = h('button', 'big-btn u-caps', 'Delete');
+      del.addEventListener('click', async () => {
+        if (!(await confirmDialog(`Delete ${s.label}? Linked buttons are unlocked from it.`))) return;
+        safety.retire(s.id, state.get(), rogger);
+        const next = structuredClone(state.get());
+        for (const k of ['fxButtons', 'fxButtons2', 'fxButtons3', 'utilButtons']) {
+          for (const b of next[k] ?? []) if (b.sacn?.safety === s.id) b.sacn.safety = '';
+          state.replaceList(k, next[k]);
+        }
+        state.replaceList('safeties', next.safeties.filter(x => x.id !== s.id));
+        state.requestRerender();
+        renderTab();
+      });
+      row.append(info, arm, edit, del);
+      body.append(row);
+    });
+    const add = h('button', 'big-btn primary u-caps', 'Add safety');
+    add.id = 'safety-add';
+    add.addEventListener('click', () => {
+      const next = [...(state.get().safeties ?? []), safety.newSafety(state.get().safeties ?? [])];
+      state.replaceList('safeties', next);
+      safety.sendAllSafe({ safeties: [next.at(-1)] }, rogger);
+      state.requestRerender(); // gamepad handle offsets move
+      close();
+      openEditor('safeties', next.length - 1);
+    });
+    body.append(btnRow(add));
+  }
+  const offSafety = safety.onChange(() => { if (currentTab === 'Safety') renderTab(); });
+
   function renderPages() {
     body.append(h('div', 'hint', 'Page 1 always stays visible.'));
     PAGE_DEFS.slice(1).forEach(({ label }) => {

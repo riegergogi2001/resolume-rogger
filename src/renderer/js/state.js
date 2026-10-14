@@ -57,6 +57,13 @@ export function updateSection(name, patch) {
   persist();
 }
 
+// Replace a whole top-level list (safeties: add / delete).
+export function replaceList(name, list) {
+  config[name] = list;
+  notify();
+  persist();
+}
+
 // Replace the whole config (already persisted by the main process).
 export function setAll(next) {
   config = next;

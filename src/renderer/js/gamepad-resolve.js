@@ -8,7 +8,9 @@
 // tempoButtons last: the two big Page 2 tempo buttons (fixed addresses, only
 // their pad binding is editable) — appended so the other kinds' handle
 // offsets never moved.
-export const HANDLE_KINDS = ['fxButtons', 'fxButtons2', 'fxButtons3', 'utilButtons', 'tempoButtons'];
+// safeties / panicButtons (2.2.16): the safety switches and the panic button,
+// appended for the same reason.
+export const HANDLE_KINDS = ['fxButtons', 'fxButtons2', 'fxButtons3', 'utilButtons', 'tempoButtons', 'safeties', 'panicButtons'];
 
 // Set of pad button indices used as a `gamepadModifier` anywhere in cfg.
 export function modifierSet(cfg) {

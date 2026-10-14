@@ -18,7 +18,7 @@ function cfg(over = {}) {
 }
 
 test('HANDLE_KINDS matches the fxHandles page order', () => {
-  assert.deepEqual(HANDLE_KINDS, ['fxButtons', 'fxButtons2', 'fxButtons3', 'utilButtons', 'tempoButtons']);
+  assert.deepEqual(HANDLE_KINDS, ['fxButtons', 'fxButtons2', 'fxButtons3', 'utilButtons', 'tempoButtons', 'safeties', 'panicButtons']);
 });
 
 test('plain A resolves to the plain binding', () => {

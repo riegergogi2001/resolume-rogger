@@ -12,7 +12,7 @@ const sacnBtn = over => ({ ...store.defaults().fxButtons[0], output: 'sacn', mod
 test('defaults carry an OSC output and sACN fields; old configs gain them', () => {
   const b = store.defaults().fxButtons[0];
   assert.equal(b.output, 'osc');
-  assert.deepEqual(b.sacn, { universe: 1, channel: 1, defaultValue: 0, host: '', iface: '' });
+  assert.deepEqual(b.sacn, { universe: 1, channel: 1, defaultValue: 0, host: '', iface: '', safety: '', maxMs: 0, shotMs: 500 });
   const merged = store.merge?.({ fxButtons: [{ label: 'OLD' }] }) ?? null;
   if (merged) assert.equal(merged.fxButtons[0].sacn.channel, 1);
 });

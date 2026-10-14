@@ -541,3 +541,19 @@ channel to its `?default=`. UI check: `PW_CHANNEL=chrome node test/ui/sacn-butto
 `fill: true` on any FX / utility button (editor: "Full background") paints it in its colour with dark text
 (`.fx-btn--filled` in components.css); pressed / latched adds a white ring and glow. Switching a button to
 sACN sets fill on and the `CO₂` icon (both editable). New glyphs: `CO₂`, `☁`, `⚠`.
+
+### Safety switches, panic, shot, max fire time — 2.2.16
+
+- `config.safeties[]` (config-store `safety()`): label, universe, channel, armedValue, safeValue, host,
+  iface, mode toggle|hold, pad binding. Settings → **Safety** lists them (ARM/SAFE live, Edit opens the
+  normal editor, Delete unlinks buttons, Add), plus **PANIC** and its controller binding
+  (`config.panicButtons[0]`). Both kinds are appended to `HANDLE_KINDS`, so the pad reaches them
+  through `fxHandles`; panic also works in edit mode.
+- `src/renderer/js/safety.js`: armed state is memory-only (every launch SAFE, sent by app.js boot);
+  `blocked(btn)` = sACN button whose `sacn.safety` is not armed (fx-grid greys it and refuses the
+  press with a toast); disarm / panic call each button's registered `forceOff` and send its default.
+  Editing a safety disarms it on the OLD channel first (`retire`).
+- sACN button extras: mode **shot** (`sacn.shotMs` pulse, release ignored) and `sacn.maxMs` (toggle or
+  hold cut back to default after that long; 0 = no limit).
+- Topbar: with any safety configured the OSC target slot shows `SAFE` / blinking `ARMED: …`.
+- UI checks: `PW_CHANNEL=chrome node test/ui/safety.spec.mjs` and `test/ui/sacn-button.spec.mjs`.
