@@ -509,3 +509,19 @@ ROGGER.
 ## License
 
 [MIT](LICENSE)
+
+## DMX buttons (sACN / Art-Net) — 2.2.13
+
+Any FX button address (or extra address) of the form
+
+    sacn://<universe>/<channel>              E1.31 multicast 239.255.<hi>.<lo>:5568
+    sacn://<universe>/<channel>?host=<ip>    unicast to one node
+    sacn://<universe>/<channel>?iface=<ip>   multicast out of a given local interface
+    artnet://<host>/<universe>/<channel>
+
+is sent as DMX by `src/main/dmx-out.js` instead of OSC. The value the button sends is the
+DMX level (0–255; floats 0..1 are scaled), so the normal editor fields program it:
+**Value** = press level, **Release value** = hold release, **Off value** = toggle off, mode
+**hold** (push-to-go) or **toggle**. Use type `int`. Do not use **tap** for CO2: tap never
+sends an off level. A used universe streams at 25 fps; on quit every driven channel goes to 0.
+Set the node to "zero on loss" so a crashed ROGGER cannot leave a jet open.

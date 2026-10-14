@@ -125,6 +125,7 @@ function start(ctx = {}) {
     });
   }
 
+  let api = null; // set once IPC is registered; closeEngine zeroes its DMX channels
   app.whenReady().then(() => {
     // a show controller must never let the screen sleep mid-set
     powerSaveBlocker.start('prevent-display-sleep');
@@ -139,7 +140,7 @@ function start(ctx = {}) {
     if (app.isPackaged && !fs.existsSync(configPath) && fs.existsSync(seedPath)) {
       store.save(configPath, store.load(seedPath));
     }
-    const api = registerIpc({
+    api = registerIpc({
       ipcMain, engine, store, configPath, seedPath, getWindow: () => win, app, dialog, shell, ctx,
     });
     const cfg = api.getConfig();
@@ -149,6 +150,7 @@ function start(ctx = {}) {
   });
 
   function closeEngine(why) {
+    try { api?.dmx.close(); } catch (err) { console.error(`dmx.close on ${why}:`, err); }
     try { engine.close(); } catch (err) { console.error(`engine.close on ${why}:`, err); }
   }
 

@@ -4,8 +4,9 @@ const fs = require('node:fs');
 const { Updater } = require('./updater.js');
 const { buildDjButtons } = require('./dj-sync.js');
 const { diagnose } = require('./diagnostics.js');
+const { DmxOut } = require('./dmx-out.js');
 
-function registerIpc({ ipcMain, engine, store, configPath, seedPath, getWindow, app, dialog, shell, ctx = {} }) {
+function registerIpc({ ipcMain, engine, store, configPath, seedPath, getWindow, app, dialog, shell, ctx = {}, dmx = new DmxOut() }) {
   let config = store.load(configPath);
 
   // OTA updates. ctx comes from the shell bootstrap; without it (dev run,
@@ -37,8 +38,13 @@ function registerIpc({ ipcMain, engine, store, configPath, seedPath, getWindow, 
     config = next;
     store.save(configPath, config);
   });
-  ipcMain.on('osc:send', (_e, address, values) => engine.send(address, values));
-  ipcMain.on('osc:send-typed', (_e, address, args) => engine.sendTyped(address, args));
+  // sacn:// and artnet:// addresses go out as DMX (dmx-out.js), everything else as OSC
+  ipcMain.on('osc:send', (_e, address, values) => {
+    if (!dmx.handle(address, values)) engine.send(address, values);
+  });
+  ipcMain.on('osc:send-typed', (_e, address, args) => {
+    if (!dmx.handle(address, args)) engine.sendTyped(address, args);
+  });
   // The launch-time bind runs before the renderer has a page, so anything
   // the engine reports then (a busy listen port, say) would be lost. Keep it
   // until the surface asks for its first status, then replay it.
@@ -196,7 +202,7 @@ function registerIpc({ ipcMain, engine, store, configPath, seedPath, getWindow, 
     if (earlyErrors.length < 20) earlyErrors.push(text);
   });
 
-  return { getConfig: () => config };
+  return { getConfig: () => config, dmx };
 }
 
 module.exports = { registerIpc };
