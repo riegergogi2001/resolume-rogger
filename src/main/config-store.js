@@ -37,6 +37,10 @@ function fxButton(i, over = {}) {
       followTrigger: false, smoothMs: 0,
     },
     macro: [],              // [{address, values:[...]}] — sent in order instead of single message
+    // output 'sacn' = native DMX button (CO2, sparks): the editor shows the sACN
+    // fields and writes address/values from them (renderer/js/sacn-button.js).
+    output: 'osc',          // osc | sacn
+    sacn: { universe: 1, channel: 1, defaultValue: 0, host: '', iface: '' },
     gamepadButton: -1,      // standard-mapping gamepad button index, -1 = unbound
     gamepadModifier: -1,    // pad button that must be held for this binding; -1 = none
   };

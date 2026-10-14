@@ -1,13 +1,13 @@
 'use strict';
 // DMX output for buttons (CO2 jets, spark machines). A button whose address is
-//   sacn://<universe>/<channel>[?host=<ip>&iface=<local ip>]   (E1.31, multicast unless host=)
+//   sacn://<universe>/<channel>[?default=<0-255>&host=<ip>&iface=<local ip>]   (E1.31, multicast unless host=)
 //   artnet://<host>/<universe>/<channel>
 // sends DMX instead of OSC. The value the button sends IS the DMX level, so the
 // normal editor fields program it: Value = press level, Release value = hold
 // release level, Off value = toggle off level, mode tap/toggle/hold. Floats in
 // 0..1 are scaled to 0..255. A used universe is streamed continuously (a node
-// set to "zero on loss" reacts when ROGGER dies); quitting first sends 0 on
-// every channel ROGGER ever drove.
+// set to "zero on loss" reacts when ROGGER dies); quitting first returns every
+// channel ROGGER drove to its default (0 when the address names none).
 const dgram = require('node:dgram');
 const crypto = require('node:crypto');
 
@@ -21,10 +21,11 @@ function parse(address) {
     const universe = Number(m[1]);
     if (universe < 1 || universe > 63999) return null;
     const host = q.get('host') || `239.255.${universe >> 8}.${universe & 255}`;
-    return check({ proto: 'sacn', host, port: 5568, universe, channel: Number(m[2]), iface: q.get('iface') || null });
+    const def = Math.max(0, Math.min(255, Math.round(Number(q.get('default') ?? 0)) || 0));
+    return check({ proto: 'sacn', host, port: 5568, universe, channel: Number(m[2]), iface: q.get('iface') || null, def });
   }
   m = /^artnet:\/\/([^/?]+)\/(\d+)\/(\d+)$/.exec(address);
-  if (m) return check({ proto: 'artnet', host: m[1], port: 6454, universe: Math.min(32767, Number(m[2])), channel: Number(m[3]), iface: null });
+  if (m) return check({ proto: 'artnet', host: m[1], port: 6454, universe: Math.min(32767, Number(m[2])), channel: Number(m[3]), iface: null, def: 0 });
   return null;
 }
 const check = t => (t.channel >= 1 && t.channel <= 512 ? t : null);
@@ -103,7 +104,7 @@ class DmxOut {
     const v = level(args);
     out.data[t.channel - 1] = v;
     const rk = `${key}|${t.channel}`;
-    if (!this.rest.has(rk)) this.rest.set(rk, { out, channel: t.channel, level: 0 });
+    this.rest.set(rk, { out, channel: t.channel, level: t.def });
     this.sendOut(out);
     if (!this.timer) this.timer = setInterval(() => this.flush(), 1000 / FPS);
     return true;

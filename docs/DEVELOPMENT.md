@@ -525,3 +525,13 @@ DMX level (0–255; floats 0..1 are scaled), so the normal editor fields program
 **hold** (push-to-go) or **toggle**. Use type `int`. Do not use **tap** for CO2: tap never
 sends an off level. A used universe streams at 25 fps; on quit every driven channel goes to 0.
 Set the node to "zero on loss" so a crashed ROGGER cannot leave a jet open.
+
+### Native sACN button — 2.2.14
+
+Edit mode → any FX / utility button → **Output: sACN (DMX)**. Fields: Mode (HOLD = push to go,
+TOGGLE; no TAP), Universe, Channel, Press value, Default value, optional Node IP (unicast) and
+local IP (interface). Save writes `address = sacn://<u>/<ch>?default=<d>[&host=&iface=]`,
+`releaseValue = offValue = default`, clears OSC extras/macro/ramp/repeat
+(`src/renderer/js/sacn-button.js` applySacn), and sends the default at once. On startup every sACN
+button sends its default (`sendAllDefaults` in app.js); on quit the main process returns each
+channel to its `?default=`. UI check: `PW_CHANNEL=chrome node test/ui/sacn-button.spec.mjs`.

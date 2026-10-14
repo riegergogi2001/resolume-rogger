@@ -8,6 +8,7 @@ import { placeholders, expand, search } from './osc-library.js';
 import { BUTTON_NAMES, armGamepadLearn, disarmGamepadLearn } from './gamepad.js';
 import { bindingLabel, stealBinding } from './gamepad-resolve.js';
 import { h, field, textInput, numInput, textArea, checkRow, seg, btnRow } from './dom.js';
+import { applySacn, sendDefault } from './sacn-button.js';
 
 const GLYPHS = ['◆', '●', '▲', '▼', '■', '◉', '✕', '⚡', '⏱', '↻', '⊘', '⏻',
   '★', '♪', '☰', '◐', '▶', '◀', '⏸', '⏹', '✦', '☄', '♦', '▩'];
@@ -230,6 +231,19 @@ export function openEditor(kind, index) {
       (b, g) => { b.textContent = g; }, g => { draft.icon = g; })));
     body.append(field('Color', pickRow(PALETTE, 'swatch-pick', draft.color,
       (b, c) => b.style.setProperty('--sw', c), c => { draft.color = c; })));
+    body.append(field('Output', seg(
+      [{ v: 'osc', label: 'OSC' }, { v: 'sacn', label: 'sACN (DMX)' }],
+      draft.output ?? 'osc', v => {
+        draft.output = v;
+        draft.sacn = { universe: 1, channel: 1, defaultValue: 0, host: '', iface: '', ...draft.sacn };
+        if (v === 'sacn') {
+          if (draft.mode === 'tap') draft.mode = 'hold';
+          if (!(draft.value > 1)) draft.value = 255;
+        }
+        else if (String(draft.address).startsWith('sacn://')) draft.address = ''; // back to OSC: pick a real address
+        buildBody();
+      })));
+    if (draft.output === 'sacn') { sacnForm(); return; }
     body.append(field('Mode', seg(
       [{ v: 'tap', label: 'TAP' }, { v: 'toggle', label: 'TOGGLE' }, { v: 'hold', label: 'HOLD' }],
       draft.mode, v => { draft.mode = v; buildBody(); })));
@@ -312,6 +326,34 @@ export function openEditor(kind, index) {
       numInput(draft.repeat?.intervalMs ?? 250, v => { draft.repeat = { ...draft.repeat, intervalMs: v }; }, '1')));
 
     macroSection(body, draft);
+  }
+
+  // Native DMX button (CO2, sparks): no OSC fields; Save derives the address
+  // and values from these (sacn-button.js applySacn).
+  function sacnForm() {
+    const sc = draft.sacn;
+    body.append(field('Mode', seg(
+      [{ v: 'hold', label: 'HOLD (push to go)' }, { v: 'toggle', label: 'TOGGLE' }],
+      draft.mode === 'toggle' ? 'toggle' : 'hold', v => { draft.mode = v; })));
+    const addr = h('div', 'row');
+    addr.append(
+      field('Universe (1–63999)', numInput(sc.universe, v => { sc.universe = v; }, '1')),
+      field('Channel (1–512)', numInput(sc.channel, v => { sc.channel = v; }, '1')));
+    body.append(addr);
+    const vals = h('div', 'row');
+    vals.append(
+      field('Press value (0–255)', numInput(draft.value, v => { draft.value = v; }, '1')),
+      field('Default value (0–255)', numInput(sc.defaultValue, v => { sc.defaultValue = v; }, '1')));
+    body.append(vals);
+    body.append(h('div', 'hint', 'Default value goes out from startup, on release (hold), when toggled off, and when ROGGER quits.'));
+    const net = h('div', 'row');
+    const host = textInput(sc.host ?? '', v => { sc.host = v.trim(); });
+    host.placeholder = 'empty = multicast';
+    const iface = textInput(sc.iface ?? '', v => { sc.iface = v.trim(); });
+    iface.placeholder = 'empty = system default';
+    net.append(field('Node IP (unicast, optional)', host), field('Send from local IP (optional)', iface));
+    body.append(net);
+    padBindingSection();
   }
 
   function faderForm() {
@@ -533,7 +575,9 @@ export function openEditor(kind, index) {
       // page's microphone and drop its lock.
       state.replaceColorTarget(index, draft);
     } else {
+      applySacn(draft);
       state.replaceControl(kind, index, draft);
+      sendDefault(draft, rogger);
       // orientation/address changes need the fader rack rebuilt, not just
       // its per-element label/value refreshed — renderFaders/renderFaderSet
       // are re-entrant (they clear their root first), so a full re-render

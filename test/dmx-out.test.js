@@ -14,7 +14,7 @@ function fakeOut() {
 const sacnCh = (p, c) => p.buf[126 + c - 1];
 
 test('parse', () => {
-  assert.deepEqual(parse('sacn://8/3'), { proto: 'sacn', host: '239.255.0.8', port: 5568, universe: 8, channel: 3, iface: null });
+  assert.deepEqual(parse('sacn://8/3'), { proto: 'sacn', host: '239.255.0.8', port: 5568, universe: 8, channel: 3, iface: null, def: 0 });
   assert.equal(parse('sacn://300/1').host, '239.255.1.44');
   assert.equal(parse('sacn://8/3?host=10.0.0.50').host, '10.0.0.50');
   assert.equal(parse('sacn://8/3?iface=10.0.0.2').iface, '10.0.0.2');
@@ -52,7 +52,11 @@ test('press / release / quit on sACN', () => {
   assert.equal(sacnCh(sent.at(-1), 3), 10);
   d.handle('sacn://8/3', [{ type: 'i', value: 255 }]);
   d.close();
-  assert.equal(sacnCh(sent.at(-1), 3), 0, 'quit zeroes the channel');
+  assert.equal(sacnCh(sent.at(-1), 3), 0, 'quit returns the channel to its default (none = 0)');
+  const { d: d2, sent: s2 } = fakeOut();
+  d2.handle('sacn://8/3?default=20', [{ type: 'i', value: 255 }]);
+  d2.close();
+  assert.equal(sacnCh(s2.at(-1), 3), 20, 'quit returns to ?default=');
 });
 
 test('artnet packet', () => {

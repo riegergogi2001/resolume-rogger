@@ -4,6 +4,7 @@ import * as state from './state.js';
 import { showToast } from './toast.js';
 import { renderTopbar } from './topbar.js';
 import { renderFxGrid, fxHandles, setPage } from './fx-grid.js';
+import { sendAllDefaults } from './sacn-button.js';
 import { startGamepad } from './gamepad.js';
 import { renderFaders, faderHandles } from './faders.js';
 import { renderColorRow, colorHandles } from './color-row.js';
@@ -53,6 +54,7 @@ async function boot() {
 
   renderAll();
   state.setRerenderHandler(renderAll);
+  sendAllDefaults(state.get(), rogger); // sACN buttons start at their default level
 
   startGamepad(fxHandles);
   startRemoteApi({ fxHandles, faderHandles, colorHandles, setPage, tap: tapAction, resync: resyncAction });
