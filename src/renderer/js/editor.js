@@ -11,7 +11,7 @@ import { h, field, textInput, numInput, textArea, checkRow, seg, btnRow } from '
 import { applySacn, sendDefault } from './sacn-button.js';
 
 const GLYPHS = ['◆', '●', '▲', '▼', '■', '◉', '✕', '⚡', '⏱', '↻', '⊘', '⏻',
-  '★', '♪', '☰', '◐', '▶', '◀', '⏸', '⏹', '✦', '☄', '♦', '▩'];
+  '★', '♪', '☰', '◐', '▶', '◀', '⏸', '⏹', '✦', '☄', '♦', '▩', 'CO₂', '☁', '⚠'];
 const PALETTE = ['#00e0ff', '#ffb400', '#ff4757', '#2ee66b', '#b46bff',
   '#ff7a1a', '#eaeef5', '#3aa0ff', '#ff3df0', '#ffd93d'];
 const KIND_TITLES = { fxButtons: 'FX BUTTON', fxButtons2: 'FX BUTTON P2', fxButtons3: 'DJ INTRO', utilButtons: 'UTILITY', tempoButtons: 'TEMPO', faders: 'FADER', groupFaders: 'GROUP FADER', colorButtons: 'COLOR PRESET', colorTargets: 'COLOR TARGET' };
@@ -231,6 +231,7 @@ export function openEditor(kind, index) {
       (b, g) => { b.textContent = g; }, g => { draft.icon = g; })));
     body.append(field('Color', pickRow(PALETTE, 'swatch-pick', draft.color,
       (b, c) => b.style.setProperty('--sw', c), c => { draft.color = c; })));
+    body.append(checkRow('Full background (makes a special button stand out)', !!draft.fill, v => { draft.fill = v; }));
     body.append(field('Output', seg(
       [{ v: 'osc', label: 'OSC' }, { v: 'sacn', label: 'sACN (DMX)' }],
       draft.output ?? 'osc', v => {
@@ -238,6 +239,8 @@ export function openEditor(kind, index) {
         draft.sacn = { universe: 1, channel: 1, defaultValue: 0, host: '', iface: '', ...draft.sacn };
         if (v === 'sacn') {
           if (draft.mode === 'tap') draft.mode = 'hold';
+          draft.fill = true;                        // a DMX button should look special
+          draft.icon = 'CO₂';
           if (!(draft.value > 1)) draft.value = 255;
         }
         else if (String(draft.address).startsWith('sacn://')) draft.address = ''; // back to OSC: pick a real address

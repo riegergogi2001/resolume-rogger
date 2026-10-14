@@ -535,3 +535,9 @@ local IP (interface). Save writes `address = sacn://<u>/<ch>?default=<d>[&host=&
 (`src/renderer/js/sacn-button.js` applySacn), and sends the default at once. On startup every sACN
 button sends its default (`sendAllDefaults` in app.js); on quit the main process returns each
 channel to its `?default=`. UI check: `PW_CHANNEL=chrome node test/ui/sacn-button.spec.mjs`.
+
+### Full background + CO₂ icon — 2.2.15
+
+`fill: true` on any FX / utility button (editor: "Full background") paints it in its colour with dark text
+(`.fx-btn--filled` in components.css); pressed / latched adds a white ring and glow. Switching a button to
+sACN sets fill on and the `CO₂` icon (both editable). New glyphs: `CO₂`, `☁`, `⚠`.

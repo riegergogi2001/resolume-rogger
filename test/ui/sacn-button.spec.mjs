@@ -56,6 +56,9 @@ try {
   let l = await log();
   assert(l.length && l.at(-1)[0] === 'sacn://8/3?default=10' && l.at(-1)[1] === 10, `Save sends the default level (${JSON.stringify(l.at(-1))})`);
   assert((await page.locator(btn + ' .fx-label').textContent()) === 'CO2', 'label shows');
+  assert(await page.locator(btn).evaluate(el => el.classList.contains('fx-btn--filled')), 'sACN button gets the full background');
+  assert((await page.locator(btn + ' .fx-icon').textContent()) === 'CO₂', 'and the CO₂ icon');
+  if (process.env.SACN_GRID_SHOT) await page.locator('.fx-page.active').screenshot({ path: process.env.SACN_GRID_SHOT });
 
   await page.click('#edit-toggle');
   const b = page.locator(btn);
@@ -81,7 +84,7 @@ try {
     l = await log();
     assert(l.at(-1)[1] === want, `toggle press -> ${want} (${l.at(-1)[1]})`);
   }
-  const cfg = await page.evaluate(() => fetch('/__config').then(r => r.ok ? r.json() : null).catch(() => null));
+  if (process.env.SACN_LATCH_SHOT) await page.locator(btn).screenshot({ path: process.env.SACN_LATCH_SHOT });
   console.log('\nSACN_SPEC_OK');
 } finally {
   await browser?.close();

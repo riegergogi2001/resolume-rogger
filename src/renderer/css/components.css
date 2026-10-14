@@ -227,6 +227,29 @@
 }
 .fx-btn.flashing { animation: fx-flash 240ms linear infinite; }
 
+/* Full background: special buttons (CO2, sparks). Dark text on the colour;
+   pressed / latched adds a white ring and glow so the state stays obvious. */
+.fx-btn.fx-btn--filled {
+  background: linear-gradient(180deg,
+    color-mix(in srgb, var(--fx-color, var(--accent)) 92%, white),
+    color-mix(in srgb, var(--fx-color, var(--accent)) 78%, black));
+  border-color: color-mix(in srgb, var(--fx-color, var(--accent)) 60%, black);
+  border-left-color: color-mix(in srgb, var(--fx-color, var(--accent)) 55%, black);
+}
+.fx-btn.fx-btn--filled .fx-icon,
+.fx-btn.fx-btn--filled .fx-label,
+.fx-btn.fx-btn--filled .fx-mode { color: #0b0d10; }
+.fx-btn.fx-btn--filled .fx-icon { font-weight: 900; }
+.fx-btn.fx-btn--filled .fx-pad { color: #0b0d10; border-color: rgba(11, 13, 16, 0.55); }
+.fx-btn.fx-btn--filled.pressed,
+.fx-btn.fx-btn--filled.latched {
+  background: var(--fx-color, var(--accent));
+  box-shadow: inset 0 0 0 3px #fff, 0 0 28px color-mix(in srgb, var(--fx-color, var(--accent)) 80%, transparent);
+}
+.fx-btn.fx-btn--filled.pressed .fx-pad,
+.fx-btn.fx-btn--filled.latched .fx-pad,
+.fx-btn.fx-btn--filled.latched .fx-mode { color: #0b0d10; border-color: #0b0d10; }
+
 /* ---- Faders ---- */
 .fader {
   display: flex;

@@ -116,6 +116,7 @@ export function renderFxGrid(el, { isEditMode, onEdit }) {
     function apply() {
       const c = cfg();
       b.style.setProperty('--fx-color', c.color);
+      b.classList.toggle('fx-btn--filled', !!c.fill);
       b.querySelector('.fx-icon').textContent = c.icon;
       b.querySelector('.fx-label').textContent = c.label;
       b.querySelector('.fx-mode').textContent = c.mode === 'tap' ? '' : c.mode;
