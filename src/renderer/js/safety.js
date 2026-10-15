@@ -35,6 +35,7 @@ export function newSafety(existing = []) {
     priority: 100, extra: [], host: '', iface: '', mode: 'toggle',
     twoHand: false, armHoldMs: 1000,
     gamepadButton: -1, gamepadModifier: -1,
+    unsaved: true, // until its editor is saved: not armable, dropped on Cancel
   };
 }
 
@@ -56,6 +57,16 @@ const notify = () => { for (const fn of listeners) fn(); };
 // fx-grid registers one per sACN-capable button; called on disarm / panic.
 export function registerForceOff(key, fn) { forceOffs.set(key, fn); return () => forceOffs.delete(key); }
 
+const DMX_RE = /^(sacn|artnet):\/\//;
+// Legacy (2.2.13) OSC-output buttons with sacn:// / artnet:// addresses still
+// drive DMX: panic and stream bookkeeping must see them too.
+function legacyDmxAddresses(b) {
+  if (b.output === 'sacn') return [];
+  return [b.address, b.releaseAddress, b.extraAddress, ...(b.extraAddresses ?? []), ...(b.macro ?? []).map(m => m.address)]
+    .filter(a => DMX_RE.test(String(a ?? '')));
+}
+export const hasDmxAddress = b => b.output !== 'sacn' && legacyDmxAddresses(b).length > 0;
+
 function buttons(cfg) {
   const out = [];
   for (const k of FX_KINDS) (cfg[k] ?? []).forEach((b, i) => out.push({ key: `${k}:${i}`, b }));
@@ -75,7 +86,7 @@ function send(s, on, rogger) {
 
 export function setArmed(id, on, cfg, rogger) {
   const s = (cfg.safeties ?? []).find(x => x.id === id);
-  if (!s) return;
+  if (!s || (on && s.unsaved)) return;
   if (on) armed.add(id); else armed.delete(id);
   send(s, on, rogger);
   if (!on) {
@@ -91,6 +102,7 @@ export function setArmed(id, on, cfg, rogger) {
 
 // Two-hand check at the moment of arming: both bound pad buttons still down.
 export function bothHeld(s, pads = globalThis.navigator?.getGamepads?.() ?? []) {
+  if (s.gamepadButton < 0 || s.gamepadModifier < 0 || s.gamepadButton === s.gamepadModifier) return false;
   for (const gp of pads) {
     if (gp?.buttons?.[s.gamepadButton]?.pressed && gp.buttons[s.gamepadModifier]?.pressed) return true;
   }
@@ -99,15 +111,24 @@ export function bothHeld(s, pads = globalThis.navigator?.getGamepads?.() ?? []) 
 
 export function toggle(id, cfg, rogger) { setArmed(id, !armed.has(id), cfg, rogger); }
 
-// Everything SAFE and every sACN button back to its default.
+// Every DMX button (native and legacy address) stopped and back to its default.
+export function allButtonsOff(cfg, rogger) {
+  for (const { key, b } of buttons(cfg)) {
+    if (b.output === 'sacn') {
+      forceOffs.get(key)?.();
+      sendDefault(b, rogger);
+    } else if (hasDmxAddress(b)) {
+      forceOffs.get(key)?.();
+      for (const a of legacyDmxAddresses(b)) rogger.sendTyped(a, [{ type: 'i', value: 0 }]);
+    }
+  }
+}
+
+// Everything SAFE and every DMX button back to its default.
 export function panic(cfg, rogger) {
   armed.clear();
   for (const s of cfg.safeties ?? []) send(s, false, rogger);
-  for (const { key, b } of buttons(cfg)) {
-    if (b.output !== 'sacn') continue;
-    forceOffs.get(key)?.();
-    sendDefault(b, rogger);
-  }
+  allButtonsOff(cfg, rogger);
   notify();
 }
 
@@ -115,7 +136,10 @@ export function panic(cfg, rogger) {
 // so the main process can close streams nothing needs any more.
 export function activeAddresses(cfg) {
   const out = [];
-  for (const { b } of buttons(cfg)) if (b.output === 'sacn' && b.address) out.push(b.address);
+  for (const { b } of buttons(cfg)) {
+    if (b.output === 'sacn' && b.address) out.push(b.address);
+    else out.push(...legacyDmxAddresses(b));
+  }
   for (const s of cfg.safeties ?? []) for (const [u, ch] of safetyChannels(s)) out.push(safetyAddress(s, u, ch));
   return out;
 }
@@ -127,6 +151,8 @@ export function sendAllSafe(cfg, rogger) {
 
 // Before a safety is edited or deleted: disarm it on its OLD channel.
 export function retire(id, cfg, rogger) {
+  const s = (cfg.safeties ?? []).find(x => x.id === id);
+  if (!s || s.unsaved) return; // never sent anything, nothing to take back
   if (armed.has(id)) setArmed(id, false, cfg, rogger);
-  else { const s = (cfg.safeties ?? []).find(x => x.id === id); if (s) send(s, false, rogger); }
+  else send(s, false, rogger);
 }

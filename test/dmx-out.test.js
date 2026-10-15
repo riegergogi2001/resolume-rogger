@@ -121,3 +121,16 @@ test('retain closes streams nothing uses any more', () => {
   assert.equal(snap.streams[0].priority, 100, 'priority drops back when the 150 channel goes');
   d.close();
 });
+
+test('fable review: retain puts a dropped channel back to its default; sequence per universe', () => {
+  const { d, sent } = fakeOut();
+  d.handle('sacn://8/3?default=0', [{ type: 'i', value: 255 }]);
+  d.handle('sacn://8/4?default=7', [{ type: 'i', value: 0 }]);
+  d.retain(['sacn://8/4?default=7']);
+  d.flush();
+  assert.equal(sent.at(-1).buf[126 + 2], 0, 'old channel no longer streams 255');
+  d.handle('sacn://9/1', [{ type: 'i', value: 1 }]);
+  const seq9 = sent.filter(p => p.host === '239.255.0.9').map(p => p.buf[111]);
+  assert.equal(seq9[0], 1, 'a new universe starts its own sequence');
+  d.close();
+});

@@ -198,8 +198,34 @@ try {
   assert(/PREVIEW/.test(await page.textContent('#dmx-monitor')), 'monitor marks the stream PREVIEW');
   if (SHOTS) await page.locator('#settings-overlay .panel').screenshot({ path: `${SHOTS}/dmx-tab.png` });
   await page.evaluate(() => document.getElementById('settings-overlay')?.remove());
-  assert((await page.textContent('#target-readout')).startsWith('DMX PREVIEW'), 'topbar says DMX PREVIEW');
+  assert((await page.textContent('#target-readout')).startsWith('PREVIEW'), 'topbar says PREVIEW');
   if (SHOTS) await page.locator('#topbar').screenshot({ path: `${SHOTS}/topbar-preview.png` });
+
+  console.log('[fable] rebuild while a jet is held; cancelled Add safety');
+  const b3 = page.locator('.fx-btn[data-kind="fxButtons"][data-index="2"]');
+  await page.click('#edit-toggle');
+  await b3.click();
+  await page.waitForSelector('#editor-overlay');
+  await page.locator('#editor-overlay .seg button', { hasText: 'sACN (DMX)' }).click();
+  await seg('Mode', 'HOLD').click();
+  await fieldInput(/^Universe/).fill('8');
+  await fieldInput(/^Channel/).fill('5');
+  await save();
+  await page.click('#edit-toggle');
+  await page.locator('.fx-btn[data-kind="fxButtons"][data-index="2"]').dispatchEvent('pointerdown', { pointerId: 1, button: 0 });
+  await page.waitForTimeout(60);
+  assert(await dmx(5) === 255, 'held jet fires');
+  await page.evaluate(() => import('/js/state.js').then(m => m.requestRerender()));
+  await page.waitForTimeout(150);
+  assert(await dmx(5) === 0, 'surface rebuild while held puts it back to default');
+  const before = await page.evaluate(() => import('/js/state.js').then(m => m.get().safeties.length));
+  await page.click('#settings-open');
+  await page.getByRole('button', { name: 'Safety', exact: true }).click();
+  await page.click('#safety-add');
+  await page.waitForSelector('#editor-overlay');
+  await page.click('#ed-cancel');
+  await page.waitForTimeout(150);
+  assert(await page.evaluate(() => import('/js/state.js').then(m => m.get().safeties.length)) === before, 'cancelled Add safety leaves no half-made safety');
   assert(errors.length === 0, `no page errors (${errors.join(' | ')})`);
   console.log('\nSAFETY_SPEC_OK');
 } finally {

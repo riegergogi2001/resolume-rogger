@@ -84,6 +84,11 @@ const latched = new Set(); // `${kind}:${i}` keys of toggles currently on
 let lastPageLabel = null;  // the page that was up before the rebuild
 
 export function renderFxGrid(el, { isEditMode, onEdit }) {
+  // A rebuild throws away every button closure (hold state, max-time and shot
+  // timers). Let go of anything held and put every DMX button back to its
+  // default first, so no jet can stay open with nothing left to close it.
+  for (const handle of fxHandles) { try { handle?.release?.(); } catch {} }
+  safety.allButtonsOff(state.get(), rogger);
   el.innerHTML = '';
   fxHandles.length = 0;
 
@@ -131,6 +136,8 @@ export function renderFxGrid(el, { isEditMode, onEdit }) {
     safety.onChange(apply);
     // Restore a toggle that was on before the rebuild; forget it if the
     // control has since been edited into another mode.
+    // DMX toggles were switched off above: never show them as still on
+    if (cfg().output === 'sacn' || safety.hasDmxAddress(cfg())) latched.delete(key);
     if (cfg().mode === 'toggle' && latched.has(key)) b.classList.add('latched');
     else latched.delete(key);
 
@@ -277,6 +284,9 @@ export function renderFxGrid(el, { isEditMode, onEdit }) {
         }
         return;
       }
+      // a second press while held (pad + touch, a repeated remote message)
+      // must not restart the max-time cut-off
+      if (c.mode === 'hold' && holdActive) return;
       b.classList.add('pressed');
       if (c.mode === 'hold') {
         b.classList.add('flashing');
@@ -384,6 +394,7 @@ export function renderFxGrid(el, { isEditMode, onEdit }) {
   (state.get().safeties ?? []).forEach((_, i) => {
     const cur = () => state.get().safeties?.[i];
     let armTimer = null;
+    let watch = null; // two-hand HOLD: disarm as soon as either button lets go
     fxHandles[offsets.safeties + i] = {
       press: () => {
         const s = cur();
@@ -402,6 +413,16 @@ export function renderFxGrid(el, { isEditMode, onEdit }) {
           if (now && safety.bothHeld(now)) {
             safety.setArmed(now.id, true, state.get(), rogger);
             showToast(`${now.label} ARMED`, { error: true });
+            if (now.mode === 'hold') {
+              clearInterval(watch);
+              watch = setInterval(() => {
+                const s2 = cur();
+                if (!s2 || !safety.isArmed(s2.id) || !safety.bothHeld(s2)) {
+                  clearInterval(watch); watch = null;
+                  if (s2 && safety.isArmed(s2.id)) safety.setArmed(s2.id, false, state.get(), rogger);
+                }
+              }, 50);
+            }
           } else {
             showToast(`${s.label}: not armed — both buttons must stay held`, { error: true });
           }
@@ -410,6 +431,8 @@ export function renderFxGrid(el, { isEditMode, onEdit }) {
       release: () => {
         clearTimeout(armTimer);
         armTimer = null;
+        clearInterval(watch);
+        watch = null;
         const s = cur();
         if (s?.mode === 'hold' && safety.isArmed(s.id)) safety.setArmed(s.id, false, state.get(), rogger);
       },
@@ -560,7 +583,9 @@ export function renderFxGrid(el, { isEditMode, onEdit }) {
           // Older bridges returned the config directly; accept both.
           const cfg = result?.config ?? result;
           const report = result?.report ?? null;
+          safety.panic(state.get(), rogger); // new config: nothing armed, nothing left firing
           state.setAll(cfg);
+          safety.panic(cfg, rogger);
           showToast(report ? summariseSync(report) : 'DJ page synced from Resolume');
           // A column the group's layers disagree about means a button that
           // says one name and puts another on the screens. Say so loudly —

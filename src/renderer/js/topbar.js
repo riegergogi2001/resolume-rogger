@@ -188,9 +188,13 @@ export function renderTopbar(el, { onToggleEdit, onOpenSettings }) {
     let text;
     if (!list.length) text = `${n.targetIp}:${n.targetPort}`;
     else if (!on.length) text = 'SAFE';
-    else text = `ARMED: ${on.map(s => s.label).join(', ')}`;
+    else text = on.length === 1 ? `ARMED: ${on[0].label}` : `ARMED: ${on.length} SAFETIES`;
     // preview: DMX goes to visualisers only — say so louder than anything else
-    target.textContent = pv ? `DMX PREVIEW${list.length ? ' · ' + text : ''}` : text;
+    target.textContent = pv ? `PREVIEW${list.length ? ' · ' + text : ''}` : text;
+    target.title = on.map(s => s.label).join(', ');
+    // ARMED / PREVIEW outranks the trigger-assignment readout: it takes its
+    // place so the topbar never overflows (the listen-port warning stays).
+    document.body.classList.toggle('dmx-alert', pv || on.length > 0);
   }
   safety.onChange(refreshTarget);
   refreshTarget();

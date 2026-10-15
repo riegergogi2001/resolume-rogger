@@ -81,7 +81,6 @@ class DmxOut {
     this.sockets = new Map();  // iface|'' -> socket (opened on first use)
     this.outs = new Map();     // `${proto}|${host}|${universe}|${iface}` -> out
     this.rest = new Map();     // `${outKey}|${channel}` -> { out, channel, level }
-    this.seq = 1;
     this.timer = null;
     this.preview = false;      // sACN preview data: visualisers see it, fixtures ignore it
   }
@@ -122,10 +121,10 @@ class DmxOut {
 
   sendOut(out, options = 0) {
     const pkt = out.proto === 'sacn'
-      ? sacnPacket(out.universe, this.seq, out.data, out.priority ?? 100, options | (this.preview ? 0x80 : 0))
-      : artnetPacket(out.universe, this.seq, out.data);
+      ? sacnPacket(out.universe, out.seq ?? 1, out.data, out.priority ?? 100, options | (this.preview ? 0x80 : 0))
+      : artnetPacket(out.universe, out.seq ?? 1, out.data);
     this.socket(out.iface).send(pkt, out.port, out.host, () => {});
-    this.seq = this.seq % 255 + 1;
+    out.seq = (out.seq ?? 1) % 255 + 1; // E1.31: one sequence per universe
   }
 
   flush() { for (const out of this.outs.values()) this.sendOut(out); }
@@ -152,7 +151,11 @@ class DmxOut {
       keep.add(key);
       keepCh.add(`${key}|${t.channel}`);
     }
-    for (const [rk, r] of this.rest) if (!keepCh.has(rk)) this.rest.delete(rk);
+    for (const [rk, r] of this.rest) {
+      if (keepCh.has(rk)) continue;
+      r.out.data[r.channel - 1] = r.level; // never leave a dropped channel at a fire value
+      this.rest.delete(rk);
+    }
     for (const [key, out] of this.outs) {
       if (keep.has(key)) continue;
       if (out.proto === 'sacn') for (let i = 0; i < 3; i += 1) this.sendOut(out, 0x40);

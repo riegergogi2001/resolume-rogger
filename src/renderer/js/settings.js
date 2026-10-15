@@ -32,6 +32,7 @@ export function openSettings() {
   root.appendChild(overlay);
 
   function close() {
+    for (const c of pendingArms) c();
     offStatus?.();
     offSafety?.();
     clearInterval(monitorTimer);
@@ -46,6 +47,7 @@ export function openSettings() {
   const hapticsDraft = structuredClone(state.get().haptics ?? { enabled: true, press: true, strobe: true });
 
   let currentTab = 'Network';
+  const pendingArms = new Set(); // HOLD TO ARM timers in progress die with the tab that started them
   // Kept current so the Updates tab can refuse to restart mid-cue.
   let lastOscStatus = 'offline';
   rogger.getStatus?.().then(v => { lastOscStatus = v ?? 'offline'; }).catch(() => {});
@@ -62,6 +64,8 @@ export function openSettings() {
   }
 
   function renderTab() {
+    for (const c of pendingArms) c();
+    pendingArms.clear();
     clearInterval(monitorTimer);
     monitorTimer = null;
     body.innerHTML = '';
@@ -218,10 +222,14 @@ export function openSettings() {
         arm.classList.toggle('armed', on);
       };
       paint();
-      if (s.twoHand && !safety.isArmed(s.id)) {
+      if (s.unsaved) {
+        arm.textContent = 'NOT SAVED';
+        arm.disabled = true;
+      } else if (s.twoHand && !safety.isArmed(s.id)) {
         // two-hand safety from the touch screen: hold-to-arm for the same time
         arm.textContent = 'HOLD TO ARM';
         let t = null;
+        pendingArms.add(() => { if (t) { clearTimeout(t); t = null; } });
         arm.addEventListener('pointerdown', () => {
           arm.classList.add('arming');
           t = setTimeout(() => { t = null; safety.setArmed(s.id, true, state.get(), rogger); }, Math.max(200, Number(s.armHoldMs) || 1000));
@@ -268,9 +276,9 @@ export function openSettings() {
   // Preview switch + live monitor of everything ROGGER sends as DMX.
   let monitorTimer = null;
   function renderDmx() {
-    body.append(checkRow('Preview mode — sACN goes out flagged as preview: visualisers show it, fixtures and CO2 ignore it',
+    body.append(checkRow('Preview mode — sACN goes out flagged as preview: visualisers show it, E1.31-compliant fixtures ignore it (check your nodes before trusting it with CO2)',
       safety.previewOn(), async v => { await safety.setPreview(v, rogger); }));
-    body.append(h('div', 'hint', 'Preview is off at every launch. While it is on the topbar says DMX PREVIEW.'));
+    body.append(h('div', 'hint', 'Preview is off at every launch. While it is on the topbar says PREVIEW in amber.'));
     const mon = h('div', 'dmx-monitor');
     mon.id = 'dmx-monitor';
     body.append(mon);
@@ -336,7 +344,9 @@ export function openSettings() {
     importBtn.addEventListener('click', async () => {
       const cfg = await rogger.importConfig();
       if (cfg) {
+        safety.panic(state.get(), rogger); // new config: nothing armed, nothing left firing
         state.setAll(cfg);
+        safety.panic(cfg, rogger);
         state.requestRerender();
         showToast('Config imported');
       } else {
@@ -353,7 +363,9 @@ export function openSettings() {
       // One tap next to Import used to wipe every edit on the surface.
       if (!(await confirmDialog('Reload the default mapping? Every edit made on this surface will be lost.', { ok: 'Reload', danger: true }))) return;
       const cfg = await rogger.resetConfig();
+      safety.panic(state.get(), rogger);
       state.setAll(cfg);
+      safety.panic(cfg, rogger);
       state.requestRerender();
       showToast('Default mapping restored');
     });

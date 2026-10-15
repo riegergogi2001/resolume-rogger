@@ -577,9 +577,30 @@ armed until it is disarmed or PANIC.
 - Priority: `sacn.priority` (buttons) and `safety.priority`, 0–200, in the address as `&prio=` when not
   100. One sACN source has one priority per universe, so the stream uses the highest any of its channels asks.
 - Preview: Settings → **DMX** switch (memory only, off at launch) sets the E1.31 Preview_Data option bit
-  (0x80) on every packet: visualisers show it, fixtures ignore it. Topbar slot shows amber **DMX PREVIEW**.
+  (0x80) on every packet: visualisers show it, fixtures ignore it. Topbar slot shows amber **PREVIEW** (while ARMED or PREVIEW it replaces the trigger-assignment readout so the topbar cannot overflow; several armed safeties show as a count).
 - Monitor: Settings → DMX lists every stream (proto, universe, target, priority, PREVIEW) and the channels
   ROGGER drives (value, default, which button / safety), refreshed 4×/s from `dmx:snapshot`.
 - Quit sends three Stream_Terminated packets (0x40) after the defaults. The renderer reports the
   addresses still in use (`dmx:retain`, debounced on every config change); streams nothing uses any more
   are terminated instead of streaming zeros. Adding a safety sends nothing until it is saved.
+
+### Safety review fixes, settings layout audit — 2.2.20
+
+From an independent review of the DMX / safety paths:
+- `retain()` returns a dropped channel to its default before forgetting it; the editor also sends the
+  old address its default when a sACN button moves.
+- `before-quit` runs closeEngine too (Cmd+Q / logout skip `window-all-closed`).
+- A surface rebuild releases every held handle and puts every DMX button back to default
+  (`safety.allButtonsOff`); DMX toggles are not restored as latched.
+- Two-hand arm refuses button == modifier (editor and `bothHeld`); a two-hand HOLD safety disarms as
+  soon as either button lets go.
+- `sacn://` / `artnet://` on an OSC-output button is refused on Save; legacy ones are still covered by
+  panic and stream bookkeeping (`hasDmxAddress`).
+- Import / Reload / DJ sync: panic before and after `setAll`.
+- Repeated press while holding does not restart max time; HOLD TO ARM timers die with the Settings tab;
+  a new safety is `unsaved` (not armable, dropped on Cancel, sends nothing) until its editor is saved;
+  one sACN sequence counter per universe.
+
+Layout: `PW_CHANNEL=chrome node test/ui/settings-layout.spec.mjs` audits every Settings tab and the
+button / safety / panic editors at 1704×1035, 1760×1040 and 1920×1080 (clipped text, outside the
+panel, overlapping controls, horizontal scroll, topbar overflow with armed safeties + preview).

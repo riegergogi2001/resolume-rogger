@@ -95,3 +95,28 @@ test('a safety bank arms and disarms every machine in it', () => {
     assert.equal(v, 5); assert.equal(t.def, 5, 'quit restores SAFE too');
   }
 });
+
+test('fable review: two-hand cannot use one button for both; unsaved safety cannot arm', () => {
+  const pad = held => [{ buttons: Array.from({ length: 17 }, (_, i) => ({ pressed: held.includes(i) })) }];
+  assert.equal(safety.bothHeld(store.safety(0, { twoHand: true, gamepadButton: 8, gamepadModifier: 8 }), pad([8])), false);
+  const { cfg, sent, rogger } = setup();
+  cfg.safeties.push({ ...safety.newSafety(cfg.safeties), id: 'new1' });
+  safety.setArmed('new1', true, cfg, rogger);
+  assert.equal(safety.isArmed('new1'), false);
+  const n = sent.length;
+  safety.retire('new1', cfg, rogger);
+  assert.equal(sent.length, n, 'retiring a never-saved safety sends nothing');
+});
+
+test('fable review: legacy sacn:// on an OSC button is seen by panic and stream bookkeeping', () => {
+  const { cfg, sent, rogger } = setup();
+  cfg.fxButtons[2] = { ...cfg.fxButtons[2], output: 'osc', address: 'sacn://8/9?default=0', extraAddresses: ['sacn://8/10'] };
+  assert.equal(safety.hasDmxAddress(cfg.fxButtons[2]), true);
+  const act = safety.activeAddresses(cfg);
+  assert.ok(act.includes('sacn://8/9?default=0') && act.includes('sacn://8/10'));
+  let forced = 0; const off = safety.registerForceOff('fxButtons:2', () => { forced += 1; });
+  safety.panic(cfg, rogger);
+  assert.equal(forced, 1);
+  assert.equal(last(sent, 9), 0); assert.equal(last(sent, 10), 0);
+  off();
+});

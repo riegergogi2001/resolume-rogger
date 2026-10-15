@@ -171,6 +171,10 @@ function start(ctx = {}) {
     app.exit(0);
   });
 
+  // Cmd+Q, Dock -> Quit, logout: app.quit() without window-all-closed — the
+  // DMX defaults and Stream_Terminated must still go out.
+  app.on('before-quit', () => closeEngine('before-quit'));
+
   app.on('window-all-closed', () => {
     closeEngine('window-all-closed');
     app.quit();

@@ -626,12 +626,24 @@ export function openEditor(kind, index) {
 
   const cancel = h('button', 'big-btn u-caps', 'Cancel');
   cancel.id = 'ed-cancel';
-  cancel.addEventListener('pointerdown', close);
+  cancel.addEventListener('pointerdown', () => {
+    // a safety added in Settings and never saved is dropped, not left armable on 1/1
+    if (kind === 'safeties' && state.get().safeties?.[index]?.unsaved) {
+      state.replaceList('safeties', state.get().safeties.filter((_, i) => i !== index));
+      state.requestRerender();
+    }
+    close();
+  });
   const save = h('button', 'big-btn primary u-caps', 'Save');
   save.id = 'ed-save';
   save.addEventListener('pointerdown', () => {
-    if (kind === 'safeties' && draft.twoHand && (draft.gamepadButton < 0 || (draft.gamepadModifier ?? -1) < 0)) {
-      showToast('Two-hand arm needs both a controller button and a modifier', { error: true });
+    if (kind === 'safeties' && draft.twoHand && (draft.gamepadButton < 0 || (draft.gamepadModifier ?? -1) < 0 || draft.gamepadButton === draft.gamepadModifier)) {
+      showToast('Two-hand arm needs two different buttons: a controller button and a modifier', { error: true });
+      return;
+    }
+    if (draft.output !== 'sacn' && [draft.address, draft.releaseAddress, draft.extraAddress, ...(draft.extraAddresses ?? []), ...(draft.macro ?? []).map(m => m.address)]
+      .some(a => /^(sacn|artnet):\/\//.test(String(a ?? '')))) {
+      showToast('DMX addresses go through Output: sACN (DMX), so safety and panic can see them', { error: true });
       return;
     }
     if ((kind.startsWith('fxButtons') || ['utilButtons', 'tempoButtons', 'safeties', 'panicButtons'].includes(kind)) && draft.gamepadButton >= 0) {
@@ -647,14 +659,19 @@ export function openEditor(kind, index) {
     } else if (kind === 'safeties') {
       // disarm on the OLD channel first: an edited address must not leave it armed
       safety.retire(draft.id, state.get(), rogger);
+      delete draft.unsaved;
       for (const k of ['universe', 'channel', 'armedValue', 'safeValue']) draft[k] = Math.trunc(Number(draft[k])) || 0;
       const bad = (draft.extra ?? []).filter(l => safety.safetyChannels({ universe: 1, channel: 1, extra: [l] }).length < 2);
       if (bad.length) showToast(`Ignored (not universe/channel): ${bad.join(', ')}`, { error: true });
       state.replaceControl(kind, index, draft);
       safety.sendAllSafe({ safeties: [draft] }, rogger);
     } else {
+      const old = state.get()[kind]?.[index];
       applySacn(draft);
+      // the old channel must not keep a fire value once the button moves away
+      if (old?.output === 'sacn' && old.address !== draft.address) sendDefault(old, rogger);
       state.replaceControl(kind, index, draft);
+      delete draft.unsaved;
       sendDefault(draft, rogger);
       // orientation/address changes need the fader rack rebuilt, not just
       // its per-element label/value refreshed — renderFaders/renderFaderSet
