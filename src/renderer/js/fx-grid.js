@@ -125,6 +125,7 @@ export function renderFxGrid(el, { isEditMode, onEdit }) {
       const c = cfg();
       b.style.setProperty('--fx-color', c.color);
       b.classList.toggle('fx-btn--filled', !!c.fill);
+      b.classList.toggle('fx-btn--dmx', c.output === 'sacn');
       b.classList.toggle('fx-btn--blocked', safety.blocked(c));
       b.querySelector('.fx-icon').textContent = c.icon;
       b.querySelector('.fx-label').textContent = c.label;

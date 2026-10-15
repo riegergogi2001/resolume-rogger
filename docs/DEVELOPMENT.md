@@ -622,3 +622,9 @@ plain divs, so versions, the launch switch / Check now, Restart / Remove and the
 groups are now `.stack` (flex column, 14 px gap; empty ones hidden). The layout spec gained a TOUCHING
 check (stacked blocks closer than 3 px) and the Updates states available / staged+installed+rolled back /
 shell-required; `LAYOUT_EXTRA_CSS='.stack{display:block !important}'` reproduces the old bug.
+
+### Active full-background buttons — 2.2.23
+
+A filled button at rest is a dimmed fill with white text; pressed / latched it goes to the full colour,
+strobes against white (`fx-live`), gets a 5 px white ring and glow, and a sACN button (`.fx-btn--dmx`)
+shows a blinking FIRING tag in place of its mode. README screenshots: `node tools/readme-shots.mjs`.
