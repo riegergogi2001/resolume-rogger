@@ -336,7 +336,7 @@ function baseDefaults() {
         // 2.2.0 the target only reached the haze, which is bypassed by
         // default, so a pick changed nothing on the screens and the Colorize
         // colours could drift apart; layer 10 joined once the comp got its
-        // own Colorize + OutlineHaze (SHOW_COMPOSITION).
+        // own Colorize + OutlineHaze (show composition, Aug 2026).
         {
           id: 'logo', label: 'LOGO', swatch: '#eaeef5',
           colorBases: [
