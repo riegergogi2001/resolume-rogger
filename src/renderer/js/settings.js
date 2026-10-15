@@ -199,7 +199,7 @@ export function openSettings() {
       safety.panic(state.get(), rogger);
       showToast('PANIC — all safeties SAFE, every DMX button at default', { error: true });
     });
-    const panicEdit = h('button', 'big-btn u-caps', `Panic controller button: ${bindingLabel(BUTTON_NAMES, cfg.panicButtons?.[0]?.gamepadButton ?? -1, cfg.panicButtons?.[0]?.gamepadModifier ?? -1) || 'none'}`);
+    const panicEdit = h('button', 'big-btn u-caps', `Panic pad: ${bindingLabel(BUTTON_NAMES, cfg.panicButtons?.[0]?.gamepadButton ?? -1, cfg.panicButtons?.[0]?.gamepadModifier ?? -1) || 'none'}`);
     panicEdit.id = 'safety-panic-edit';
     panicEdit.addEventListener('click', () => { close(); openEditor('panicButtons', 0); });
     body.append(btnRow(panicBtn, panicEdit));
@@ -276,9 +276,8 @@ export function openSettings() {
   // Preview switch + live monitor of everything ROGGER sends as DMX.
   let monitorTimer = null;
   function renderDmx() {
-    body.append(checkRow('Preview mode — sACN goes out flagged as preview: visualisers show it, E1.31-compliant fixtures ignore it (check your nodes before trusting it with CO2)',
-      safety.previewOn(), async v => { await safety.setPreview(v, rogger); }));
-    body.append(h('div', 'hint', 'Preview is off at every launch. While it is on the topbar says PREVIEW in amber.'));
+    body.append(checkRow('Preview mode (visualiser only)', safety.previewOn(), async v => { await safety.setPreview(v, rogger); }));
+    body.append(h('div', 'hint', 'sACN goes out flagged as preview: visualisers show it, E1.31-compliant fixtures ignore it — check your nodes before trusting it with CO2. Off at every launch; while on, the topbar says PREVIEW in amber.'));
     const mon = h('div', 'dmx-monitor');
     mon.id = 'dmx-monitor';
     body.append(mon);

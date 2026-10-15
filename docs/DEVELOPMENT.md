@@ -604,3 +604,13 @@ From an independent review of the DMX / safety paths:
 Layout: `PW_CHANNEL=chrome node test/ui/settings-layout.spec.mjs` audits every Settings tab and the
 button / safety / panic editors at 1704×1035, 1760×1040 and 1920×1080 (clipped text, outside the
 panel, overlapping controls, horizontal scroll, topbar overflow with armed safeties + preview).
+
+### Ally layout fixes — 2.2.21
+
+Reported on the Ally: the Preview toggle row fell apart and Settings rows were squeezed vertically.
+Root cause: `.panel-body` is a flex column and its rows could shrink once a tab was taller than the
+panel; `.check-row` had a fixed 56 px height, so a label that wrapped (Segoe UI is wider than the Mac
+fonts) spilled out and squashed the toggle. Now `.panel-body > *` never shrinks (the body scrolls),
+`.check-row` has a min-height and a gap, `.toggle` never shrinks, side-by-side field labels may wrap.
+The layout spec gained the Ally size (1840×1035 CSS px = 1280×720 DIP zoomed 0.6956), a SQUEEZED check
+and a `WIDE_FONT=1` stress pass (Verdana) standing in for Windows metrics.

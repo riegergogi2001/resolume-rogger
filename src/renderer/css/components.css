@@ -605,7 +605,9 @@ body.edit-mode .color-btn {
 .field textarea:focus { border-color: var(--accent); }
 
 .row { display: flex; gap: 12px; }
-.row > * { flex: 1; }
+.row > * { flex: 1; min-width: 0; }
+/* side-by-side fields: a long label wraps instead of pushing the row wider than the panel */
+.row > .field > label { min-width: 0; white-space: normal; }
 
 .hint {
   font-size: 12px;
@@ -640,8 +642,9 @@ body.edit-mode .color-btn {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  height: 56px;
-  padding: 0 14px;
+  gap: 14px;
+  min-height: 56px;
+  padding: 8px 14px;
   border: 1px solid var(--line);
   border-radius: 8px;
   background: var(--bg);
@@ -649,6 +652,7 @@ body.edit-mode .color-btn {
   font-weight: 700;
 }
 .toggle {
+  flex: 0 0 auto;
   width: 76px;
   height: 44px;
   border-radius: 22px;
@@ -687,6 +691,9 @@ body.edit-mode .color-btn {
    library's Back, Use swatch color) is a column-flex item there: flex: 1 with
    a zero basis and nothing to grow into collapsed it to its 20px text line. */
 .panel-body > .big-btn { flex: none; }
+/* The body scrolls; its rows must never be squeezed to fit (flex-shrink would
+   crush rows vertically once a tab is taller than the panel, e.g. on the Ally). */
+.panel-body > * { flex-shrink: 0; }
 
 .swatch-row { display: flex; gap: 10px; flex-wrap: wrap; }
 .swatch-pick {
@@ -1351,3 +1358,4 @@ body.edit-mode .color-btn {
 .dmx-chan .dmx-val { font-size: 20px; font-weight: 900; }
 .dmx-chan .dmx-name { font-size: 11px; color: var(--text-dim); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 body.dmx-alert #topbar > .trig-readout:not(.listen-warn) { display: none !important; }
+.settings-tab { letter-spacing: 0.05em; }

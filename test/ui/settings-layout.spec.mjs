@@ -16,7 +16,10 @@ const PORT = 5195;
 const URL = `http://127.0.0.1:${PORT}`;
 const ROOT = path.join(__dirname, '..', '..');
 const SHOTS = process.env.LAYOUT_SHOTS;
-const SIZES = [[1704, 1035], [1760, 1040], [1920, 1080]];
+// 1840x1035 = the ROG Ally: 1280x720 DIP at 150% scaling, zoomed 0.6956 by fitZoom.
+const SIZES = [[1704, 1035], [1760, 1040], [1840, 1035], [1920, 1080]];
+// WIDE_FONT=1: stress pass with a wider font, standing in for Windows' Segoe UI metrics.
+const WIDE = !!process.env.WIDE_FONT;
 const TABS = ['Network', 'Controller', 'Safety', 'DMX', 'Pages', 'Updates', 'Backup', 'About'];
 
 async function waitForServer(url) {
@@ -64,6 +67,11 @@ function audit(rootSel) {
     if (textual && el.scrollHeight > el.clientHeight + 2 && s.overflowY === 'hidden' && !s.webkitLineClamp) {
       out.push(`CLIPPED height: ${name(el)} (${el.scrollHeight}>${el.clientHeight})`);
     }
+    // squeezed: content taller than the box although nothing scrolls or clips it
+    // (a flex row crushed, a fixed-height row whose label wrapped)
+    if (s.overflowY === 'visible' && el.scrollHeight > el.clientHeight + 2 && el.clientHeight > 0 && !el.matches('.panel-body, .panel')) {
+      out.push(`SQUEEZED: ${name(el)} (${el.scrollHeight}>${el.clientHeight})`);
+    }
   }
   // overlapping controls within the same row
   const ctrls = els.filter(el => el.matches('button, input, textarea, select, .seg, .toggle, .safety-info, .dmx-chan'));
@@ -94,6 +102,7 @@ try {
     page.on('pageerror', err => errors.push(err.message));
     await page.goto(URL);
     await page.waitForFunction(() => document.body.dataset.ready === '1');
+    if (WIDE) await page.addStyleTag({ content: '*, *::before, *::after { font-family: Verdana, sans-serif !important; }' });
     const baseTb = await page.evaluate(() => { const b = document.getElementById('topbar'); return [b.scrollWidth, b.clientWidth]; });
     console.log(`${w}x${hgt} topbar baseline (no safeties): scrollWidth ${baseTb[0]} / clientWidth ${baseTb[1]}`);
     // realistic DMX content
@@ -154,7 +163,7 @@ try {
       }
       const list = [...found];
       problems += list.length;
-      console.log(`${w}x${hgt} ${v.name}: ${list.length ? '\n    ' + list.join('\n    ') : 'ok'}`);
+      console.log(`${WIDE ? 'WIDE ' : ''}${w}x${hgt} ${v.name}: ${list.length ? '\n    ' + list.join('\n    ') : 'ok'}`);
       await page.evaluate(() => { document.getElementById('settings-overlay')?.remove(); document.getElementById('editor-overlay')?.remove(); });
     }
     // topbar with the longest safety state
