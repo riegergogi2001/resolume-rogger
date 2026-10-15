@@ -1359,3 +1359,6 @@ body.edit-mode .color-btn {
 .dmx-chan .dmx-name { font-size: 11px; color: var(--text-dim); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 body.dmx-alert #topbar > .trig-readout:not(.listen-warn) { display: none !important; }
 .settings-tab { letter-spacing: 0.05em; }
+.stack { display: flex; flex-direction: column; gap: 14px; }
+.stack > * { flex-shrink: 0; }
+.stack:empty, .panel-body > .test-result:empty { display: none; }

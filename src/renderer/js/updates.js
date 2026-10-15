@@ -44,10 +44,12 @@ export function renderUpdates(body, { oscStatus = () => 'offline' } = {}) {
   let progress = null;
   let offProgress = null;
 
-  const versions = h('div');
-  const controls = h('div');
+  // .stack: the panel body's row gap only reaches its direct children, so each
+  // group spaces its own rows (they used to sit flush against each other)
+  const versions = h('div', 'stack');
+  const controls = h('div', 'stack');
   const status = h('div', 'test-result');
-  const detail = h('div');
+  const detail = h('div', 'stack');
   body.append(versions, controls, status, detail);
 
   // The panel can be torn down mid-download; drop the listener with it.
@@ -159,7 +161,7 @@ export function renderUpdates(body, { oscStatus = () => 'offline' } = {}) {
       }
       render();
     });
-    const wrap = h('div');
+    const wrap = h('div', 'stack');
     wrap.append(btnRow(btn), bar);
     return wrap;
   }

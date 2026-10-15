@@ -85,6 +85,19 @@ function audit(rootSel) {
       if (ox > 1 && oy > 1) out.push(`OVERLAP: ${name(a)} × ${name(b)} (${Math.round(ox)}×${Math.round(oy)})`);
     }
   }
+  // touching: two stacked blocks with no air between them (each pair of
+  // visible blocks that overlap horizontally and sit within 3 px vertically)
+  const blocks = els.filter(el => el.matches('.field, .row, .check-row, .big-btn, .test-result, .hint, pre, .safety-row, .dmx-chan, .dmx-stream-head, .link-leg, .update-progress, .seg, textarea, input, .glyph-row, .swatch-row'));
+  for (let i = 0; i < blocks.length; i += 1) {
+    for (let j = 0; j < blocks.length; j += 1) {
+      const a = blocks[i], b2 = blocks[j];
+      if (i === j || a.contains(b2) || b2.contains(a)) continue;
+      const ra = clip(a), rb = clip(b2);
+      const ox = Math.min(ra.right, rb.right) - Math.max(ra.left, rb.left);
+      const gap = rb.top - ra.bottom;
+      if (ox > 4 && gap >= -1 && gap < 3 && rb.top > ra.top) out.push(`TOUCHING: ${name(a)} above ${name(b2)} (gap ${Math.round(gap)}px)`);
+    }
+  }
   const body = panel.querySelector('.panel-body');
   if (body && body.scrollWidth > body.clientWidth + 1) out.push(`H-SCROLL in panel-body (${body.scrollWidth}>${body.clientWidth})`);
   return [...new Set(out)];
@@ -102,6 +115,7 @@ try {
     page.on('pageerror', err => errors.push(err.message));
     await page.goto(URL);
     await page.waitForFunction(() => document.body.dataset.ready === '1');
+    if (process.env.LAYOUT_EXTRA_CSS) await page.addStyleTag({ content: process.env.LAYOUT_EXTRA_CSS });
     if (WIDE) await page.addStyleTag({ content: '*, *::before, *::after { font-family: Verdana, sans-serif !important; }' });
     const baseTb = await page.evaluate(() => { const b = document.getElementById('topbar'); return [b.scrollWidth, b.clientWidth]; });
     console.log(`${w}x${hgt} topbar baseline (no safeties): scrollWidth ${baseTb[0]} / clientWidth ${baseTb[1]}`);
@@ -135,6 +149,21 @@ try {
       await page.getByRole('button', { name: tab, exact: true }).click();
       await page.waitForTimeout(350);
     }, root: '#settings-overlay' });
+    // the Updates tab in its busier states
+    const updatesWith = (info, result) => async () => {
+      await page.evaluate(([i, r]) => { window.__updateInfo = i; window.__updateResult = r; }, [info, result]);
+      await page.click('#settings-open');
+      await page.getByRole('button', { name: 'Updates', exact: true }).click();
+      await page.waitForTimeout(250);
+      if (result) { await page.click('#upd-check'); await page.waitForTimeout(250); }
+    };
+    const baseInfo = { supported: true, source: 'ota', payloadVersion: '2.2.21', shellVersion: '2.1.0', autoCheck: true, lastCheck: Date.now() };
+    views.push({ name: 'settings:Updates available', root: '#settings-overlay',
+      open: updatesWith(baseInfo, { status: 'available', version: '2.2.22', size: 127000, notes: 'Line one of the notes\n- a bullet\n- another bullet' }) });
+    views.push({ name: 'settings:Updates staged+installed+rolled back', root: '#settings-overlay',
+      open: updatesWith({ ...baseInfo, staged: '2.2.22', installed: ['2.2.22'], quarantined: ['2.2.20'] }, null) });
+    views.push({ name: 'settings:Updates shell-required', root: '#settings-overlay',
+      open: updatesWith(baseInfo, { status: 'shell-required', version: '3.0.0', message: 'Version 3.0.0 needs a new app shell.', htmlUrl: 'https://example.invalid' }) });
     const edit = (kind, i, prep) => async () => {
       await page.evaluate(([k, ix]) => import('/js/editor.js').then(m => m.openEditor(k, ix)), [kind, i]);
       await page.waitForSelector('#editor-overlay');

@@ -614,3 +614,11 @@ fonts) spilled out and squashed the toggle. Now `.panel-body > *` never shrinks 
 `.check-row` has a min-height and a gap, `.toggle` never shrinks, side-by-side field labels may wrap.
 The layout spec gained the Ally size (1840×1035 CSS px = 1280×720 DIP zoomed 0.6956), a SQUEEZED check
 and a `WIDE_FONT=1` stress pass (Verdana) standing in for Windows metrics.
+
+### Updates tab spacing — 2.2.22
+
+The panel body's 18 px row gap only reaches its direct children; the Updates tab groups its rows in
+plain divs, so versions, the launch switch / Check now, Restart / Remove and the notes sat flush. Those
+groups are now `.stack` (flex column, 14 px gap; empty ones hidden). The layout spec gained a TOUCHING
+check (stacked blocks closer than 3 px) and the Updates states available / staged+installed+rolled back /
+shell-required; `LAYOUT_EXTRA_CSS='.stack{display:block !important}'` reproduces the old bug.
