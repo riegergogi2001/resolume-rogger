@@ -8,6 +8,8 @@ const dmx = v => Math.max(0, Math.min(255, Math.round(Number(v)) || 0));
 
 export function sacnAddress(s) {
   const q = new URLSearchParams({ default: String(dmx(s.defaultValue)) });
+  const prio = Math.max(0, Math.min(200, Math.round(Number(s.priority ?? 100)) || 0));
+  if (prio !== 100) q.set('prio', String(prio));
   if (s.host) q.set('host', s.host.trim());
   if (s.iface) q.set('iface', s.iface.trim());
   return `sacn://${Math.max(1, Math.min(63999, Math.trunc(Number(s.universe)) || 1))}/${Math.max(1, Math.min(512, Math.trunc(Number(s.channel)) || 1))}?${q}`;

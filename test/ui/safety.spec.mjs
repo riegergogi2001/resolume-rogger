@@ -186,6 +186,20 @@ try {
   await page.evaluate(() => document.getElementById('settings-overlay')?.remove());
   assert(await dmx(11) === 5 && await dmx(21) === 5, 'bank: panic makes every machine SAFE');
   if (SHOTS) await page.locator('#topbar').screenshot({ path: `${SHOTS}/topbar-armed2.png` });
+
+  console.log('[dmx] monitor + preview');
+  await page.click('#settings-open');
+  await page.getByRole('button', { name: 'DMX', exact: true }).click();
+  await page.waitForTimeout(400);
+  const mon = await page.textContent('#dmx-monitor');
+  assert(/U8/.test(mon) && /CO2 ARM \(safety\)/.test(mon), 'monitor lists universe 8 and names the safety');
+  await page.locator('#settings-overlay .check-row', { hasText: 'Preview mode' }).locator('button.toggle').click();
+  await page.waitForTimeout(400);
+  assert(/PREVIEW/.test(await page.textContent('#dmx-monitor')), 'monitor marks the stream PREVIEW');
+  if (SHOTS) await page.locator('#settings-overlay .panel').screenshot({ path: `${SHOTS}/dmx-tab.png` });
+  await page.evaluate(() => document.getElementById('settings-overlay')?.remove());
+  assert((await page.textContent('#target-readout')).startsWith('DMX PREVIEW'), 'topbar says DMX PREVIEW');
+  if (SHOTS) await page.locator('#topbar').screenshot({ path: `${SHOTS}/topbar-preview.png` });
   assert(errors.length === 0, `no page errors (${errors.join(' | ')})`);
   console.log('\nSAFETY_SPEC_OK');
 } finally {

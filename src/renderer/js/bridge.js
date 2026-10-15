@@ -117,6 +117,26 @@ function mockBridge() {
     seedBpm: async () => 128,
     send: (address, values = []) => window.__oscLog.push({ address, values }),
     sendTyped: (address, args = []) => window.__oscLog.push({ address, args }),
+    // DMX monitor in the browser: rebuilt from the sACN sends in the log.
+    dmxRetain: addresses => {
+      const keep = new Set((addresses ?? []).map(a => a.split('?')[0]));
+      window.__oscLog = window.__oscLog.filter(m => !String(m.address ?? '').startsWith('sacn://') || keep.has(m.address.split('?')[0]));
+    },
+    dmxSetPreview: async on => { window.__dmxPreview = !!on; return window.__dmxPreview; },
+    dmxSnapshot: async () => {
+      const streams = new Map();
+      for (const m of window.__oscLog) {
+        const r = /^sacn:\/\/(\d+)\/(\d+)(?:\?(.*))?$/.exec(m.address ?? '');
+        if (!r) continue;
+        const q = new URLSearchParams(r[3] ?? '');
+        const u = Number(r[1]);
+        if (!streams.has(u)) streams.set(u, { proto: 'sacn', host: q.get('host') || `239.255.${u >> 8}.${u & 255}`, universe: u, iface: null, priority: 0, channels: new Map() });
+        const st = streams.get(u);
+        st.priority = Math.max(st.priority, Number(q.get('prio') ?? 100));
+        st.channels.set(Number(r[2]), { channel: Number(r[2]), value: Number(m.args?.[0]?.value ?? 0), default: Number(q.get('default') ?? 0) });
+      }
+      return { preview: !!window.__dmxPreview, streams: [...streams.values()].map(s => ({ ...s, channels: [...s.channels.values()].sort((a, b) => a.channel - b.channel) })) };
+    },
     applyNetwork: async network => { window.__oscLog.push({ applyNetwork: network }); },
     testConnection: async () => ({ ok: true, detail: 'Mock bridge — no network.' }),
     diagnoseLink: async () => window.__linkDiagnosis ?? {

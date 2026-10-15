@@ -747,14 +747,14 @@ body.edit-mode .color-btn {
 /* ---- Settings tabs ---- */
 .settings-tabs {
   display: flex;
-  gap: 4px;
-  padding: 0 20px;
+  gap: 0;
+  padding: 0 12px;
   border-bottom: 1px solid var(--line);
   flex-wrap: wrap;
 }
 .settings-tab {
   flex: 1;
-  padding: 0 14px;
+  padding: 0 6px;
   height: 56px;
   border: none;
   border-bottom: 3px solid transparent;
@@ -1333,3 +1333,18 @@ body.edit-mode .color-btn {
 .safety-row .safety-arm.armed { background: #ff4757; animation: safety-blink 0.8s steps(1) infinite; }
 .big-btn.safety-panic { background: #ff4757; color: #fff; font-weight: 900; }
 .safety-row .safety-arm.arming { background: #ffb400; color: #0b0d10; }
+
+/* ---- DMX preview + monitor (2.2.19) ---- */
+.target-readout.dmx-preview {
+  color: #0b0d10; background: #ffb400; font-weight: 900; letter-spacing: 0.06em;
+  padding: 2px 8px; border-radius: 4px; max-width: 280px;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.dmx-monitor { display: flex; flex-direction: column; gap: 8px; margin-top: 8px; }
+.dmx-stream-head { font-size: 12px; font-weight: 900; letter-spacing: 0.06em; color: var(--accent); margin-top: 6px; }
+.dmx-chans { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 6px; }
+.dmx-chan { border: 1px solid var(--line); border-radius: 6px; padding: 6px 8px; background: var(--bg); min-width: 0; }
+.dmx-chan.live { border-color: #ff4757; background: color-mix(in srgb, #ff4757 18%, var(--bg)); }
+.dmx-chan .dmx-ch { font-size: 11px; color: var(--text-dim); }
+.dmx-chan .dmx-val { font-size: 20px; font-weight: 900; }
+.dmx-chan .dmx-name { font-size: 11px; color: var(--text-dim); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }

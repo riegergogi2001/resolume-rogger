@@ -351,6 +351,8 @@ export function openEditor(kind, index) {
       field('Default value (0–255)', numInput(sc.defaultValue, v => { sc.defaultValue = v; }, '1')));
     body.append(vals);
     body.append(h('div', 'hint', 'Default value goes out from startup, on release (hold), when toggled off, and when ROGGER quits.'));
+    body.append(field('sACN priority (0–200, 100 = normal; higher wins over the desk)',
+      numInput(sc.priority ?? 100, v => { sc.priority = Math.max(0, Math.min(200, Math.round(v || 0))); }, '1')));
     const timing = h('div', 'row');
     if (draft.mode === 'shot') {
       timing.append(field('Shot length (ms)', numInput(sc.shotMs ?? 500, v => { sc.shotMs = Math.max(50, v || 0); }, '50')));
@@ -385,6 +387,8 @@ export function openEditor(kind, index) {
       field('Universe (1–63999)', numInput(draft.universe, v => { draft.universe = v; }, '1')),
       field('Channel (1–512)', numInput(draft.channel, v => { draft.channel = v; }, '1')));
     body.append(addr);
+    body.append(field('sACN priority (0–200, 100 = normal)',
+      numInput(draft.priority ?? 100, v => { draft.priority = Math.max(0, Math.min(200, Math.round(v || 0))); }, '1')));
     body.append(field('More machines in this bank (one per line: universe/channel)',
       textArea((draft.extra ?? []).join('\n'),
         v => { draft.extra = v.split('\n').map(x => x.trim()).filter(Boolean); }, '8/11\n8/21\n8/31')));

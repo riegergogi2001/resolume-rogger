@@ -571,3 +571,15 @@ Save refuses a two-hand safety without both buttons. Settings → Safety ARM bec
 values, e.g. eight flame machines. `safetyChannels(s)` = main channel + every valid line; arm, disarm,
 panic, launch and quit cover all of them. There is deliberately no auto-disarm: an armed safety stays
 armed until it is disarmed or PANIC.
+
+### sACN priority, preview, monitor — 2.2.19
+
+- Priority: `sacn.priority` (buttons) and `safety.priority`, 0–200, in the address as `&prio=` when not
+  100. One sACN source has one priority per universe, so the stream uses the highest any of its channels asks.
+- Preview: Settings → **DMX** switch (memory only, off at launch) sets the E1.31 Preview_Data option bit
+  (0x80) on every packet: visualisers show it, fixtures ignore it. Topbar slot shows amber **DMX PREVIEW**.
+- Monitor: Settings → DMX lists every stream (proto, universe, target, priority, PREVIEW) and the channels
+  ROGGER drives (value, default, which button / safety), refreshed 4×/s from `dmx:snapshot`.
+- Quit sends three Stream_Terminated packets (0x40) after the defaults. The renderer reports the
+  addresses still in use (`dmx:retain`, debounced on every config change); streams nothing uses any more
+  are terminated instead of streaming zeros. Adding a safety sends nothing until it is saved.

@@ -45,6 +45,9 @@ function registerIpc({ ipcMain, engine, store, configPath, seedPath, getWindow, 
   ipcMain.on('osc:send-typed', (_e, address, args) => {
     if (!dmx.handle(address, args)) engine.sendTyped(address, args);
   });
+  ipcMain.handle('dmx:snapshot', () => dmx.snapshot());
+  ipcMain.handle('dmx:preview', (_e, on) => dmx.setPreview(on));
+  ipcMain.on('dmx:retain', (_e, addresses) => dmx.retain(addresses));
   // The launch-time bind runs before the renderer has a page, so anything
   // the engine reports then (a busy listen port, say) would be lost. Keep it
   // until the surface asks for its first status, then replay it.

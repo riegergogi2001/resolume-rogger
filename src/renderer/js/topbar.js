@@ -180,12 +180,17 @@ export function renderTopbar(el, { onToggleEdit, onOpenSettings }) {
     const n = state.get().network;
     const list = state.get().safeties ?? [];
     const on = list.filter(s => safety.isArmed(s.id));
-    target.classList.toggle('safety-safe', list.length > 0 && !on.length);
-    target.classList.toggle('safety-armed', on.length > 0);
+    const pv = safety.previewOn();
+    target.classList.toggle('safety-safe', list.length > 0 && !on.length && !pv);
+    target.classList.toggle('safety-armed', on.length > 0 && !pv);
+    target.classList.toggle('dmx-preview', pv);
     target.id = 'target-readout';
-    if (!list.length) target.textContent = `${n.targetIp}:${n.targetPort}`;
-    else if (!on.length) target.textContent = 'SAFE';
-    else target.textContent = `ARMED: ${on.map(s => s.label).join(', ')}`;
+    let text;
+    if (!list.length) text = `${n.targetIp}:${n.targetPort}`;
+    else if (!on.length) text = 'SAFE';
+    else text = `ARMED: ${on.map(s => s.label).join(', ')}`;
+    // preview: DMX goes to visualisers only — say so louder than anything else
+    target.textContent = pv ? `DMX PREVIEW${list.length ? ' · ' + text : ''}` : text;
   }
   safety.onChange(refreshTarget);
   refreshTarget();

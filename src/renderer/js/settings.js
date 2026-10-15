@@ -14,7 +14,7 @@ import { BUTTON_NAMES } from './gamepad.js';
 import { bindingLabel } from './gamepad-resolve.js';
 import * as safety from './safety.js';
 
-const TABS = ['Network', 'Controller', 'Safety', 'Pages', 'Updates', 'Backup', 'About'];
+const TABS = ['Network', 'Controller', 'Safety', 'DMX', 'Pages', 'Updates', 'Backup', 'About'];
 
 export function openSettings() {
   const root = document.getElementById('overlay-root');
@@ -34,6 +34,7 @@ export function openSettings() {
   function close() {
     offStatus?.();
     offSafety?.();
+    clearInterval(monitorTimer);
     overlay.remove();
   }
 
@@ -61,10 +62,13 @@ export function openSettings() {
   }
 
   function renderTab() {
+    clearInterval(monitorTimer);
+    monitorTimer = null;
     body.innerHTML = '';
     if (currentTab === 'Network') renderNetwork();
     else if (currentTab === 'Controller') renderController();
     else if (currentTab === 'Safety') renderSafety();
+    else if (currentTab === 'DMX') renderDmx();
     else if (currentTab === 'Pages') renderPages();
     else if (currentTab === 'Updates') renderUpdates(body, { oscStatus: () => lastOscStatus });
     else if (currentTab === 'Backup') renderBackup();
@@ -251,8 +255,7 @@ export function openSettings() {
     add.id = 'safety-add';
     add.addEventListener('click', () => {
       const next = [...(state.get().safeties ?? []), safety.newSafety(state.get().safeties ?? [])];
-      state.replaceList('safeties', next);
-      safety.sendAllSafe({ safeties: [next.at(-1)] }, rogger);
+      state.replaceList('safeties', next); // nothing goes out until its address is saved
       state.requestRerender(); // gamepad handle offsets move
       close();
       openEditor('safeties', next.length - 1);
@@ -260,6 +263,49 @@ export function openSettings() {
     body.append(btnRow(add));
   }
   const offSafety = safety.onChange(() => { if (currentTab === 'Safety') renderTab(); });
+
+  // ---------------- DMX ----------------
+  // Preview switch + live monitor of everything ROGGER sends as DMX.
+  let monitorTimer = null;
+  function renderDmx() {
+    body.append(checkRow('Preview mode — sACN goes out flagged as preview: visualisers show it, fixtures and CO2 ignore it',
+      safety.previewOn(), async v => { await safety.setPreview(v, rogger); }));
+    body.append(h('div', 'hint', 'Preview is off at every launch. While it is on the topbar says DMX PREVIEW.'));
+    const mon = h('div', 'dmx-monitor');
+    mon.id = 'dmx-monitor';
+    body.append(mon);
+    const names = () => {
+      const map = new Map();
+      const cfg = state.get();
+      for (const k of ['fxButtons', 'fxButtons2', 'fxButtons3', 'utilButtons']) {
+        for (const b of cfg[k] ?? []) if (b.output === 'sacn') map.set(`${b.sacn.universe}/${b.sacn.channel}`, b.label);
+      }
+      for (const s of cfg.safeties ?? []) for (const [u, c] of safety.safetyChannels(s)) map.set(`${u}/${c}`, `${s.label} (safety)`);
+      return map;
+    };
+    async function paint() {
+      const snap = await rogger.dmxSnapshot?.();
+      if (!snap) { mon.replaceChildren(h('div', 'hint', 'DMX monitor needs the desktop app.')); return; }
+      const label = names();
+      const parts = [];
+      if (!snap.streams.length) parts.push(h('div', 'hint', 'Nothing sent yet. sACN buttons and safeties appear here once ROGGER drives them.'));
+      for (const st of snap.streams) {
+        const head = h('div', 'dmx-stream-head u-caps u-num',
+          `${st.proto === 'sacn' ? 'sACN' : 'Art-Net'} U${st.universe} → ${st.host}${st.iface ? ' via ' + st.iface : ''}${st.priority != null ? ' · prio ' + st.priority : ''}${snap.preview && st.proto === 'sacn' ? ' · PREVIEW' : ''}`);
+        const grid = h('div', 'dmx-chans');
+        for (const ch of st.channels) {
+          const cell = h('div', 'dmx-chan' + (ch.value !== ch.default ? ' live' : ''));
+          cell.append(h('div', 'dmx-ch u-num', `ch ${ch.channel}`), h('div', 'dmx-val u-num', String(ch.value)),
+            h('div', 'dmx-name', label.get(`${st.universe}/${ch.channel}`) ?? `default ${ch.default}`));
+          grid.append(cell);
+        }
+        parts.push(head, grid);
+      }
+      mon.replaceChildren(...parts);
+    }
+    paint();
+    monitorTimer = setInterval(paint, 250);
+  }
 
   function renderPages() {
     body.append(h('div', 'hint', 'Page 1 always stays visible.'));

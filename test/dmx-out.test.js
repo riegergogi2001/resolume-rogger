@@ -14,7 +14,7 @@ function fakeOut() {
 const sacnCh = (p, c) => p.buf[126 + c - 1];
 
 test('parse', () => {
-  assert.deepEqual(parse('sacn://8/3'), { proto: 'sacn', host: '239.255.0.8', port: 5568, universe: 8, channel: 3, iface: null, def: 0 });
+  assert.deepEqual(parse('sacn://8/3'), { proto: 'sacn', host: '239.255.0.8', port: 5568, universe: 8, channel: 3, iface: null, def: 0, prio: 100 });
   assert.equal(parse('sacn://300/1').host, '239.255.1.44');
   assert.equal(parse('sacn://8/3?host=10.0.0.50').host, '10.0.0.50');
   assert.equal(parse('sacn://8/3?iface=10.0.0.2').iface, '10.0.0.2');
@@ -82,4 +82,42 @@ test('real UDP: unicast sACN arrives', async () => {
   const m = await got;
   assert.equal(m.length, 638); assert.equal(m[126 + 2], 255); assert.equal(m.readUInt16BE(113), 8);
   rx.close(); d.close(); for (const s of d.sockets.values()) s.close();
+});
+
+test('priority per universe = highest asked; preview flag; stream terminated on quit; snapshot', () => {
+  const { d, sent } = fakeOut();
+  d.handle('sacn://8/3?default=0', [{ type: 'i', value: 255 }]);
+  assert.equal(sent.at(-1).buf[108], 100);
+  assert.equal(sent.at(-1).buf[112], 0);
+  d.handle('sacn://8/4?default=0&prio=150', [{ type: 'i', value: 0 }]);
+  assert.equal(sent.at(-1).buf[108], 150, 'one channel asking 150 lifts the universe');
+  assert.equal(parse('sacn://1/1?prio=999').prio, 200);
+  d.setPreview(true);
+  assert.equal(sent.at(-1).buf[112] & 0x80, 0x80, 'preview flag');
+  const snap = d.snapshot();
+  assert.equal(snap.preview, true);
+  assert.deepEqual(snap.streams[0].channels, [{ channel: 3, value: 255, default: 0 }, { channel: 4, value: 0, default: 0 }]);
+  assert.equal(snap.streams[0].priority, 150);
+  d.setPreview(false);
+  const n = sent.length;
+  d.close();
+  const after = sent.slice(n);
+  assert.equal(after[0].buf[126 + 2], 0, 'released first');
+  assert.equal(after.slice(-3).every(p => p.buf[112] & 0x40), true, 'then 3 stream-terminated packets');
+});
+
+test('retain closes streams nothing uses any more', () => {
+  const { d, sent } = fakeOut();
+  d.handle('sacn://1/1?default=0', [{ type: 'i', value: 0 }]);
+  d.handle('sacn://8/3?default=0&prio=150', [{ type: 'i', value: 255 }]);
+  d.handle('sacn://8/4?default=0', [{ type: 'i', value: 0 }]);
+  const n = sent.length;
+  d.retain(['sacn://8/4?default=0']);
+  const term = sent.slice(n);
+  assert.equal(term.length, 3); assert.ok(term.every(p => p.host === '239.255.0.1' && (p.buf[112] & 0x40)));
+  const snap = d.snapshot();
+  assert.deepEqual(snap.streams.map(s => s.universe), [8]);
+  assert.deepEqual(snap.streams[0].channels.map(c => c.channel), [4]);
+  assert.equal(snap.streams[0].priority, 100, 'priority drops back when the 150 channel goes');
+  d.close();
 });

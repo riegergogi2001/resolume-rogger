@@ -5,7 +5,7 @@ import { showToast } from './toast.js';
 import { renderTopbar } from './topbar.js';
 import { renderFxGrid, fxHandles, setPage } from './fx-grid.js';
 import { sendAllDefaults } from './sacn-button.js';
-import { sendAllSafe } from './safety.js';
+import { sendAllSafe, activeAddresses } from './safety.js';
 import { startGamepad } from './gamepad.js';
 import { renderFaders, faderHandles } from './faders.js';
 import { renderColorRow, colorHandles } from './color-row.js';
@@ -56,6 +56,12 @@ async function boot() {
   renderAll();
   state.setRerenderHandler(renderAll);
   sendAllSafe(state.get(), rogger);      // every safety starts SAFE
+  // keep the main process's DMX streams to what the config still uses
+  let retainTimer = null;
+  state.subscribe(() => {
+    clearTimeout(retainTimer);
+    retainTimer = setTimeout(() => rogger.dmxRetain?.(activeAddresses(state.get())), 300);
+  });
   sendAllDefaults(state.get(), rogger); // sACN buttons start at their default level
 
   startGamepad(fxHandles);

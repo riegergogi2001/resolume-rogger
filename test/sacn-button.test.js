@@ -12,7 +12,7 @@ const sacnBtn = over => ({ ...store.defaults().fxButtons[0], output: 'sacn', mod
 test('defaults carry an OSC output and sACN fields; old configs gain them', () => {
   const b = store.defaults().fxButtons[0];
   assert.equal(b.output, 'osc');
-  assert.deepEqual(b.sacn, { universe: 1, channel: 1, defaultValue: 0, host: '', iface: '', safety: '', maxMs: 0, shotMs: 500 });
+  assert.deepEqual(b.sacn, { universe: 1, channel: 1, defaultValue: 0, host: '', iface: '', safety: '', maxMs: 0, shotMs: 500, priority: 100 });
   const merged = store.merge?.({ fxButtons: [{ label: 'OLD' }] }) ?? null;
   if (merged) assert.equal(merged.fxButtons[0].sacn.channel, 1);
 });
@@ -47,4 +47,10 @@ test('OSC buttons are untouched; startup sends each sACN default', () => {
   const cfg = { fxButtons: [applySacn(sacnBtn({ sacn: { universe: 8, channel: 3, defaultValue: 7, host: '', iface: '' } })), osc] };
   sendAllDefaults(cfg, { sendTyped: (a, args) => sent.push([a, args[0].value]) });
   assert.equal(sent.length, 1); assert.match(sent[0][0], /^sacn:\/\/8\/3\?/); assert.equal(sent[0][1], 7);
+});
+
+test('priority goes into the address only when not 100', () => {
+  assert.equal(parse(sacnAddress({ universe: 8, channel: 3, defaultValue: 0 })).prio, 100);
+  assert.ok(!sacnAddress({ universe: 8, channel: 3, defaultValue: 0, priority: 100 }).includes('prio'));
+  assert.equal(parse(sacnAddress({ universe: 8, channel: 3, defaultValue: 0, priority: 180 })).prio, 180);
 });

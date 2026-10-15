@@ -12,7 +12,7 @@ const listeners = new Set();
 const forceOffs = new Map(); // button key -> () => void, registered by fx-grid
 
 export function safetyAddress(s, universe = s.universe, channel = s.channel) {
-  return sacnAddress({ universe, channel, defaultValue: s.safeValue, host: s.host, iface: s.iface });
+  return sacnAddress({ universe, channel, defaultValue: s.safeValue, host: s.host, iface: s.iface, priority: s.priority });
 }
 
 // Every arm channel of a safety bank: the main one plus each valid "u/ch" in extra.
@@ -32,10 +32,20 @@ export function newSafety(existing = []) {
     id: `safety-${Date.now().toString(36)}${Math.random().toString(36).slice(2, 6)}`,
     label: `SAFETY ${n}`,
     universe: 1, channel: 1, armedValue: 255, safeValue: 0,
-    extra: [], host: '', iface: '', mode: 'toggle',
+    priority: 100, extra: [], host: '', iface: '', mode: 'toggle',
     twoHand: false, armHoldMs: 1000,
     gamepadButton: -1, gamepadModifier: -1,
   };
+}
+
+// sACN preview mode (memory only, every launch LIVE): packets carry the
+// Preview_Data flag, so visualisers show them and fixtures ignore them.
+let preview = false;
+export const previewOn = () => preview;
+export async function setPreview(on, rogger) {
+  preview = !!(await rogger.dmxSetPreview?.(!!on) ?? on);
+  notify();
+  return preview;
 }
 
 export const isArmed = id => armed.has(id);
@@ -99,6 +109,15 @@ export function panic(cfg, rogger) {
     sendDefault(b, rogger);
   }
   notify();
+}
+
+// Every DMX address the config uses (buttons + every channel of every safety),
+// so the main process can close streams nothing needs any more.
+export function activeAddresses(cfg) {
+  const out = [];
+  for (const { b } of buttons(cfg)) if (b.output === 'sacn' && b.address) out.push(b.address);
+  for (const s of cfg.safeties ?? []) for (const [u, ch] of safetyChannels(s)) out.push(safetyAddress(s, u, ch));
+  return out;
 }
 
 // Launch: every safety SAFE (armed set is empty after a restart anyway).
