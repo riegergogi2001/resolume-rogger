@@ -150,6 +150,7 @@ function start(ctx = {}) {
   });
 
   function closeEngine(why) {
+    try { api?.companion?.disconnect(); } catch (err) { console.error(`companion.disconnect on ${why}:`, err); }
     try { api?.dmx.close(); } catch (err) { console.error(`dmx.close on ${why}:`, err); }
     try { engine.close(); } catch (err) { console.error(`engine.close on ${why}:`, err); }
   }

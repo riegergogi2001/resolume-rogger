@@ -5,6 +5,7 @@ const { Updater } = require('./updater.js');
 const { buildDjButtons } = require('./dj-sync.js');
 const { diagnose } = require('./diagnostics.js');
 const { DmxOut } = require('./dmx-out.js');
+const { CompanionClient } = require('./companion.js');
 
 function registerIpc({ ipcMain, engine, store, configPath, seedPath, getWindow, app, dialog, shell, ctx = {}, dmx = new DmxOut() }) {
   let config = store.load(configPath);
@@ -48,6 +49,19 @@ function registerIpc({ ipcMain, engine, store, configPath, seedPath, getWindow, 
   ipcMain.handle('dmx:snapshot', () => dmx.snapshot());
   ipcMain.handle('dmx:preview', (_e, on) => dmx.setPreview(on));
   ipcMain.on('dmx:retain', (_e, addresses) => dmx.retain(addresses));
+  // Companion Satellite: ROGGER shows up in Companion as a Stream Deck XL.
+  const companion = new CompanionClient({ onEvent: ev => sendToWindow('companion:event', ev) });
+  ipcMain.handle('companion:snapshot', () => companion.snapshot());
+  ipcMain.handle('companion:connect', (_e, { host, port, enabled }) => {
+    config = { ...config, ui: { ...config.ui, companion: { host, port, enabled } } };
+    store.save(configPath, config);
+    if (enabled && host) companion.connect(host, port);
+    else companion.disconnect();
+    return companion.snapshot();
+  });
+  ipcMain.on('companion:press', (_e, key, pressed) => companion.press(key, pressed));
+  const cc = config.ui?.companion;
+  if (cc?.enabled && cc.host) companion.connect(cc.host, cc.port);
   // The launch-time bind runs before the renderer has a page, so anything
   // the engine reports then (a busy listen port, say) would be lost. Keep it
   // until the surface asks for its first status, then replay it.
@@ -205,7 +219,7 @@ function registerIpc({ ipcMain, engine, store, configPath, seedPath, getWindow, 
     if (earlyErrors.length < 20) earlyErrors.push(text);
   });
 
-  return { getConfig: () => config, dmx };
+  return { getConfig: () => config, dmx, companion };
 }
 
 module.exports = { registerIpc };

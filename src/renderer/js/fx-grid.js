@@ -11,6 +11,7 @@ import * as beat from './beat-clock.js';
 import { renderFaderSet } from './faders.js';
 import { renderColorLab } from './color-lab.js';
 import { renderBpmPage } from './bpm/bpm-page.js';
+import { renderCompanionDeck } from './companion-deck.js';
 import * as safety from './safety.js';
 
 // ---- DJ sync reporting -------------------------------------------------
@@ -60,6 +61,7 @@ export const PAGE_DEFS = [
   { kind: 'fxButtons3', label: 'DJ Intro', layout: 'grid' },
   { kind: null, label: 'Colors', layout: 'colors' },
   { kind: null, label: 'BPM', layout: 'bpm' },
+  { kind: null, label: 'Companion', layout: 'deck' },
 ];
 // Handle order for the gamepad: all pages, then the utility quad.
 // (Single definition lives in gamepad-resolve.js; re-exported here so
@@ -497,6 +499,9 @@ export function renderFxGrid(el, { isEditMode, onEdit }) {
     if (layout === 'colors') {
       pageEl.classList.add('fx-page--custom');
       renderColorLab(pageEl, { isEditMode, onEdit });
+    } else if (layout === 'deck') {
+      pageEl.classList.add('fx-page--custom');
+      renderCompanionDeck(pageEl);
     } else if (layout === 'bpm') {
       pageEl.classList.add('fx-page--custom');
       renderBpmPage(pageEl);

@@ -628,3 +628,16 @@ shell-required; `LAYOUT_EXTRA_CSS='.stack{display:block !important}'` reproduces
 A filled button at rest is a dimmed fill with white text; pressed / latched it goes to the full colour,
 strobes against white (`fx-live`), gets a 5 px white ring and glow, and a sACN button (`.fx-btn--dmx`)
 shows a blinking FIRING tag in place of its mode. README screenshots: `node tools/readme-shots.mjs`.
+
+## Companion page (emulated Stream Deck XL) — 2.2.24
+
+The **Companion** page registers ROGGER with Bitfocus Companion's Satellite API
+(TCP 16622, `src/main/companion.js`) as an 8x4, 32-key Stream Deck XL
+(`ADD-DEVICE … KEYS_TOTAL=32 KEYS_PER_ROW=8 BITMAPS=72`). Companion renders each
+key and sends it as a 72x72 raw-RGB bitmap (`KEY-STATE`); the page
+(`src/renderer/js/companion-deck.js`) paints it onto a canvas and sends
+`KEY-PRESS` on pointer down/up. Enter Companion's IP on the page and tap
+Connect; host/port/enabled live in `config.ui.companion` and reconnect on
+launch (retry every 3 s). The surface appears in Companion → Surfaces as
+`ROGGER-<hostname>`. Hide the page in Settings → Pages like any other.
+Test: `test/companion.test.js` (fake Companion on an ephemeral port).
