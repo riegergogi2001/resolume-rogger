@@ -42,6 +42,7 @@ export function openSettings() {
   // Per-tab drafts: edited freely, only committed to state on that tab's
   // own Save (Pages/Backup act immediately — there's nothing to stage).
   const netDraft = { ...state.get().network };
+  const companionDraft = { host: '127.0.0.1', port: 16622, enabled: false, ...state.get().ui?.companion };
   const triggersDraft = structuredClone(state.get().triggers ?? {});
   const sticksDraft = structuredClone(state.get().sticks ?? {});
   const hapticsDraft = structuredClone(state.get().haptics ?? { enabled: true, press: true, strobe: true });
@@ -120,12 +121,21 @@ export function openSettings() {
     body.append(btnRow(testBtn));
     body.append(testResult);
 
+    body.append(h('div', 'lib-group-title u-caps', 'Companion (Stream Deck XL page)'));
+    body.append(row2(
+      field('Companion IP', textInput(companionDraft.host, v => { companionDraft.host = v.trim(); })),
+      field('Satellite port', numInput(companionDraft.port, v => { companionDraft.port = v || 16622; }, '1'))));
+
     const saveBtn = h('button', 'big-btn primary u-caps', 'Save network settings');
     saveBtn.id = 'set-net-save';
     saveBtn.addEventListener('click', async () => {
       const patch = { ...netDraft };
       state.updateNetwork(patch);
       await rogger.applyNetwork(patch);
+      // Companion: keep the page's connect/disconnect state, reconnect to the new address
+      const companion = { ...state.get().ui?.companion, host: companionDraft.host, port: companionDraft.port };
+      state.updateSection('ui', { companion });
+      await rogger.companionConnect?.(companion);
       showToast('Network settings saved');
     });
     body.append(btnRow(saveBtn));

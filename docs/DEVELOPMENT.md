@@ -636,8 +636,8 @@ The **Companion** page registers ROGGER with Bitfocus Companion's Satellite API
 (`ADD-DEVICE … KEYS_TOTAL=32 KEYS_PER_ROW=8 BITMAPS=72`). Companion renders each
 key and sends it as a 72x72 raw-RGB bitmap (`KEY-STATE`); the page
 (`src/renderer/js/companion-deck.js`) paints it onto a canvas and sends
-`KEY-PRESS` on pointer down/up. Enter Companion's IP on the page and tap
-Connect; host/port/enabled live in `config.ui.companion` and reconnect on
+`KEY-PRESS` on pointer down/up. Companion's IP/port live in Settings →
+Network (2.2.25); the page only has Connect/Disconnect and the status; host/port/enabled live in `config.ui.companion` and reconnect on
 launch (retry every 3 s). The surface appears in Companion → Surfaces as
 `ROGGER-<hostname>`. Hide the page in Settings → Pages like any other.
 Test: `test/companion.test.js` (fake Companion on an ephemeral port).

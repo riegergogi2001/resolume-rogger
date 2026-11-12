@@ -192,12 +192,7 @@ body[data-page="colors"] #color-row { display: none; }
 .companion-wrap { container-type: size; min-height: 0; }
 .companion-head { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
 .companion-head > span:first-child { margin-right: auto; }
-.companion-head input {
-  height: 40px; padding: 0 10px; border: 1px solid var(--line-bright);
-  border-radius: 8px; background: var(--bg); font-size: 15px;
-}
-.companion-host { width: 170px; }
-.companion-port { width: 90px; }
+.companion-addr { font-size: 13px; color: var(--text-dim); letter-spacing: 0.04em; }
 .companion-head .mini-btn { height: 40px; min-width: 120px; }
 .companion-status { font-size: 12px; color: var(--text-dim); min-width: 110px; }
 .companion-status[data-status="connected"] { color: var(--ok); }

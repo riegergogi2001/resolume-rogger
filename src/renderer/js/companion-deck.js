@@ -24,16 +24,16 @@ export function renderCompanionDeck(pageEl) {
   const head = document.createElement('div');
   head.className = 'bank-title companion-head';
   head.innerHTML = `<span>Companion · Stream Deck XL</span>
-    <input class="companion-host" type="text" inputmode="decimal" spellcheck="false" placeholder="Companion IP" aria-label="Companion IP">
-    <input class="companion-port" type="number" min="1" max="65535" aria-label="Satellite port">
+    <span class="companion-addr u-num"></span>
     <button class="mini-btn u-caps companion-toggle"></button>
     <span class="companion-status u-caps"></span>`;
-  const host = head.querySelector('.companion-host');
-  const port = head.querySelector('.companion-port');
+  const addr = head.querySelector('.companion-addr');
+  const target = () => {
+    const c = state.get().ui?.companion ?? {};
+    return { host: c.host || '127.0.0.1', port: Number(c.port) || 16622 };
+  };
   const toggle = head.querySelector('.companion-toggle');
   const statusEl = head.querySelector('.companion-status');
-  host.value = saved.host ?? '127.0.0.1';
-  port.value = saved.port ?? 16622;
   let enabled = !!saved.enabled;
 
   const deck = document.createElement('div');
@@ -91,6 +91,8 @@ export function renderCompanionDeck(pageEl) {
     keys.forEach(k => { k.ctx.clearRect(0, 0, SIZE, SIZE); k.label.textContent = ''; });
   }
   function showStatus(status, message) {
+    const t = target();
+    addr.textContent = `${t.host}:${t.port}`;
     statusEl.textContent = STATUS_TEXT[status] ?? status;
     statusEl.dataset.status = status;
     statusEl.title = message ?? '';
@@ -101,10 +103,9 @@ export function renderCompanionDeck(pageEl) {
 
   toggle.addEventListener('click', async () => {
     enabled = !enabled;
-    const opts = { host: host.value.trim(), port: Number(port.value) || 16622, enabled };
+    const opts = { ...target(), enabled };
     // keep the renderer's copy in step so a later config save doesn't undo it
-    const cfg = state.get();
-    cfg.ui = { ...cfg.ui, companion: opts };
+    state.updateSection('ui', { companion: opts });
     if (!enabled) clearAll();
     const snap = await rogger.companionConnect?.(opts);
     showStatus(snap?.status ?? 'off');
@@ -117,6 +118,7 @@ export function renderCompanionDeck(pageEl) {
     else if (ev.type === 'status') showStatus(ev.status, ev.message);
     else if (ev.type === 'brightness') deck.style.setProperty('--deck-brightness', Math.max(0.15, ev.value / 100));
   });
+  state.subscribe(() => { const t = target(); addr.textContent = `${t.host}:${t.port}`; });
   showStatus('off');
   rogger.companionSnapshot?.().then(snap => {
     if (!snap) return;
